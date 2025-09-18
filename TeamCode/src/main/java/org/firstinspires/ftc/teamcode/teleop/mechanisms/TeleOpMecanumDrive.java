@@ -91,7 +91,7 @@ public class TeleOpMecanumDrive {
     }
     public void autoAlignToTag(double bearingRadians, boolean rb, boolean lb, double y, double x) {
         // Proportional control constant (tune as needed)
-        double kP = 0.405;
+        double kP = 0.805;
         // Clamp output to avoid excessive speed
         double maxPower = 0.3;
         double alignmentThreshold = 0.05; // radians, adjust as needed

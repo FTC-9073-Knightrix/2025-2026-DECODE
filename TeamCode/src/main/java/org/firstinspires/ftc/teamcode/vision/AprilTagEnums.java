@@ -1,12 +1,11 @@
 package org.firstinspires.ftc.teamcode.vision;
 
 public enum AprilTagEnums {
-    RED_GOAL(24, "Red Goal"),
-    BLUE_GOAL(20, "Blue Goal"),
-    OBELISK_TAG_21(21, "Green Purple Purple"),
-    OBELISK_TAG_22(22, "Purple Green Purple"),
-    OBELISK_TAG_23(23, "Purple Purple Green");
-}
+    RED_GOAL(24, "RED"),
+    BLUE_GOAL(20, "BLUE"),
+    OBELISK_TAG_21(21, "GPP"),
+    OBELISK_TAG_22(22, "PGP"),
+    OBELISK_TAG_23(23, "PPG");
 
     private final int id;
     private final String description;

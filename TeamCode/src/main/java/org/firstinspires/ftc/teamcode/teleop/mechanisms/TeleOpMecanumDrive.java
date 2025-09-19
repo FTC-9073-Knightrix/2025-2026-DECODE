@@ -28,7 +28,6 @@ public class TeleOpMecanumDrive {
 
         frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-//        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -57,7 +56,6 @@ public class TeleOpMecanumDrive {
             //Regular
             finalSlowMode = driveSpeed;
         }
-
 
 //        double y = -gamepad1.left_stick_y;
 //        double x = gamepad1.left_stick_x;

@@ -58,10 +58,23 @@ public class AprilTagAutoAlign extends OpMode {
         // if there is at least one detection
         if (!tagProcessor.getDetections().isEmpty()) {
             AprilTagDetection tag = tagProcessor.getDetections().get(0);
+            double x = tag.ftcPose.x;
+            double y = tag.ftcPose.y;
+            double z = tag.ftcPose.z;
 
             telemetry.addData("Tag ID", tag.id);
             telemetry.addData("Tag Pose", tag.ftcPose);
             telemetry.addData("bearing", tag.ftcPose.bearing);
+            telemetry.addData("x", "%.2f", x); // change format for more decimal places if needed
+            telemetry.addData("y", "%.2f", y);
+            telemetry.addData("z", "%.2f", z);
+
+            // distances 2d and 3d
+            double distance2d = Math.hypot(x, y);
+            double distance3d = Math.hypot(distance2d, z);
+            telemetry.addData("distance2d", "%.2f", distance2d);
+            telemetry.addData("distance3d", "%.2f", distance3d);
+
             drive.autoAlignToTag(Math.toRadians(tag.ftcPose.bearing), rb, lb, leftY, leftX);
         }
         else {

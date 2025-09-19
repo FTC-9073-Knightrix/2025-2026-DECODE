@@ -28,7 +28,6 @@ public class TeleOpMecanumDrive {
 
         frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-//        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -57,7 +56,6 @@ public class TeleOpMecanumDrive {
             //Regular
             finalSlowMode = driveSpeed;
         }
-
 
 //        double y = -gamepad1.left_stick_y;
 //        double x = gamepad1.left_stick_x;
@@ -91,7 +89,7 @@ public class TeleOpMecanumDrive {
     }
     public void autoAlignToTag(double bearingRadians, boolean rb, boolean lb, double y, double x) {
         // Proportional control constant (tune as needed)
-        double kP = 0.405;
+        double kP = 0.805;
         // Clamp output to avoid excessive speed
         double maxPower = 0.3;
         double alignmentThreshold = 0.05; // radians, adjust as needed

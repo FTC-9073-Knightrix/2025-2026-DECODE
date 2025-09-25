@@ -17,7 +17,7 @@ public class ColorTest extends OpMode {
     NormalizedRGBA colors;
     enum GameColors {GREEN, PURPLE, NONE}
     GameColors colorMatch = GameColors.NONE;
-    double minColorDistance = 3.0; // Minimum distance in cm to detect color
+    double minColorDistance = 7.0; // Minimum distance in cm to detect color
 
     @Override
     public void init() {

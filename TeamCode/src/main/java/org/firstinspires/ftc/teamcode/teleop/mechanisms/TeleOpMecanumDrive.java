@@ -13,6 +13,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class TeleOpMecanumDrive {
+    public enum DriveMode {
+        MANUAL,
+        LOCKED_ON
+    }
+    private DriveMode driveMode = DriveMode.MANUAL;
     public DcMotor frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor;
     public IMU rev_imu;
     public YawPitchRollAngles orientation;
@@ -20,6 +25,7 @@ public class TeleOpMecanumDrive {
     public final double driveSpeed = 0.66;
     public final double fastSpeed = 1.0;
     public final double slowSpeed = 0.10;
+
     public void init(HardwareMap hwMap) {
         frontLeftMotor = hwMap.get(DcMotor.class, "frontLeftMotor");
         backLeftMotor = hwMap.get(DcMotor.class, "backLeftMotor");
@@ -42,7 +48,27 @@ public class TeleOpMecanumDrive {
         );
         rev_imu.initialize(new IMU.Parameters(RevOrientation));
     }
-    public void runMecanumDrive(boolean rb, boolean lb, double y, double x, double rx, boolean yButton) {
+
+    public DriveMode getDriveMode() {
+        return driveMode;
+    }
+
+    public void setDriveMode(DriveMode driveMode) {
+        this.driveMode = driveMode;
+    }
+
+    public void runMecanumDrive(boolean rb, boolean lb, double y, double x, double rx, boolean yButton, double bearingRadians) {
+        switch (driveMode) {
+            case MANUAL:
+                runManualMecanumDrive(rb, lb, y, x, rx, yButton);
+                break;
+            case LOCKED_ON:
+                runAutoAlignToTag(bearingRadians, rb, lb, y, x);
+                break;
+        }
+        runManualMecanumDrive(rb, lb, y, x, rx, yButton);
+    }
+    public void runManualMecanumDrive(boolean rb, boolean lb, double y, double x, double rx, boolean yButton) {
         // Only update the heading because that is all you need in Teleop
 //        pinpoint.update(GoBildaPinpointDriver.readData.ONLY_UPDATE_HEADING);
         //Setting boolean hold
@@ -87,7 +113,7 @@ public class TeleOpMecanumDrive {
         this.frontRightMotor.setPower(frontRightPower * finalSlowMode);
         this.backRightMotor.setPower(backRightPower * finalSlowMode);
     }
-    public void autoAlignToTag(double bearingRadians, boolean rb, boolean lb, double y, double x) {
+    public void runAutoAlignToTag(double bearingRadians, boolean rb, boolean lb, double y, double x) {
         // Proportional control constant (tune as needed)
         double kP = 0.805;
         // Clamp output to avoid excessive speed
@@ -100,6 +126,6 @@ public class TeleOpMecanumDrive {
             turnPower = Math.max(-maxPower, Math.min(maxPower, turnPower));
         }
         // No translation, only rotation
-        runMecanumDrive(rb, lb, y, x, turnPower, false);
+        runManualMecanumDrive(rb, lb, y, x, turnPower, false);
     }
 }

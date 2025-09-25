@@ -75,10 +75,10 @@ public class AprilTagAutoAlign extends OpMode {
             telemetry.addData("distance2d", "%.2f", distance2d);
             telemetry.addData("distance3d", "%.2f", distance3d);
 
-            drive.autoAlignToTag(Math.toRadians(tag.ftcPose.bearing), rb, lb, leftY, leftX);
+            drive.runAutoAlignToTag(Math.toRadians(tag.ftcPose.bearing), rb, lb, leftY, leftX);
         }
         else {
-            drive.runMecanumDrive(lb , rb, leftY, leftX, rightX, yButton);
+            drive.runManualMecanumDrive(lb , rb, leftY, leftX, rightX, yButton);
         }
 
         telemetry.update();

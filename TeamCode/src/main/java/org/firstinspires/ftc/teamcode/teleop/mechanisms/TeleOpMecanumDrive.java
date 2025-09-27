@@ -24,6 +24,7 @@ public class TeleOpMecanumDrive {
     public double finalSlowMode = 0.0;
     public final double driveSpeed = 0.66;
     public final double fastSpeed = 1.0;
+    private boolean rightStickPrevPressed = false;
     public final double slowSpeed = 0.10;
 
     public void init(HardwareMap hwMap) {
@@ -57,16 +58,27 @@ public class TeleOpMecanumDrive {
         this.driveMode = driveMode;
     }
 
-    public void runMecanumDrive(boolean rb, boolean lb, double y, double x, double rx, boolean yButton, double bearingRadians) {
+    public void runMecanumDrive(boolean rb, boolean lb, double y, double x, double rx, boolean yButton, boolean rightStickPressed, double bearingRadians) {
+        // Toggle logic
+        if (rightStickPressed && !rightStickPrevPressed) {
+            if (driveMode == DriveMode.MANUAL) {
+                driveMode = DriveMode.LOCKED_ON;
+            } else {
+                driveMode = DriveMode.MANUAL;
+            }
+        }
+        rightStickPrevPressed = rightStickPressed;
+
+        // Run drive modes
         switch (driveMode) {
             case MANUAL:
                 runManualMecanumDrive(rb, lb, y, x, rx, yButton);
                 break;
+
             case LOCKED_ON:
                 runAutoAlignToTag(bearingRadians, rb, lb, y, x);
                 break;
         }
-        runManualMecanumDrive(rb, lb, y, x, rx, yButton);
     }
     public void runManualMecanumDrive(boolean rb, boolean lb, double y, double x, double rx, boolean yButton) {
         // Only update the heading because that is all you need in Teleop

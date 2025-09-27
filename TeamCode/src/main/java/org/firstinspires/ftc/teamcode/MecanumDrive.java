@@ -33,11 +33,12 @@ import com.acmerobotics.roadrunner.ftc.RawEncoder;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.PIDCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
@@ -89,6 +90,12 @@ public final class MecanumDrive {
         public double axialVelGain = 0.0;
         public double lateralVelGain = 0.0;
         public double headingVelGain = 0.0; // shared with turn
+
+        // motor PIDF coefficients (for RUN_USING_ENCODER). Exposed to dashboard via @Config
+        public double motorPidP = 0.0;
+        public double motorPidI = 0.0;
+        public double motorPidD = 0.0;
+        public double motorPidF = 0.0;
     }
 
     public static Params PARAMS = new Params();
@@ -237,6 +244,14 @@ public final class MecanumDrive {
 
         // TODO: reverse motor directions if needed
         //   leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        // Apply motor RUN_USING_ENCODER and PIDF coefficients (if set in PARAMS)
+        leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        applyMotorPIDFCoeffs();
 
         // TODO: make sure your config has an IMU with this name (can be BNO or BHI)
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
@@ -493,5 +508,38 @@ public final class MecanumDrive {
                 defaultTurnConstraints,
                 defaultVelConstraint, defaultAccelConstraint
         );
+    }
+
+    /**
+     * Apply PIDF coefficients from PARAMS to each motor. If all coefficients are zero, this is a
+     * no-op to avoid overwriting tuned values on controllers that already have been configured.
+     */
+    private void applyMotorPIDFCoeffs() {
+        // if all zeros, skip applying to avoid overwriting existing settings
+        if (PARAMS.motorPidP == 0.0 && PARAMS.motorPidI == 0.0 && PARAMS.motorPidD == 0.0 && PARAMS.motorPidF == 0.0) {
+            return;
+        }
+
+        PIDFCoefficients ffCoeffs = new PIDFCoefficients(
+                PARAMS.motorPidP, PARAMS.motorPidI, PARAMS.motorPidD, PARAMS.motorPidF
+        );
+
+        try {
+            leftFront.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, ffCoeffs);
+            leftBack.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, ffCoeffs);
+            rightBack.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, ffCoeffs);
+            rightFront.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, ffCoeffs);
+        } catch (Exception e) {
+            // setPIDFCoefficients may not be supported on all SDK versions/firmware; try fallback
+            try {
+                PIDCoefficients pidCoeffs = new PIDCoefficients(PARAMS.motorPidP, PARAMS.motorPidI, PARAMS.motorPidD);
+                leftFront.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidCoeffs);
+                leftBack.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidCoeffs);
+                rightBack.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidCoeffs);
+                rightFront.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidCoeffs);
+            } catch (Exception ignore) {
+                // give up silently; it's non-fatal
+            }
+        }
     }
 }

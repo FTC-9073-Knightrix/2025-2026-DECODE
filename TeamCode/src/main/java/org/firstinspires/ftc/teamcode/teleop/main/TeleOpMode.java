@@ -11,6 +11,7 @@ public class TeleOpMode extends TeleOpMethods {
         // THIS IS THE MAIN RUN LOOP FOR THE ROBOT
         // PUT METHODS IN HERE THAT U WANT TO BE CONTINUOUSLY RUNNING
         // WHILE WE R CONTROLLING THE ROBOT
+        runToggledDrive();
         displayTelemetry(); // this shows text on the driver hub
     }
 }

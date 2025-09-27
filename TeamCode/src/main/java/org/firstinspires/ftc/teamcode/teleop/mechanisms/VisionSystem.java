@@ -5,7 +5,9 @@ import android.util.Size;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.vision.AprilTagEnums;
 import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 public class VisionSystem {
@@ -28,5 +30,29 @@ public class VisionSystem {
                 .enableLiveView(true)
                 .build();
     }
+
+    public boolean isDetectingAGoalTag() {
+        if (!tagProcessor.getDetections().isEmpty()) {
+            AprilTagDetection tag = tagProcessor.getDetections().get(0);
+            if (tag.id == AprilTagEnums.BLUE_GOAL.getId()
+            || tag.id == AprilTagEnums.RED_GOAL.getId()) {;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /*
+     * Bearing is the angle to the tag relative to the camera's forward direction.
+     * Returns Bearing in Degrees
+     */
+    public double getTagBearing() {
+        if (!tagProcessor.getDetections().isEmpty()) {
+            AprilTagDetection tag = tagProcessor.getDetections().get(0);
+            return tag.ftcPose.bearing;
+        }
+        return 0;
+    }
+
 
 }

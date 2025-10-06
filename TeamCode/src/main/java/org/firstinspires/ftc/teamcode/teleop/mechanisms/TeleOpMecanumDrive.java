@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.teleop.mechanisms;
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -26,12 +27,14 @@ public class TeleOpMecanumDrive {
     public final double fastSpeed = 1.0;
     private boolean rightStickPrevPressed = false;
     public final double slowSpeed = 0.10;
+    private RevBlinkinLedDriver underglow;
 
     public void init(HardwareMap hwMap) {
         frontLeftMotor = hwMap.get(DcMotor.class, "frontLeftMotor");
         backLeftMotor = hwMap.get(DcMotor.class, "backLeftMotor");
         frontRightMotor = hwMap.get(DcMotor.class, "frontRightMotor");
         backRightMotor = hwMap.get(DcMotor.class, "backRightMotor");
+        underglow = hwMap.get(RevBlinkinLedDriver.class, "underglow");
 
         frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -41,7 +44,10 @@ public class TeleOpMecanumDrive {
         frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+
         rev_imu = hwMap.get(IMU.class, "imu");
+
+        underglow.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
 
         RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
@@ -72,10 +78,12 @@ public class TeleOpMecanumDrive {
         // Run drive modes
         switch (driveMode) {
             case MANUAL:
+                underglow.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
                 runManualMecanumDrive(rb, lb, y, x, rx, yButton);
                 break;
 
             case LOCKED_ON:
+                underglow.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE_VIOLET);
                 runAutoAlignToTag(bearingRadians, rb, lb, y, x);
                 break;
         }

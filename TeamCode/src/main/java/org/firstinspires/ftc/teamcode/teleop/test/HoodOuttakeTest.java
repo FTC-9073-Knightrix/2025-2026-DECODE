@@ -9,10 +9,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp
 public class HoodOuttakeTest extends OpMode {
     public Servo hoodServo;
-    public DcMotorEx outtakeMotor;
+    public DcMotorEx outtakeMotor; //output velocity in ticks and angles into telemetry
 
     public double leftPosition = 0.0;
     public double rightPosition = 1.0;
+
+    public double velocity;
 
     public double motorPower = 1.0;
 
@@ -22,6 +24,9 @@ public class HoodOuttakeTest extends OpMode {
     private boolean lastDpadRight = false;
     private boolean lastDpadUp = false;
     private boolean lastDpadDown = false;
+
+    static final double TICKS_PER_REV = 537.7;
+
 
     @Override
     public void init() {
@@ -75,9 +80,17 @@ public class HoodOuttakeTest extends OpMode {
         }
         lastDpadDown = gamepad1.dpad_down;
 
+        velocity = outtakeMotor.getVelocity();
+        double ticksPerSecond = outtakeMotor.getVelocity(); // already in ticks/sec
+        double revPerSecond = ticksPerSecond / TICKS_PER_REV;
+        double radPerSecond = revPerSecond * 2 * Math.PI;
+
         telemetry.addData("Outtake On", outtakeOn);
         telemetry.addData("Motor Power", motorPower);
         telemetry.addData("Servo Position", leftPosition);
+        telemetry.addData("Velocity (ticks/sec)", ticksPerSecond);
+        telemetry.addData("Velocity (rev/sec)", revPerSecond);
+        telemetry.addData("Angular Velocity (rad/sec)", radPerSecond);
         telemetry.update();
     }
 }

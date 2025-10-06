@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 @TeleOp
 public class HoodOuttakeTest extends OpMode {
     public Servo hoodServo;
@@ -25,7 +27,7 @@ public class HoodOuttakeTest extends OpMode {
     private boolean lastDpadUp = false;
     private boolean lastDpadDown = false;
 
-    static final double TICKS_PER_REV = 537.7;
+    static final double TICKS_PER_REV = 28;
 
 
     @Override
@@ -89,6 +91,7 @@ public class HoodOuttakeTest extends OpMode {
         telemetry.addData("Motor Power", motorPower);
         telemetry.addData("Servo Position", leftPosition);
         telemetry.addData("Velocity (ticks/sec)", ticksPerSecond);
+        telemetry.addData("Velocity (ang)", outtakeMotor.getVelocity(AngleUnit.DEGREES));
         telemetry.addData("Velocity (rev/sec)", revPerSecond);
         telemetry.addData("Angular Velocity (rad/sec)", radPerSecond);
         telemetry.update();

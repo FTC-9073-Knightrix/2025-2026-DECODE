@@ -38,7 +38,8 @@ public class MecanumTest extends OpMode {
         telemetry.addData("left stick x", gamepad1.left_stick_x);
         telemetry.addData("right stick x", gamepad1.right_stick_x);
         telemetry.addData("y button (reset heading)", gamepad1.y);
-        telemetry.addData( "imu heading: ", String.format(Locale.US, "%.2f", drive.orientation.getYaw(AngleUnit.DEGREES)));
+//        telemetry.addData( "imu heading: ", String.format(Locale.US, "%.2f", drive.orientation.getYaw(AngleUnit.DEGREES)));
+        telemetry.addData( "imu heading: ", String.format(Locale.US, "%.2f", drive.pinpoint.getHeading(AngleUnit.DEGREES)));
     }
 
 }

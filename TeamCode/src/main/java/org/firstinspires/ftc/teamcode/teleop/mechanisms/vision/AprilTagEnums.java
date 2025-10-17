@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.vision;
+package org.firstinspires.ftc.teamcode.teleop.mechanisms.vision;
 
 public enum AprilTagEnums {
     RED_GOAL(24, "RED"),

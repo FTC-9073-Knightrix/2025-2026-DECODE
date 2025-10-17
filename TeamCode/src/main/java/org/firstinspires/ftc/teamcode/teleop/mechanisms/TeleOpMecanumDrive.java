@@ -21,14 +21,14 @@ public class TeleOpMecanumDrive {
     }
     private DriveMode driveMode = DriveMode.MANUAL;
     public DcMotor frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor;
-//    public IMU rev_imu;
+    public IMU rev_imu;
     public YawPitchRollAngles orientation;
     public GoBildaPinpointDriver pinpoint;
     public double finalSlowMode = 0.0;
     public final double driveSpeed = 0.66;
     public final double fastSpeed = 1.0;
+    public final double slowSpeed = 0.30;
     private boolean rightStickPrevPressed = false;
-    public final double slowSpeed = 0.10;
 
     public void init(HardwareMap hwMap) {
         frontLeftMotor = hwMap.get(DcMotor.class, "leftFront");
@@ -39,14 +39,14 @@ public class TeleOpMecanumDrive {
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         pinpoint = hwMap.get(GoBildaPinpointDriver.class, "pinpoint");
-//        rev_imu = hwMap.get(IMU.class, "imu");
+        rev_imu = hwMap.get(IMU.class, "imu");
 //
 //
-//        RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(
-//                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-//                RevHubOrientationOnRobot.UsbFacingDirection.DOWN
-//        );
-//        rev_imu.initialize(new IMU.Parameters(RevOrientation));
+        RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                RevHubOrientationOnRobot.UsbFacingDirection.UP
+        );
+        rev_imu.initialize(new IMU.Parameters(RevOrientation));
     }
 
     public DriveMode getDriveMode() {
@@ -107,8 +107,8 @@ public class TeleOpMecanumDrive {
 //        orientation = rev_imu.getRobotYawPitchRollAngles();
 
         // CHANGE BETWEEN PP AND IMU U CHANGE BOTHEADING VARIABLE
-//        double botHeading = rev_imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-        double botHeading = pinpoint.getHeading(AngleUnit.RADIANS);
+        double botHeading = rev_imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+//        double botHeading = pinpoint.getHeading(AngleUnit.RADIANS);
 
         double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
         double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
@@ -134,8 +134,8 @@ public class TeleOpMecanumDrive {
         // Clamp output to avoid excessive speed
         double maxPower = 0.7;
         double alignmentThreshold = 0.05; // radians, adjust as needed
-
         double turnPower = 0.0;
+
         if (Math.abs(bearingRadians) > alignmentThreshold) {
             turnPower = -kP * bearingRadians;
             turnPower = Math.max(-maxPower, Math.min(maxPower, turnPower));

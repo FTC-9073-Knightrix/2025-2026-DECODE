@@ -12,8 +12,7 @@ public class HoodOuttakeTest extends OpMode {
     public Servo hoodServo;
     public DcMotorEx outtakeMotor;
 
-    public double leftPosition = 0.0;
-    public double rightPosition = 1.0;
+    public double hoodPosition = 0.0;
 
     private boolean outtakeOn = false;
     private boolean lastAState = false;
@@ -32,7 +31,7 @@ public class HoodOuttakeTest extends OpMode {
 
         outtakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         outtakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        hoodServo.setPosition(leftPosition);
+        hoodServo.setPosition(hoodPosition);
     }
 
     @Override
@@ -45,14 +44,14 @@ public class HoodOuttakeTest extends OpMode {
 
         // Servo adjust
         if (gamepad1.dpad_left && !lastDpadLeft) {
-            leftPosition = Math.max(0.0, leftPosition - 0.05);
-            hoodServo.setPosition(leftPosition);
+            hoodPosition = Math.min(1.0, hoodPosition + 0.05);
+            hoodServo.setPosition(hoodPosition);
         }
         lastDpadLeft = gamepad1.dpad_left;
 
         if (gamepad1.dpad_right && !lastDpadRight) {
-            leftPosition = Math.min(1.0, leftPosition + 0.05);
-            hoodServo.setPosition(leftPosition);
+            hoodPosition = Math.max(0.0, hoodPosition - 0.05);
+            hoodServo.setPosition(hoodPosition);
         }
         lastDpadRight = gamepad1.dpad_right;
 
@@ -87,7 +86,7 @@ public class HoodOuttakeTest extends OpMode {
         telemetry.addData("Velocity (deg/sec)", outtakeMotor.getVelocity(AngleUnit.DEGREES));
         telemetry.addData("Velocity (rev/sec)", revPerSecond);
         telemetry.addData("Angular Velocity (rad/sec)", radPerSecond);
-        telemetry.addData("Servo Position", leftPosition);
+        telemetry.addData("Servo Position", hoodPosition);
         telemetry.update();
     }
 }

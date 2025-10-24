@@ -12,7 +12,7 @@ public abstract class TeleOpHardwareMap extends OpMode {
     TeleOpMecanumDrive drive = new TeleOpMecanumDrive();
     VisionSystem vision = new VisionSystem();
     public Servo hoodServo;
-    public DcMotorEx outtakeMotor;
+//    public DcMotorEx outtakeMotor;
 
     public double hoodPosition = 0.0;
 
@@ -26,10 +26,10 @@ public abstract class TeleOpHardwareMap extends OpMode {
         vision.init(hardwareMap);
 
         hoodServo = hardwareMap.get(Servo.class, "hoodServo");
-        outtakeMotor = hardwareMap.get(DcMotorEx.class, "outtakeMotor");
-
-        outtakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        outtakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        outtakeMotor = hardwareMap.get(DcMotorEx.class, "outtakeMotor");
+//
+//        outtakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        outtakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         hoodServo.setPosition(hoodPosition);
     }
 }

@@ -30,6 +30,7 @@ public class TeleOpMecanumDrive {
     public final double slowSpeed = 0.30;
     private boolean rightStickPrevPressed = false;
 
+
     public void init(HardwareMap hwMap) {
         frontLeftMotor = hwMap.get(DcMotor.class, "leftFront");
         backLeftMotor = hwMap.get(DcMotor.class, "leftBack");
@@ -37,13 +38,14 @@ public class TeleOpMecanumDrive {
         backRightMotor = hwMap.get(DcMotor.class, "rightBack");
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+//        frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+//        backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        pinpoint = hwMap.get(GoBildaPinpointDriver.class, "pinpoint");
+//        pinpoint = hwMap.get(GoBildaPinpointDriver.class, "pinpoint");
         rev_imu = hwMap.get(IMU.class, "imu");
-//
-//
+
         RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
                 RevHubOrientationOnRobot.UsbFacingDirection.UP
         );
         rev_imu.initialize(new IMU.Parameters(RevOrientation));
@@ -82,7 +84,7 @@ public class TeleOpMecanumDrive {
     }
     public void runManualMecanumDrive(boolean rb, boolean lb, double y, double x, double rx, boolean yButton) {
         // Only update the heading because that is all you need in Teleop
-        pinpoint.update(GoBildaPinpointDriver.ReadData.ONLY_UPDATE_HEADING);
+//        pinpoint.update(GoBildaPinpointDriver.ReadData.ONLY_UPDATE_HEADING);
         //Setting boolean hold
         if(rb) {
             //Slow mode
@@ -100,11 +102,11 @@ public class TeleOpMecanumDrive {
 //        double rx = gamepad1.right_stick_x * .8;
 
         if (yButton) {
-//            rev_imu.resetYaw();
-            pinpoint.resetPosAndIMU();
+            rev_imu.resetYaw();
+//            pinpoint.resetPosAndIMU();
         }
 
-//        orientation = rev_imu.getRobotYawPitchRollAngles();
+        orientation = rev_imu.getRobotYawPitchRollAngles();
 
         // CHANGE BETWEEN PP AND IMU U CHANGE BOTHEADING VARIABLE
         double botHeading = rev_imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);

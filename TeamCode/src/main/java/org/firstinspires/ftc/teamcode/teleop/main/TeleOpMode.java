@@ -19,6 +19,7 @@ public class TeleOpMode extends TeleOpMethods {
         // PUT METHODS IN HERE THAT U WANT TO BE CONTINUOUSLY RUNNING
         // WHILE WE R CONTROLLING THE ROBOT
         runToggledDrive();
+        runVision();
         displayTelemetry(); // this shows text on the driver hub
         // Toggle motor on/off
         if (gamepad1.a && ! lastAState) {
@@ -53,23 +54,23 @@ public class TeleOpMode extends TeleOpMethods {
         lastDpadDown = gamepad1.dpad_down;
 
         // Apply velocity control
-        if (outtakeOn) {
-            outtakeMotor.setVelocity(targetVelocityTicks);
-        } else {
-            outtakeMotor.setVelocity(0);
-        }
+//        if (outtakeOn) {
+//            outtakeMotor.setVelocity(targetVelocityTicks);
+//        } else {
+//            outtakeMotor.setVelocity(0);
+//        }
 
         // Telemetry
-        double ticksPerSecond = outtakeMotor.getVelocity();
-        double revPerSecond = ticksPerSecond / TICKS_PER_REV;
-        double radPerSecond = revPerSecond * 2 * Math.PI;
+//        double ticksPerSecond = outtakeMotor.getVelocity();
+//        double revPerSecond = ticksPerSecond / TICKS_PER_REV;
+//        double radPerSecond = revPerSecond * 2 * Math.PI;
 
         telemetry.addData("Outtake On", outtakeOn);
         telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
-        telemetry.addData("Current Velocity (ticks/sec)", ticksPerSecond);
-        telemetry.addData("Velocity (deg/sec)", outtakeMotor.getVelocity(AngleUnit.DEGREES));
-        telemetry.addData("Velocity (rev/sec)", revPerSecond);
-        telemetry.addData("Angular Velocity (rad/sec)", radPerSecond);
+//        telemetry.addData("Current Velocity (ticks/sec)", ticksPerSecond);
+//        telemetry.addData("Velocity (deg/sec)", outtakeMotor.getVelocity(AngleUnit.DEGREES));
+//        telemetry.addData("Velocity (rev/sec)", revPerSecond);
+//        telemetry.addData("Angular Velocity (rad/sec)", radPerSecond);
         telemetry.addData("Servo Position", hoodPosition);
         telemetry.update();
     }

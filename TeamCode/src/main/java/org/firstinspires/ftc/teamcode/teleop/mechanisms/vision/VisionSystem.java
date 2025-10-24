@@ -11,6 +11,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 public class VisionSystem {
     public WebcamName webCam;
+    public static String goalTagSequence = "NONE";
     VisionPortal visionPortal;
 
     AprilTagProcessor tagProcessor = new AprilTagProcessor.Builder()
@@ -41,6 +42,40 @@ public class VisionSystem {
         return false;
     }
 
+    public boolean isDetectingAnObeliskTag() {
+        if (!tagProcessor.getDetections().isEmpty()) {
+            for (AprilTagDetection tag: tagProcessor.getDetections()) {
+                if (tag.id == AprilTagEnums.OBELISK_TAG_21.getId()
+                        || tag.id == AprilTagEnums.OBELISK_TAG_22.getId()
+                        || tag.id == AprilTagEnums.OBELISK_TAG_23.getId()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public void scanGoalTagSequence() {
+        if (isDetectingAnObeliskTag()) {
+            AprilTagDetection tag;
+            for (AprilTagDetection detectedTag : tagProcessor.getDetections()) {
+                if (detectedTag.id == AprilTagEnums.OBELISK_TAG_21.getId()
+                        || detectedTag.id == AprilTagEnums.OBELISK_TAG_22.getId()
+                        || detectedTag.id == AprilTagEnums.OBELISK_TAG_23.getId()) {
+                    tag = detectedTag;
+                    if (tag.id == AprilTagEnums.OBELISK_TAG_21.getId()) {
+                        goalTagSequence = AprilTagEnums.OBELISK_TAG_21.getDescription();
+                    } else if (tag.id == AprilTagEnums.OBELISK_TAG_22.getId()) {
+                        goalTagSequence = AprilTagEnums.OBELISK_TAG_22.getDescription();
+                    } else if (tag.id == AprilTagEnums.OBELISK_TAG_23.getId()) {
+                        goalTagSequence = AprilTagEnums.OBELISK_TAG_23.getDescription();
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
     /*
      * Bearing is the angle to the tag relative to the camera's forward direction.
      * Returns Bearing in Degrees
@@ -53,5 +88,7 @@ public class VisionSystem {
         return 0;
     }
 
-
+    public String getSequence() {
+        return goalTagSequence;
+    }
 }

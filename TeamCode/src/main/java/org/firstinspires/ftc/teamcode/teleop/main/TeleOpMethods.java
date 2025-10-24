@@ -46,12 +46,17 @@ public abstract class TeleOpMethods extends TeleOpHardwareMap {
             drive.runManualMecanumDrive(rb, lb, leftY, leftX, rightX, yButton);
         }
     }
+
+    public void runVision() {
+        vision.scanGoalTagSequence();
+    }
     @SuppressLint("DefaultLocale")
     public void displayTelemetry() {
         telemetry.addData("Runtime: ", getRuntime());
         telemetry.addData("Drive Mode: ", drive.getDriveMode());
         telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());
-        telemetry.addData("imu heading: ", String.format("%.2f", drive.pinpoint.getHeading(AngleUnit.DEGREES)));
+//        telemetry.addData("imu heading: ", String.format("%.2f", drive.pinpoint.getHeading(AngleUnit.DEGREES)));
         telemetry.addData("Tag Bearing: ", vision.getTagBearing());
+        telemetry.addData("Sequence: " , vision.getSequence());
     }
 }

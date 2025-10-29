@@ -56,22 +56,20 @@ public class VisionSystem {
     }
 
     public void scanGoalTagSequence() {
-        if (isDetectingAnObeliskTag()) {
-            AprilTagDetection tag;
-            for (AprilTagDetection detectedTag : tagProcessor.getDetections()) {
-                if (detectedTag.id == AprilTagEnums.OBELISK_TAG_21.getId()
-                        || detectedTag.id == AprilTagEnums.OBELISK_TAG_22.getId()
-                        || detectedTag.id == AprilTagEnums.OBELISK_TAG_23.getId()) {
-                    tag = detectedTag;
-                    if (tag.id == AprilTagEnums.OBELISK_TAG_21.getId()) {
-                        goalTagSequence = AprilTagEnums.OBELISK_TAG_21.getDescription();
-                    } else if (tag.id == AprilTagEnums.OBELISK_TAG_22.getId()) {
-                        goalTagSequence = AprilTagEnums.OBELISK_TAG_22.getDescription();
-                    } else if (tag.id == AprilTagEnums.OBELISK_TAG_23.getId()) {
-                        goalTagSequence = AprilTagEnums.OBELISK_TAG_23.getDescription();
-                    }
-                    break;
+        AprilTagDetection tag;
+        for (AprilTagDetection detectedTag : tagProcessor.getDetections()) {
+            if (detectedTag.id == AprilTagEnums.OBELISK_TAG_21.getId()
+                    || detectedTag.id == AprilTagEnums.OBELISK_TAG_22.getId()
+                    || detectedTag.id == AprilTagEnums.OBELISK_TAG_23.getId()) {
+                tag = detectedTag;
+                if (tag.id == AprilTagEnums.OBELISK_TAG_21.getId()) {
+                    goalTagSequence = AprilTagEnums.OBELISK_TAG_21.getDescription();
+                } else if (tag.id == AprilTagEnums.OBELISK_TAG_22.getId()) {
+                    goalTagSequence = AprilTagEnums.OBELISK_TAG_22.getDescription();
+                } else if (tag.id == AprilTagEnums.OBELISK_TAG_23.getId()) {
+                    goalTagSequence = AprilTagEnums.OBELISK_TAG_23.getDescription();
                 }
+                break;
             }
         }
     }
@@ -86,6 +84,14 @@ public class VisionSystem {
             return tag.ftcPose.bearing;
         }
         return 0;
+    }
+
+    public double getTagHorizontalDistance() {
+        if (!tagProcessor.getDetections().isEmpty()) {
+            AprilTagDetection tag = tagProcessor.getDetections().get(0);
+            return tag.ftcPose.y;
+        }
+        return -1;
     }
 
     public String getSequence() {

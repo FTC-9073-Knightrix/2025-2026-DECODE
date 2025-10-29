@@ -50,6 +50,11 @@ public abstract class TeleOpMethods extends TeleOpHardwareMap {
     public void runVision() {
         vision.scanGoalTagSequence();
     }
+
+    public void runIntake() {
+        intake.runIntake(gamepad1.right_trigger);
+    }
+
     @SuppressLint("DefaultLocale")
     public void displayTelemetry() {
         telemetry.addData("Runtime: ", getRuntime());

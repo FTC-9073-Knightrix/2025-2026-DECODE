@@ -43,7 +43,6 @@ import com.acmerobotics.roadrunner.ftc.RawEncoder;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
@@ -93,8 +92,18 @@ public final class TankDrive {
         public double ramseteBBar = 2.0; // positive
 
         // turn controller gains
+        // legacy single gain kept for compatibility
+        @SuppressWarnings("unused")
         public double turnGain = 0.0;
         public double turnVelGain = 0.0;
+
+        // new time aware PID gains (used for turn controller)
+        // P + I*integral(dt*error) + D*(dError/dt).
+        public double turnP = 0.0;
+        public double turnI = 0.0;
+        public double turnD = 0.0;
+        // absolute max for the integral term contribution
+        public double turnIMax = 1.0;
     }
 
     public static Params PARAMS = new Params();
@@ -170,14 +179,14 @@ public final class TankDrive {
 
         @Override
         public PoseVelocity2d update() {
-            Twist2dDual<Time> delta;
+            // local delta unused in this implementation
 
             List<PositionVelocityPair> leftReadings = new ArrayList<>(), rightReadings = new ArrayList<>();
             double meanLeftPos = 0.0, meanLeftVel = 0.0;
             for (Encoder e : leftEncs) {
                 PositionVelocityPair p = e.getPositionAndVelocity();
                 meanLeftPos += p.position;
-                meanLeftVel += p.velocity;
+                meanLeftVel += (p.velocity == null ? 0.0 : p.velocity);
                 leftReadings.add(p);
             }
             meanLeftPos /= leftEncs.size();
@@ -187,7 +196,7 @@ public final class TankDrive {
             for (Encoder e : rightEncs) {
                 PositionVelocityPair p = e.getPositionAndVelocity();
                 meanRightPos += p.position;
-                meanRightVel += p.velocity;
+                meanRightVel += (p.velocity == null ? 0.0 : p.velocity);
                 rightReadings.add(p);
             }
             meanRightPos /= rightEncs.size();
@@ -236,8 +245,8 @@ public final class TankDrive {
         // TODO: make sure your config has motors with these names (or change them)
         //   add additional motors on each side if you have them
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
-        leftMotors = Arrays.asList(hardwareMap.get(DcMotorEx.class, "left"));
-        rightMotors = Arrays.asList(hardwareMap.get(DcMotorEx.class, "right"));
+        leftMotors = Collections.singletonList(hardwareMap.get(DcMotorEx.class, "left"));
+        rightMotors = Collections.singletonList(hardwareMap.get(DcMotorEx.class, "right"));
 
         for (DcMotorEx m : leftMotors) {
             m.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -259,6 +268,9 @@ public final class TankDrive {
         localizer = new DriveLocalizer(pose);
 
         FlightRecorder.write("TANK_PARAMS", PARAMS);
+
+        // initialize PID with current params
+        turnPid = new PIDController(PARAMS.turnP, PARAMS.turnI, PARAMS.turnD, PARAMS.turnIMax);
     }
 
     public void setDrivePowers(PoseVelocity2d powers) {
@@ -415,12 +427,29 @@ public final class TankDrive {
 
             PoseVelocity2d robotVelRobot = updatePoseEstimate();
 
+            // compute heading error (current - target) in radians
+            double headingError = localizer.getPose().heading.minus(txWorldTarget.heading.value());
+
+            // if this is the start of the action, reset the PID controller state so integrator/derivative start clean
+            double now = Actions.now();
+            // nothing to do here; beginTs already set when the action starts
+
+            // PID coefficients reflect current PARAMS (dashboard may have changed them)
+            turnPid.setCoefficients(PARAMS.turnP, PARAMS.turnI, PARAMS.turnD, PARAMS.turnIMax);
+
+            // reset PID when action began
+            if (Math.abs(t) < 1e-9) {
+                turnPid.reset();
+            }
+
+            double pidOutput = turnPid.update(headingError, now);
+
+            // velocity feedforward term
+            double velFeedforward = PARAMS.turnVelGain * (robotVelRobot.angVel - txWorldTarget.heading.velocity().value());
+
             PoseVelocity2dDual<Time> command = new PoseVelocity2dDual<>(
                     Vector2dDual.constant(new Vector2d(0, 0), 3),
-                    txWorldTarget.heading.velocity().plus(
-                            PARAMS.turnGain * localizer.getPose().heading.minus(txWorldTarget.heading.value()) +
-                            PARAMS.turnVelGain * (robotVelRobot.angVel - txWorldTarget.heading.velocity().value())
-                    )
+                    txWorldTarget.heading.velocity().plus(pidOutput + velFeedforward)
             );
             driveCommandWriter.write(new DriveCommandMessage(command));
 
@@ -507,4 +536,74 @@ public final class TankDrive {
                 defaultVelConstraint, defaultAccelConstraint
         );
     }
+
+    // time aware PID controller used for turning. Uses elapsed time for I and D terms.
+    private static final class PIDController {
+        private double kp;
+        private double ki;
+        private double kd;
+        // maximum absolute contribution from the integral term (matches PARAMS.turnIMax semantics)
+        private double integralMax;
+
+        // internal accumulated error (unclamped)
+        private double integral = 0.0;
+        private double prevError = 0.0;
+        private double prevTime = Double.NaN;
+
+        PIDController(double kp, double ki, double kd, double integralMax) {
+            this.kp = kp;
+            this.ki = ki;
+            this.kd = kd;
+            this.integralMax = Math.abs(integralMax);
+        }
+
+        synchronized void setCoefficients(double kp, double ki, double kd, double integralMax) {
+            this.kp = kp;
+            this.ki = ki;
+            this.kd = kd;
+            this.integralMax = Math.abs(integralMax);
+        }
+
+        synchronized double update(double error, double nowSeconds) {
+            if (Double.isNaN(prevTime)) {
+                // first update -- no derivative, just initialize time
+                prevTime = nowSeconds;
+                prevError = error;
+                integral = 0.0;
+                return kp * error; // return pure P on first call
+            }
+
+            double dt = nowSeconds - prevTime;
+            if (dt <= 0) {
+                dt = 1e-6; // guard against zero or negative dt
+            }
+
+            // accumulate integral (unclamped)
+            integral += error * dt;
+
+            // compute integral contribution and clamp it to avoid windup -- this follows the
+            // pattern where turnIMax represents the absolute max contribution of the I term
+            double integralContribution = ki * integral;
+            if (integralContribution > integralMax) integralContribution = integralMax;
+            if (integralContribution < -integralMax) integralContribution = -integralMax;
+
+            double derivative = (error - prevError) / dt;
+
+            double output = kp * error + integralContribution + kd * derivative;
+
+            prevError = error;
+            prevTime = nowSeconds;
+
+            return output;
+        }
+
+        synchronized void reset() {
+            integral = 0.0;
+            prevError = 0.0;
+            prevTime = Double.NaN;
+        }
+    }
+
+    // PID instance for turn control
+    private final PIDController turnPid;
 }

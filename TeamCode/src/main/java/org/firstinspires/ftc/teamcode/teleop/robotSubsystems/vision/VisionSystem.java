@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.teleop.mechanisms.vision;
+package org.firstinspires.ftc.teamcode.teleop.robotSubsystems.vision;
 
 import android.util.Size;
 
@@ -86,7 +86,16 @@ public class VisionSystem {
         return 0;
     }
 
+    /**
+     * Gets the forward horizontal distance to the detected AprilTag.
+     * This represents the forward horizontal distance from the camera's center axis to the tag.
+     * Uses the Y coordinate from the FTC pose, which is the horizontal displacement.
+     *
+     * @return The forward horizontal distance to the first detected tag in distance units (typically inches),
+     *         or -1 if no tags are detected
+     */
     public double getTagHorizontalDistance() {
+
         if (!tagProcessor.getDetections().isEmpty()) {
             AprilTagDetection tag = tagProcessor.getDetections().get(0);
             return tag.ftcPose.y;

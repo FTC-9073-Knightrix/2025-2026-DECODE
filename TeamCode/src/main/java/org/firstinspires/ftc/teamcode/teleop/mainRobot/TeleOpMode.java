@@ -1,8 +1,6 @@
-package org.firstinspires.ftc.teamcode.teleop.main;
+package org.firstinspires.ftc.teamcode.teleop.mainRobot;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @TeleOp(name = "1: DECODE TeleOp")
 public class TeleOpMode extends TeleOpMethods {
@@ -15,6 +13,7 @@ public class TeleOpMode extends TeleOpMethods {
         runToggledDrive();
         runVision();
         runIntake();
+        runOuttake();
         displayTelemetry(); // this shows text on the driver hub
 
     }

@@ -1,14 +1,13 @@
-package org.firstinspires.ftc.teamcode.teleop.main;
+package org.firstinspires.ftc.teamcode.teleop.mainRobot;
 
 import android.annotation.SuppressLint;
 
 import com.acmerobotics.dashboard.config.Config;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.teleop.mechanisms.TeleOpMecanumDrive;
+import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.drivetrain.TeleOpMecanumDrive;
 
 @Config
-public abstract class TeleOpMethods extends TeleOpHardwareMap {
+public abstract class TeleOpMethods extends RobotBaseHwMap {
 
     boolean lockPrevPressed = false;
 
@@ -52,16 +51,21 @@ public abstract class TeleOpMethods extends TeleOpHardwareMap {
     }
 
     public void runIntake() {
-        intake.runIntake(gamepad1.right_trigger);
+        boolean leftTriggerPressed = gamepad1.left_trigger > 0.5;
+        intake.runIntake(leftTriggerPressed);
     }
+
+    public void runOuttake() {
+        shooter.runOuttake(gamepad1.a, gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.dpad_up, gamepad1.dpad_down, telemetry);
+        shooter.dynamicallyUpdateHoodPosition(vision.getTagHorizontalDistance());
+    }
+    
 
     @SuppressLint("DefaultLocale")
     public void displayTelemetry() {
         telemetry.addData("Runtime: ", getRuntime());
         telemetry.addData("Drive Mode: ", drive.getDriveMode());
         telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());
-//        telemetry.addData("imu heading: ", String.format("%.2f", drive.pinpoint.getHeading(AngleUnit.DEGREES)));
-        telemetry.addData("Tag Bearing: ", vision.getTagBearing());
         telemetry.addData("Sequence: " , vision.getSequence());
     }
 }

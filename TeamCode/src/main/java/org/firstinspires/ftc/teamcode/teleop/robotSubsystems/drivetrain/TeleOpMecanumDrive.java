@@ -1,15 +1,13 @@
-package org.firstinspires.ftc.teamcode.teleop.mechanisms;
+package org.firstinspires.ftc.teamcode.teleop.robotSubsystems.drivetrain;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
-
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
@@ -38,8 +36,6 @@ public class TeleOpMecanumDrive {
         backRightMotor = hwMap.get(DcMotor.class, "rightBack");
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-//        frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-//        backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
 //        pinpoint = hwMap.get(GoBildaPinpointDriver.class, "pinpoint");
         rev_imu = hwMap.get(IMU.class, "imu");
@@ -128,21 +124,32 @@ public class TeleOpMecanumDrive {
         this.frontRightMotor.setPower(frontRightPower * finalSlowMode);
         this.backRightMotor.setPower(backRightPower * finalSlowMode);
     }
-    public void runAutoAlignToTag(double bearingRadians, boolean rb, boolean lb, double y, double x) {
-        // Proportional control constant (tune as needed)
+
+
+    private double lastBearingError = 0.0;
+    ElapsedTime timer = new ElapsedTime();
+
+    public void runAutoAlignToTag(double bearingOffsetRad, boolean rb, boolean lb, double y, double x) {
+        // proportional and derivate coefficients
         double kP = 0.805;
-        double kI;
-        double kD;
-        // Clamp output to avoid excessive speed
-        double maxPower = 0.7;
-        double alignmentThreshold = 0.05; // radians, adjust as needed
+        double kD = 0.12; // TODO TUNE
+
+        double maxPower = 0.9; // maximum turn power
+        double alignmentThreshold = 0.03; // radians, adjust as needed
         double turnPower = 0.0;
 
-        if (Math.abs(bearingRadians) > alignmentThreshold) {
-            turnPower = -kP * bearingRadians;
-            turnPower = Math.max(-maxPower, Math.min(maxPower, turnPower));
+        if (Math.abs(bearingOffsetRad) > alignmentThreshold) {
+            double dt = Math.max(timer.seconds(), 0.001); // guard against zero time interval
+            double derivative = (bearingOffsetRad - lastBearingError) / dt;
+
+            turnPower = (-kP * bearingOffsetRad) + (-kD * derivative);
+            turnPower = Range.clip(turnPower, -maxPower, maxPower);
+
         }
-        // No translation, only rotation
+        lastBearingError = bearingOffsetRad;
+        timer.reset();
+
+        // The Driver can still translate while auto-aligning, but cannot manually rotate
         runManualMecanumDrive(rb, lb, y, x, turnPower, false);
     }
 }

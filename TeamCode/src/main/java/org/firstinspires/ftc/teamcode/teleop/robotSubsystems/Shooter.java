@@ -22,6 +22,7 @@ public class Shooter {
     private final double FAR_SHOT_VELOCITY_TICKS = 1500.0;
     private final double MID_SHOT_VELOCITY_TICKS = 1250.0;
     private final double NEAR_SHOT_VELOCITY_TICKS = 1000.0;
+    private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 75.0;
 
     private boolean outtakeOn = false;
     private boolean lastAState = false;
@@ -163,5 +164,12 @@ public class Shooter {
         } else { // NEAR SHOT
             targetVelocityTicks = NEAR_SHOT_VELOCITY_TICKS;
         }
+    }
+
+    public boolean isAtShootingSpeed() {
+        double currentVelocity = outtakeMotor.getVelocity();
+        double velocityError = Math.abs(targetVelocityTicks - currentVelocity);
+
+        return velocityError <= ACCEPTABLE_VELOCITY_ERROR_TICKS;
     }
 }

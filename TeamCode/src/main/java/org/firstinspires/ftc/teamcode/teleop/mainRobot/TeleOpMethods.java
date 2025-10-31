@@ -55,11 +55,16 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         intake.runIntake(leftTriggerPressed);
     }
 
+    public void runTransfer() {
+        if (gamepad1.right_trigger > 0.5 && vision.alignedForShot() && shooter.isAtShootingSpeed()) {
+            transfer.runTransferFeed();
+        }
+    }
     public void runOuttake() {
         shooter.runOuttake(gamepad1.a, gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.dpad_up, gamepad1.dpad_down, telemetry);
         shooter.dynamicallyUpdateHoodPosition(vision.getTagHorizontalDistance());
     }
-    
+
 
     @SuppressLint("DefaultLocale")
     public void displayTelemetry() {

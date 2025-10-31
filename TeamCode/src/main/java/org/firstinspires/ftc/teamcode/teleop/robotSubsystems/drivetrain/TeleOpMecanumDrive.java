@@ -45,6 +45,8 @@ public class TeleOpMecanumDrive {
                 RevHubOrientationOnRobot.UsbFacingDirection.UP
         );
         rev_imu.initialize(new IMU.Parameters(RevOrientation));
+
+        driveTimer.reset();
     }
 
     public DriveMode getDriveMode() {
@@ -123,11 +125,13 @@ public class TeleOpMecanumDrive {
         this.backLeftMotor.setPower(backLeftPower * finalSlowMode);
         this.frontRightMotor.setPower(frontRightPower * finalSlowMode);
         this.backRightMotor.setPower(backRightPower * finalSlowMode);
+
+        driveTimer.reset(); // reset timer when in manual mode so derivative term is accurate when switching to auto-align
     }
 
 
     private double lastBearingError = 0.0;
-    ElapsedTime timer = new ElapsedTime();
+    ElapsedTime driveTimer = new ElapsedTime();
 
     public void runAutoAlignToTag(double bearingOffsetRad, boolean rb, boolean lb, double y, double x) {
         // proportional and derivate coefficients
@@ -139,7 +143,7 @@ public class TeleOpMecanumDrive {
         double turnPower = 0.0;
 
         if (Math.abs(bearingOffsetRad) > alignmentThreshold) {
-            double dt = Math.max(timer.seconds(), 0.001); // guard against zero time interval
+            double dt = Math.max(driveTimer.seconds(), 0.001); // guard against zero time interval
             double derivative = (bearingOffsetRad - lastBearingError) / dt;
 
             turnPower = (-kP * bearingOffsetRad) + (-kD * derivative);
@@ -147,7 +151,7 @@ public class TeleOpMecanumDrive {
 
         }
         lastBearingError = bearingOffsetRad;
-        timer.reset();
+        driveTimer.reset();
 
         // The Driver can still translate while auto-aligning, but cannot manually rotate
         runManualMecanumDrive(rb, lb, y, x, turnPower, false);

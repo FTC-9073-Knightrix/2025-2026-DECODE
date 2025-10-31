@@ -13,11 +13,13 @@ public class Transfer {
         transferMotor = hw.get(DcMotor.class, "transfer");
     }
 
-    public void runTransferIn() {
+    public void runTransferFeed() {
         transferMotor.setPower(TRANSFER_IN_POWER);
     }
 
-    public void runTransferOut() {
+    public void runTransferReject() {
         transferMotor.setPower(TRANSFER_OUT_POWER);
     }
+
+    public void runTransferStop() { transferMotor.setPower(TRANSFER_STOP_POWER); }
 }

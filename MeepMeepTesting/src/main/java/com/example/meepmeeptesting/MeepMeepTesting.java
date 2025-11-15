@@ -16,12 +16,12 @@ public class MeepMeepTesting {
                 .build();
 
         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-56, 45, Math.toRadians(37)))
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135))
+                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135)) // shooting 1st ball
                 // make it wait here
-                .strafeToLinearHeading(new Vector2d(-20, 30), Math.toRadians(90))// shooting 1st ball
+                .strafeToLinearHeading(new Vector2d(-10, 30), Math.toRadians(90))
                 //wait for 3 seconds
                 // .turn(Math.toRadians(60)) lets say u want to miss the ball
-                .strafeToLinearHeading(new Vector2d(-10, 50), Math.toRadians(60)) // goes for closest row and intakes it
+                .strafeToLinearHeading(new Vector2d(-10, 50), Math.toRadians(90)) // goes for closest row and intakes it
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135)) // shooting ball 2nd time
                 //wait for 3 seconds
                 .strafeToLinearHeading(new Vector2d(14, 30), Math.toRadians(90)) // goes for middle row

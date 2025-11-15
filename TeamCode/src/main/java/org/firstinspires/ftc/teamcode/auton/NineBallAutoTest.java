@@ -23,11 +23,11 @@ public class NineBallAutoTest extends AutonBase {
                 .waitSeconds(1) // wait at shooting position
 
                 // first shot
-                .strafeToLinearHeading(new Vector2d(-20, 30), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(-100, 30), Math.toRadians(90))
                 .waitSeconds(3) // wait for shooting mechanism
 
                 // go for closest row and intake
-                .strafeToLinearHeading(new Vector2d(-10, 50), Math.toRadians(60))
+                .strafeToLinearHeading(new Vector2d(-10, 50), Math.toRadians(90))
 
                 // return and shoot 2nd ball
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135))

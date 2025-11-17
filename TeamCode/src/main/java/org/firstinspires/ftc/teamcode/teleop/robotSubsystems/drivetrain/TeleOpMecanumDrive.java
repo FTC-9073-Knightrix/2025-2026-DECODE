@@ -41,7 +41,7 @@ public class TeleOpMecanumDrive {
         rev_imu = hwMap.get(IMU.class, "imu");
 
         RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
+                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
                 RevHubOrientationOnRobot.UsbFacingDirection.UP
         );
         rev_imu.initialize(new IMU.Parameters(RevOrientation));

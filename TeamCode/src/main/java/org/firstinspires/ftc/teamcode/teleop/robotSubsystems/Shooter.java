@@ -51,7 +51,7 @@ public class Shooter {
 
         double currentBatteryVoltage = batteryVoltageSensor.getVoltage();
         double kF = kV * NOMINAL_VOLTAGE / currentBatteryVoltage;
-        outtakeMotor.setVelocityPIDFCoefficients(kP, 0, 0, kF); // we use only kP and kF here
+//        outtakeMotor.setVelocityPIDFCoefficients(kP, 0, 0, kF); // we use only kP and kF here
         hoodServo.setPosition(hoodPosition);
     }
 
@@ -61,7 +61,7 @@ public class Shooter {
 
         // on every loop cycle, update the feedforward coefficient to account for changing battery voltage
         // this makes it so a drop in battery voltage doesn't cause a drop in flywheel velocity
-        updateFeedForwardCoefficient();
+//        updateFeedForwardCoefficient();
         // Toggle motor on/off
         if (a && ! lastAState) {
             outtakeOn = !outtakeOn;
@@ -122,7 +122,7 @@ public class Shooter {
     private void updateFeedForwardCoefficient() {
         double currentBatteryVoltage = batteryVoltageSensor.getVoltage();
         double kF = kV * NOMINAL_VOLTAGE / currentBatteryVoltage;
-        outtakeMotor.setVelocityPIDFCoefficients(0.01, 0, 0, kF); // we use only kP and kF here
+//        outtakeMotor.setVelocityPIDFCoefficients(0.01, 0, 0, kF); // we use only kP and kF here
     }
 
     public void dynamicallyUpdateHoodPosition(double horizontalDistanceToGoalInches) {

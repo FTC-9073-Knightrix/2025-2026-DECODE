@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.drivetrain.TeleOpMe
 public abstract class TeleOpMethods extends RobotBaseHwMap {
 
     boolean lockPrevPressed = false;
+    boolean requireCameraLockToShoot = false;
 
     @Override
     public void init() {super.init();}
@@ -56,9 +57,17 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     }
 
     public void runTransfer() {
-        if (gamepad1.right_trigger > 0.5 && vision.alignedForShot() && shooter.isAtShootingSpeed()) {
-            transfer.runTransferFeed();
+        if (requireCameraLockToShoot) {
+            if (gamepad1.right_trigger > 0.5 && vision.alignedForShot() && shooter.isAtShootingSpeed()) {
+                transfer.runTransferFeed();
+            }
         }
+        else if (gamepad1.right_trigger > 0.5 && shooter.isAtShootingSpeed()) {
+            transfer.runTransferFeed();
+        } else {
+            transfer.runTransferStop();
+        }
+
     }
     public void runOuttake() {
         shooter.runOuttake(gamepad1.a, gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.dpad_up, gamepad1.dpad_down, telemetry);

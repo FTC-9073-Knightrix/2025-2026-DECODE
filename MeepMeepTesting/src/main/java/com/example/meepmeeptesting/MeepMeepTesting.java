@@ -18,22 +18,23 @@ public class MeepMeepTesting {
         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-56, 45.7, Math.toRadians(127)))
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135)) // shooting 1st ball
                 // make it wait here
-                .splineToLinearHeading(new Pose2d(-12, 50, Math.toRadians(90)), Math.toRadians(90)) // Added missing closing parenthesis and tangent
+                .splineToLinearHeading(new Pose2d(-12, 30, Math.toRadians(90)), Math.toRadians(90)) // Added missing closing parenthesis and tangent
+                .strafeToLinearHeading(new Vector2d(-12, 50), Math.toRadians(90)) // goes for closest row and intakes it
                 //wait for 3 seconds
                 // .turn(Math.toRadians(60)) lets say u want to miss the ball
-                .strafeToLinearHeading(new Vector2d(-10, 50), Math.toRadians(90)) // goes for closest row and intakes it
+                .splineToLinearHeading(new Pose2d (-10, 50, Math.toRadians(90)), Math.toRadians(135)) // goes for closest row and intakes it
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135)) // shooting ball 2nd time
                 //wait for 3 seconds
                 .splineToLinearHeading(new Pose2d(14, 30, Math.toRadians(90)), Math.toRadians(90)) // goes for middle row
                 .strafeToLinearHeading(new Vector2d(14, 50), Math.toRadians(90)) // intakes middle row
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135)) // shooting ball 3rd time
+                .splineToLinearHeading(new Pose2d(-20, 20, Math.toRadians(135)), Math.toRadians(90)) // shooting ball 3rd time
                 //wait for 3 seconds
                 // go for last row (farthest row)
-                .strafeToLinearHeading(new Vector2d(38, 30), Math.toRadians(90))
-                .strafeToLinearHeading(new Vector2d(38, 45), Math.toRadians(90))
+
+                .splineToLinearHeading(new Pose2d(38, 30, Math.toRadians(90)), Math.toRadians(90))
                 .strafeToLinearHeading(new Vector2d(38, 50), Math.toRadians(90))  // intakes all of the last row
                 // return to shooting position
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135)) // shooting ball 4th time
+                .splineToLinearHeading(new Pose2d(-20, 20, Math.toRadians(135)), Math.toRadians(90)) // shooting ball 4th time
                 // wait for 3 seconds
                 .build());
 

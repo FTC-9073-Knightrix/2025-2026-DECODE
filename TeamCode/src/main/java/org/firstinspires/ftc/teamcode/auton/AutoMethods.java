@@ -10,10 +10,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class AutoMethods {
+
     // ------------------------------- Intake Motor --------------------------------
     public DcMotorEx intakeMotor;
-    final private double INTAKE_VELOCITY = 2000;   // TODO: 11/16/25 TUNE THIS VALUE ASAP
-    final private double STOP_VELOCITY = 0.0;
+    final private double INTAKE_POWER = 1.0;   // replaced velocity with power
+    final private double STOP_POWER = 0.0;
 
     // ------------------------------- Outtake Motor --------------------------------
     public DcMotorEx outtakeMotor;
@@ -23,8 +24,7 @@ public class AutoMethods {
     public double hoodPosition = 0.0;
 
     // ------------------------------- Transfer Motor --------------------------------
-    public enum DetectedColor {  // these are the colors we detect, i might need to tune the values later
-        // TODO: 11/16/25 Make it so it detects at a certain distance and color range
+    public enum DetectedColor {
         GREEN,
         PURPLE,
         NONE
@@ -39,19 +39,15 @@ public class AutoMethods {
 
     // ------------------------------- Blinkin --------------------------------
     public Servo blinkin;
-    private final double COLOR_INTAKING = 0.61;  // red goes BRRRR am i right andrew :)
-    private final double COLOR_SHOOTING = 0.95;  /* blue as in the color
-    of blood that will be falling
-    from ur veins after i skin u alive my
-    little goodluck charm andy!
-    */
+    private final double COLOR_INTAKING = 0.61;
+    private final double COLOR_SHOOTING = 0.95;
 
     // ------------------------------- Constructor --------------------------------
     public AutoMethods(HardwareMap hardwareMap) {
         // Intake
         intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        intakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // Outtake
         outtakeMotor = hardwareMap.get(DcMotorEx.class, "outtakeMotor");
@@ -88,12 +84,12 @@ public class AutoMethods {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
             if (!isStopRequested) {
-                intakeMotor.setVelocity(INTAKE_VELOCITY);
-                blinkin.setPosition(COLOR_INTAKING);   // red for intake
-                packet.put("Intake Velocity", INTAKE_VELOCITY);
+                intakeMotor.setPower(INTAKE_POWER);
+                blinkin.setPosition(COLOR_INTAKING);
+                packet.put("Intake Power", INTAKE_POWER);
                 return true;
             } else {
-                intakeMotor.setVelocity(STOP_VELOCITY);
+                intakeMotor.setPower(STOP_POWER);
                 packet.put("Intake", "Stopped");
                 return false;
             }
@@ -107,7 +103,7 @@ public class AutoMethods {
     public class StopIntake implements Action {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
-            intakeMotor.setVelocity(STOP_VELOCITY);
+            intakeMotor.setPower(STOP_POWER);
             packet.put("Intake", "Stopped");
             return false;
         }
@@ -128,7 +124,7 @@ public class AutoMethods {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
             outtakeMotor.setVelocity(velocity);
-            blinkin.setPosition(COLOR_SHOOTING);  // blue when shooting
+            blinkin.setPosition(COLOR_SHOOTING);
             packet.put("Outtake Target Vel", velocity);
             packet.put("Outtake Actual Vel", outtakeMotor.getVelocity());
             return false;
@@ -194,7 +190,7 @@ public class AutoMethods {
                 packet.put("Transfer", "done");
                 return false;
             }
-            // this is just for testing, we dont need this in the final version i also gpted it lol (the prints btw)
+
             if (currentVel >= requiredVelocity && isColorValid()) {
                 transferMotor.setPower(TRANSFER_IN_POWER);
                 packet.put("Transfer", "in, ready");

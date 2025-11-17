@@ -8,70 +8,82 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.TankDrive;
 
-@Autonomous(name= "Nine Ball Auto Test", group="Autonomous")
+@Autonomous(name = "Nine Ball Auto Test", group = "Autonomous")
 public class NineBallAutoTest extends AutonBase {
+
     @Override
     public void runOpMode() throws InterruptedException {
-        // initial pose for tankdrive by utsav das :))))
-        TankDrive drive = new TankDrive(hardwareMap, new Pose2d(-56, 45, Math.toRadians(37)));
+
+        // INITIAL POSE — MATCHES MEEPMEEP
+        TankDrive drive = new TankDrive(
+                hardwareMap,
+                new Pose2d(-56, 45.7, Math.toRadians(127))
+        );
+
         super.runOpMode();
+        Action path = drive.actionBuilder(new Pose2d(-56, 45.7, Math.toRadians(127)))
 
-        // Build the trajectory action
-        Action trajectoryAction = drive.actionBuilder(new Pose2d(-56, 45, Math.toRadians(37)))
-                // move to initial shooting position
+                // -------------------------
+                // SHOOT BALL #1
+                // -------------------------
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135))
-                .waitSeconds(2) // wait at shooting position
+                .waitSeconds(2)
 
-                // first shot
-                .strafeToLinearHeading(new Vector2d(-100, 30), Math.toRadians(90))
-                .waitSeconds(2) // wait for shooting mechanism
+                // GO TO CLOSEST ROW (spline)
+                .splineToLinearHeading(new Pose2d(-12, 30, Math.toRadians(90)), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(-12, 50), Math.toRadians(90))
+                .waitSeconds(3) // intake
 
-                // go for closest row and intake
-                .strafeToLinearHeading(new Vector2d(-10, 50), Math.toRadians(90))
-
-                // return and shoot 2nd ball
+                // GO BACK FOR SHOT #2
+                .splineToLinearHeading(new Pose2d(-10, 50, Math.toRadians(90)), Math.toRadians(135))
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135))
-                .waitSeconds(2) // wait for shooting
+                .waitSeconds(2)
+                // -------------------------
+                // SHOOT BALL #2
+                // -------------------------
 
-                // go for middle row
-                .strafeToLinearHeading(new Vector2d(14, 30), Math.toRadians(90))
+                // MIDDLE ROW
+                .splineToLinearHeading(new Pose2d(14, 30, Math.toRadians(90)), Math.toRadians(90))
                 .strafeToLinearHeading(new Vector2d(14, 50), Math.toRadians(90))
+                .waitSeconds(3) // intake
 
-                // return and shoot 3rd ball
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135))
-                .waitSeconds(2) // wait for shooting
+                // RETURN FOR SHOT #3
+                .splineToLinearHeading(new Pose2d(-20, 20, Math.toRadians(135)), Math.toRadians(90))
+                .waitSeconds(2)
+                // -------------------------
+                // SHOOT BALL #3
+                // -------------------------
 
-                // go for last row (farthest row)
-                .strafeToLinearHeading(new Vector2d(38, 30), Math.toRadians(90))
-                .strafeToLinearHeading(new Vector2d(38, 45), Math.toRadians(90))
+                // LAST (FARTHEST) ROW
+                .splineToLinearHeading(new Pose2d(38, 30, Math.toRadians(90)), Math.toRadians(90))
                 .strafeToLinearHeading(new Vector2d(38, 50), Math.toRadians(90))
+                .waitSeconds(3) // intake
 
-                // return to shooting position and shoot 4th ball
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135))
-                .waitSeconds(3) // wait for final shooting
+                // FINAL RETURN FOR SHOT #4
+                .splineToLinearHeading(new Pose2d(-20, 20, Math.toRadians(135)), Math.toRadians(90))
+                .waitSeconds(3)
+                // -------------------------
+                // SHOOT BALL #4
+                // -------------------------
+
                 .build();
 
+        // WAIT FOR START
         while (!isStopRequested() && !opModeIsActive()) {
-            telemetry.addData("Status", "Waiting for Start");
-            telemetry.addData("Starting Pose", "(-56, 45, 37°)");
+            telemetry.addData("Status", "Waiting for start");
+            telemetry.addData("Start Pose", "(-56, 45.7, 127°)");
             telemetry.update();
         }
 
         waitForStart();
 
-        if (opModeIsActive()) {
-            if (isStopRequested()) {
-                telemetry.addData("Auton Stopped", "Stop Requested");
-                telemetry.update();
-                return;
-            }
-
-            telemetry.addData("Status", "Running Nine Ball Auto");
+        if (opModeIsActive() && !isStopRequested()) {
+            telemetry.addData("Status", "Running Auto");
             telemetry.update();
 
-            Actions.runBlocking(trajectoryAction);
+            Actions.runBlocking(path);
 
-            telemetry.addData("Status", "Autonomous Complete");
+            telemetry.addData("Status", "AUTO COMPLETE");
             telemetry.update();
         }
     }

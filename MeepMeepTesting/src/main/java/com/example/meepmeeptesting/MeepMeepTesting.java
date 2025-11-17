@@ -16,24 +16,32 @@ public class MeepMeepTesting {
                 .build();
 
         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-56, 45.7, Math.toRadians(127)))
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135)) // shooting 1st ball
+                .strafeToLinearHeading(new Vector2d(-15, 15), Math.toRadians(135)) // shooting 1st ball
                 // make it wait here
-                .splineToLinearHeading(new Pose2d(-12, 50, Math.toRadians(90)), Math.toRadians(90)) // Added missing closing parenthesis and tangent
+                .waitSeconds(2.5)
+
+                .turn(Math.toRadians(-135 + 90))
+                .setTangent(Math.toRadians(75))
+                .strafeToLinearHeading(new Vector2d(-10, 54), Math.toRadians(90)) // Added missing closing parenthesis and tangent
                 //wait for 3 seconds
                 // .turn(Math.toRadians(60)) lets say u want to miss the ball
-                .strafeToLinearHeading(new Vector2d(-10, 50), Math.toRadians(90)) // goes for closest row and intakes it
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135)) // shooting ball 2nd time
+                .strafeToLinearHeading(new Vector2d(-15, 15), Math.toRadians(135)) // shooting ball 2nd time
+                .waitSeconds(2.5)
                 //wait for 3 seconds
-                .splineToLinearHeading(new Pose2d(14, 30, Math.toRadians(90)), Math.toRadians(90)) // goes for middle row
-                .strafeToLinearHeading(new Vector2d(14, 50), Math.toRadians(90)) // intakes middle row
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135)) // shooting ball 3rd time
+                .strafeToLinearHeading(new Vector2d(1, 20), Math.toRadians(90)) // intakes middle row
+                .splineToConstantHeading(new Vector2d(14, 50), Math.toRadians(90))
+
+                .setTangent(Math.toRadians(270))
+                .splineToLinearHeading(new Pose2d(-15, 15, Math.toRadians(135)), Math.toRadians(195)) // shooting ball 3rd time
+                .waitSeconds(2.5)
                 //wait for 3 seconds
                 // go for last row (farthest row)
-                .strafeToLinearHeading(new Vector2d(38, 30), Math.toRadians(90))
-                .strafeToLinearHeading(new Vector2d(38, 45), Math.toRadians(90))
-                .strafeToLinearHeading(new Vector2d(38, 50), Math.toRadians(90))  // intakes all of the last row
+                .strafeToLinearHeading(new Vector2d(36, 30), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(36, 60), Math.toRadians(90))  // intakes all of the last row
                 // return to shooting position
-                .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135)) // shooting ball 4th time
+                .strafeToLinearHeading(new Vector2d(-15, 15), Math.toRadians(135)) // shooting ball 4th time
+                .waitSeconds(2.5)
+                .strafeToLinearHeading(new Vector2d(0, 45), Math.toRadians(90)) // park in the middle
                 // wait for 3 seconds
                 .build());
 

@@ -18,9 +18,9 @@ public class AutoMethods {
     // ------------------------------- Outtake Motor --------------------------------
     public DcMotorEx outtakeMotor;
     public Servo hoodServo;
-    public double targetVelocityTicks = 0.0;
+    public double targetVelocityTicks = 1300.0;
     static final double TICKS_PER_REV = 28;
-    public double hoodPosition = 0.0;
+    public double hoodPosition = 0.4;
 
     // ------------------------------- Transfer Motor --------------------------------
     public enum DetectedColor {  // these are the colors we detect, i might need to tune the values later

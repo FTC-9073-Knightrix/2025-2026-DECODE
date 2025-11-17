@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class RGBLights {
     private Servo blinkin;
 
-    public RGBLights(HardwareMap hardwareMap) {
+    public void init(HardwareMap hardwareMap) {
         blinkin = hardwareMap.get(Servo.class, "blinkin");
     }
 

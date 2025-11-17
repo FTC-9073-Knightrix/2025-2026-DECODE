@@ -9,15 +9,16 @@ import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.drivetrain.TeleOpMe
 @Config
 public abstract class TeleOpMethods extends RobotBaseHwMap {
 
-    boolean lockPrevPressed = false;
-    public static final double PURPLE = 0.91; // normal
-    public static final double BLUE = 0.65;   // shooting
-    public static final double RED = -0.77;   // intake
+    public static final double PURPLE_LED_COLOR_VALUE = 0.91; // normal
+    public static final double BLUE_LED_COLOR_VALUE = 0.65;   // shooting
+    public static final double RED_LED_COLOR_VALUE = -0.77;   // intake
+
     boolean requireCameraLockToShoot = false;
+    boolean lockPrevPressed = false;
 
     @Override
     public void init() {super.init();}
-    // put robot methods you will run in the teleOp here
+
     public void runToggledDrive() {
         boolean rb = gamepad1.right_bumper;
         boolean lb = gamepad1.left_bumper;
@@ -55,28 +56,50 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     }
 
     public void runIntake() {
-        boolean leftTriggerPressed = gamepad1.left_trigger > 0.5;
-        intake.runIntake(leftTriggerPressed);
+        boolean xPressed = gamepad1.x;
+        intake.runIntake(xPressed);
+        transfer.runTransferWithAutomaticStop(xPressed);
     }
 
     public void runTransfer() {
-        if (requireCameraLockToShoot) {
-            if (gamepad1.right_trigger > 0.5 && vision.alignedForShot() && shooter.isAtShootingSpeed()) {
-                transfer.runTransferFeed();
+        boolean holdToEject = gamepad1.left_trigger > 0.5;
+
+        if (holdToEject) {
+            if (requireCameraLockToShoot) {
+                if (vision.alignedForShot() && shooter.isAtShootingSpeed()) {
+                    transfer.runTransferIn();
+                }
+                else {
+                    transfer.runTransferStop();
+                }
+            }
+            else {
+                if (shooter.isAtShootingSpeed()) {
+                    transfer.runTransferIn();
+                }
+                else {
+                    transfer.runTransferStop();
+                }
             }
         }
-        else if (gamepad1.right_trigger > 0.5 && shooter.isAtShootingSpeed()) {
-            transfer.runTransferFeed();
-        } else {
+        else {
             transfer.runTransferStop();
         }
-
     }
+
     public void runOuttake() {
-        shooter.runOuttake(gamepad1.a, gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.dpad_up, gamepad1.dpad_down, telemetry);
-        shooter.dynamicallyUpdateHoodPosition(vision.getTagHorizontalDistance());
+        if (requireCameraLockToShoot) {
+            if (vision.isDetectingAGoalTag()) {
+                shooter.runOuttake(gamepad1.a, gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.dpad_up, gamepad1.dpad_down, telemetry, vision.getTagHorizontalDistance());
+                shooter.dynamicallyUpdateHoodPosition(vision.getTagHorizontalDistance());
+            }
+        }
+        else {
+            int defaultDistance = 40; // TODO midshot inches
+            shooter.runOuttake(gamepad1.a, gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.dpad_up, gamepad1.dpad_down, telemetry, 40);
+            shooter.dynamicallyUpdateHoodPosition(defaultDistance);
+        }
     }
-
 
     @SuppressLint("DefaultLocale")
     public void displayTelemetry() {

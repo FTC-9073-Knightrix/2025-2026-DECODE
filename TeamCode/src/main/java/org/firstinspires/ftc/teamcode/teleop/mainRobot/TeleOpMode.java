@@ -13,6 +13,7 @@ public class TeleOpMode extends TeleOpMethods {
         runToggledDrive();
         runVision();
         runIntake();
+        runTransfer();
         runOuttake();
         displayTelemetry(); // this shows text on the driver hub
 

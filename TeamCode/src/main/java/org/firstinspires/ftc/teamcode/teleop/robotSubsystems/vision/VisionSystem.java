@@ -110,6 +110,7 @@ public class VisionSystem {
         }
         return false;
     }
+
     public String getSequence() {
         return goalTagSequence;
     }

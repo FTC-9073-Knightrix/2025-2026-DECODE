@@ -22,7 +22,7 @@ public class Shooter {
     private final double FAR_SHOT_VELOCITY_TICKS = 1500.0;
     private final double MID_SHOT_VELOCITY_TICKS = 1250.0;
     private final double NEAR_SHOT_VELOCITY_TICKS = 1000.0;
-    private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 75.0;
+    private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 100.0;
 
     private boolean outtakeOn = false;
     private boolean lastAState = false;
@@ -57,11 +57,14 @@ public class Shooter {
 
     public void runOuttake(boolean a, boolean dpad_left, boolean dpad_right,
                            boolean dpad_up, boolean dpad_down,
-                           Telemetry telemetry) {
+                           Telemetry telemetry, double horizontalDistanceToGoalInches) {
 
         // on every loop cycle, update the feedforward coefficient to account for changing battery voltage
         // this makes it so a drop in battery voltage doesn't cause a drop in flywheel velocity
 //        updateFeedForwardCoefficient();
+
+        // update target velocity based on distance to goal if needed
+        updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
         // Toggle motor on/off
         if (a && ! lastAState) {
             outtakeOn = !outtakeOn;
@@ -103,18 +106,11 @@ public class Shooter {
 
         // Telemetry
         double ticksPerSecond = outtakeMotor.getVelocity();
-        double revPerSecond = ticksPerSecond / TICKS_PER_REV;
-        double revPerMinute = revPerSecond * 60;
-        double radPerSecond = revPerSecond * 2 * Math.PI;
 
         telemetry.addData("Outtake On", outtakeOn);
         telemetry.addData("PIDF Coefficients", outtakeMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
         telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
         telemetry.addData("Current Velocity (ticks/sec)", ticksPerSecond);
-        telemetry.addData("Velocity (deg/sec)", outtakeMotor.getVelocity(AngleUnit.DEGREES));
-        telemetry.addData("Velocity (rev/sec)", revPerSecond);
-        telemetry.addData( "Velocity (rev/min or RPM)", revPerMinute);
-        telemetry.addData("Angular Velocity (rad/sec)", radPerSecond);
         telemetry.addData("Servo Position", hoodPosition);
         telemetry.update();
     }

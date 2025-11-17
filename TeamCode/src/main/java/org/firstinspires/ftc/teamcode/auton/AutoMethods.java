@@ -41,9 +41,6 @@ public class AutoMethods {
     public Servo blinkin;
     private final double COLOR_INTAKING = 0.61;  // red goes BRRRR am i right andrew :)
     private final double COLOR_SHOOTING = 0.95;  /* blue as in the color
-    of blood that will be falling
-    from ur veins after i skin u alive my
-    little goodluck charm andy!
     */
 
     // ------------------------------- Constructor --------------------------------
@@ -57,7 +54,7 @@ public class AutoMethods {
         outtakeMotor = hardwareMap.get(DcMotorEx.class, "outtakeMotor");
         hoodServo = hardwareMap.get(Servo.class, "hoodServo");
 
-        outtakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        outtakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         outtakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         hoodServo.setPosition(hoodPosition);
 

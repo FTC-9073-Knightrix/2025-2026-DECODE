@@ -1,0 +1,25 @@
+plugins {
+    id 'java-library'
+    id 'application'
+}
+repositories {
+    maven { url = 'https://maven.brott.dev/' }
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    // Use the MeepMeep artifact that was originally in the file. Removing the unsuccessful JitPack fallback.
+    implementation 'com.acmerobotics.roadrunner:MeepMeep:0.1.7'
+}
+
+application {
+    // mainClassName for older Gradle; mainClass for newer. Set both for compatibility.
+    mainClassName = 'com.example.meepmeeptesting.MeepMeepTesting'
+    mainClass = 'com.example.meepmeeptesting.MeepMeepTesting'
+}
+
+java {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+}

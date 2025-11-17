@@ -10,6 +10,9 @@ import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.drivetrain.TeleOpMe
 public abstract class TeleOpMethods extends RobotBaseHwMap {
 
     boolean lockPrevPressed = false;
+    public static final double PURPLE = 0.91; // normal
+    public static final double BLUE = 0.65;   // shooting
+    public static final double RED = -0.77;   // intake
     boolean requireCameraLockToShoot = false;
 
     @Override

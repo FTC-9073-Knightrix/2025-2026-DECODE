@@ -10,6 +10,7 @@ public class Transfer {
         PURPLE,
         NONE
     }
+
     public DcMotor transferMotor;
     private final double TRANSFER_IN_POWER = 0.5;
     private final double TRANSFER_OUT_POWER = -0.5;
@@ -25,22 +26,23 @@ public class Transfer {
         this.currentColor = color;
     }
 
-    private  boolean isColorValid() {
+    private boolean isColorValid() {
         return currentColor == DetectedColor.GREEN || currentColor == DetectedColor.PURPLE;
     }
 
     public void runTransferIn() {
-       if (isColorValid()) {
-           transferMotor.setPower((TRANSFER_IN_POWER));
-       } else {
-           transferMotor.setPower(TRANSFER_STOP_POWER);
-       }
+        if (isColorValid()) {
+            transferMotor.setPower((TRANSFER_IN_POWER));
+        } else {
+            transferMotor.setPower(TRANSFER_STOP_POWER);
+        }
     }
 
     public void runTransferOut() {
 
         transferMotor.setPower(TRANSFER_OUT_POWER);
     }
+
     public DetectedColor getDetectedColor() {
         return currentColor;
     }

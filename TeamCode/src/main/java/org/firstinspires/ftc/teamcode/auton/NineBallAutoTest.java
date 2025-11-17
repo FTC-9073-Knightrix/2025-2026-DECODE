@@ -20,18 +20,18 @@ public class NineBallAutoTest extends AutonBase {
         Action trajectoryAction = drive.actionBuilder(new Pose2d(-56, 45, Math.toRadians(37)))
                 // move to initial shooting position
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135))
-                .waitSeconds(1) // wait at shooting position
+                .waitSeconds(2) // wait at shooting position
 
                 // first shot
                 .strafeToLinearHeading(new Vector2d(-100, 30), Math.toRadians(90))
-                .waitSeconds(3) // wait for shooting mechanism
+                .waitSeconds(2) // wait for shooting mechanism
 
                 // go for closest row and intake
                 .strafeToLinearHeading(new Vector2d(-10, 50), Math.toRadians(90))
 
                 // return and shoot 2nd ball
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135))
-                .waitSeconds(3) // wait for shooting
+                .waitSeconds(2) // wait for shooting
 
                 // go for middle row
                 .strafeToLinearHeading(new Vector2d(14, 30), Math.toRadians(90))
@@ -39,7 +39,7 @@ public class NineBallAutoTest extends AutonBase {
 
                 // return and shoot 3rd ball
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135))
-                .waitSeconds(3) // wait for shooting
+                .waitSeconds(2) // wait for shooting
 
                 // go for last row (farthest row)
                 .strafeToLinearHeading(new Vector2d(38, 30), Math.toRadians(90))

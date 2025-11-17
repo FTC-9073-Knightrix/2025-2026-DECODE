@@ -15,7 +15,7 @@ public class GoalStartThreeBall extends AutonBase {
 
         // Drive back to pick up third ball
         Action driveBackFromGoal = drive.actionBuilder(beginPose)
-                .splineToConstantHeading(new Vector2d(-20, 0), 0, maxSpeedConstraint, maxAcceleration)
+                .splineToConstantHeading(new Vector2d(-20, 0), 0, maxSpeedConstraint, maxAccelConstraint)
                 .build();
 
         while (!isStopRequested() && !opModeIsActive()) {

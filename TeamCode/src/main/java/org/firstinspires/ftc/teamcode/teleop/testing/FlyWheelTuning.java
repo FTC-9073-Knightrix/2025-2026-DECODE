@@ -15,8 +15,8 @@ public class FlyWheelTuning extends OpMode {
     private static final double NOMINAL_VOLTAGE = 10.0; // Voltage at which you measured kV
 
     // Tunable parameters
-    private double kV = 1.0 / 3120.0; // Start with your initial guess
-    private double kP = 0.0;
+    private double kV = 0.85 / 1880.0; // Start with your initial guess
+    private double kP = 10.0;
     private double targetVelocityTicks = 1000.0;
 
     // Button state tracking
@@ -49,7 +49,7 @@ public class FlyWheelTuning extends OpMode {
         outtakeMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         outtakeMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-        updatePIDFCoefficients();
+        updatePIDFCoefficients(kV, kP);
 
         telemetry.addLine("Flywheel Tuning OpMode");
         telemetry.addLine("Press START to begin");
@@ -121,43 +121,43 @@ public class FlyWheelTuning extends OpMode {
 
             case KV_TUNING:
                 if (gamepad1.dpad_up && !lastDpadUp) {
-                    kV += 0.00001;
-                    updatePIDFCoefficients();
+                    kV += 0.001;
+                    updatePIDFCoefficients(kV, kP);
                 }
                 if (gamepad1.dpad_down && !lastDpadDown) {
-                    kV -= 0.00001;
+                    kV -= 0.001;
                     kV = Math.max(kV, 0.0);
-                    updatePIDFCoefficients();
+                    updatePIDFCoefficients(kV, kP);
                 }
                 if (gamepad1.dpad_right && !lastDpadRight) {
-                    kV += 0.000001;
-                    updatePIDFCoefficients();
+                    kV += 0.0001;
+                    updatePIDFCoefficients(kV, kP);
                 }
                 if (gamepad1.dpad_left && !lastDpadLeft) {
-                    kV -= 0.000001;
+                    kV -= 0.0001;
                     kV = Math.max(kV, 0.0);
-                    updatePIDFCoefficients();
+                    updatePIDFCoefficients(kV, kP);
                 }
                 break;
 
             case KP_TUNING:
                 if (gamepad1.dpad_up && !lastDpadUp) {
                     kP += 0.1;
-                    updatePIDFCoefficients();
+                    updatePIDFCoefficients(kV, kP);
                 }
                 if (gamepad1.dpad_down && !lastDpadDown) {
                     kP -= 0.1;
                     kP = Math.max(kP, 0.0);
-                    updatePIDFCoefficients();
+                    updatePIDFCoefficients(kV, kP);
                 }
                 if (gamepad1.dpad_right && !lastDpadRight) {
                     kP += 0.01;
-                    updatePIDFCoefficients();
+                    updatePIDFCoefficients(kV, kP);
                 }
                 if (gamepad1.dpad_left && !lastDpadLeft) {
                     kP -= 0.01;
                     kP = Math.max(kP, 0.0);
-                    updatePIDFCoefficients();
+                    updatePIDFCoefficients(kV, kP);
                 }
                 break;
         }
@@ -185,9 +185,8 @@ public class FlyWheelTuning extends OpMode {
         }
     }
 
-    private void updatePIDFCoefficients() {
+    private void updatePIDFCoefficients(double kF, double kP) {
         double currentBatteryVoltage = batteryVoltageSensor.getVoltage();
-        double kF = kV * NOMINAL_VOLTAGE / currentBatteryVoltage;
         outtakeMotor.setVelocityPIDFCoefficients(kP, 0, 0, kF);
     }
 
@@ -218,9 +217,7 @@ public class FlyWheelTuning extends OpMode {
         telemetry.addLine();
 
         telemetry.addLine("--- TUNING PARAMETERS ---");
-        telemetry.addData("kV", "%.8f", kV);
-        telemetry.addData("kP", "%.4f", kP);
-        telemetry.addData("kF (adjusted)", "%.8f", kF);
+        telemetry.addData("PIDF Coefficients", outtakeMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
         telemetry.addLine();
 
         telemetry.addLine("--- SYSTEM INFO ---");

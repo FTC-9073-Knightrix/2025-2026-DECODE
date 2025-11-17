@@ -1,11 +1,12 @@
 package org.firstinspires.ftc.teamcode.auton;
 
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-
-import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 @Autonomous(name="Goal Start Three Ball", group="Autonomous")
 public class GoalStartThreeBall extends AutonBase {
@@ -30,6 +31,17 @@ public class GoalStartThreeBall extends AutonBase {
                 telemetry.update();
                 return;
             }
+            telemetry.addData("Auton Elapsed Time", getRuntime());
+            telemetry.update();
+
+            Actions.runBlocking(
+                    new SequentialAction(
+                            // DRIVE BACK AND SPIN UP SHOOTER SIMULTANEOUSLY
+                            new ParallelAction(
+                                driveBackFromGoal
+                            )
+                    )
+            );
         }
 
     }

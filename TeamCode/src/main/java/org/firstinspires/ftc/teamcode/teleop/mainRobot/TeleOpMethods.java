@@ -13,6 +13,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     public static final double PURPLE = 0.91; // normal
     public static final double BLUE = 0.65;   // shooting
     public static final double RED = -0.77;   // intake
+    boolean requireCameraLockToShoot = false;
 
     @Override
     public void init() {super.init();}
@@ -58,11 +59,24 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         intake.runIntake(leftTriggerPressed);
     }
 
+    public void runTransfer() {
+        if (requireCameraLockToShoot) {
+            if (gamepad1.right_trigger > 0.5 && vision.alignedForShot() && shooter.isAtShootingSpeed()) {
+                transfer.runTransferFeed();
+            }
+        }
+        else if (gamepad1.right_trigger > 0.5 && shooter.isAtShootingSpeed()) {
+            transfer.runTransferFeed();
+        } else {
+            transfer.runTransferStop();
+        }
+
+    }
     public void runOuttake() {
         shooter.runOuttake(gamepad1.a, gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.dpad_up, gamepad1.dpad_down, telemetry);
         shooter.dynamicallyUpdateHoodPosition(vision.getTagHorizontalDistance());
     }
-    
+
 
     @SuppressLint("DefaultLocale")
     public void displayTelemetry() {

@@ -29,6 +29,9 @@ public class Intake {
         else {
             intakeMotor.setPower(INTAKE_STOP_POWER);
         }
+    }
 
+    public void ejectIntake() {
+        intakeMotor.setPower(INTAKE_OUT_POWER);
     }
 }

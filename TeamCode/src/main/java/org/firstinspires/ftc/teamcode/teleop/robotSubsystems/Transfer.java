@@ -22,26 +22,15 @@ public class Transfer {
         transferMotor = hw.get(DcMotor.class, "transfer");
     }
 
-    public void setDetectedColor(DetectedColor color) {
-        this.currentColor = color;
+    public void runTransferFeed() {
+        transferMotor.setPower(TRANSFER_IN_POWER);
     }
 
-    private boolean isColorValid() {
-        return currentColor == DetectedColor.GREEN || currentColor == DetectedColor.PURPLE;
-    }
-
-    public void runTransferIn() {
-        if (isColorValid()) {
-            transferMotor.setPower((TRANSFER_IN_POWER));
-        } else {
-            transferMotor.setPower(TRANSFER_STOP_POWER);
-        }
-    }
-
-    public void runTransferOut() {
-
+    public void runTransferReject() {
         transferMotor.setPower(TRANSFER_OUT_POWER);
     }
+
+    public void runTransferStop() { transferMotor.setPower(TRANSFER_STOP_POWER); }
 
     public DetectedColor getDetectedColor() {
         return currentColor;

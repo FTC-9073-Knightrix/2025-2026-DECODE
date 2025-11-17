@@ -103,6 +103,13 @@ public class VisionSystem {
         return -1;
     }
 
+    public boolean alignedForShot() {
+        if (isDetectingAGoalTag()) {
+            double bearing = getTagBearing();
+            return Math.abs(bearing) < 5.0;
+        }
+        return false;
+    }
     public String getSequence() {
         return goalTagSequence;
     }

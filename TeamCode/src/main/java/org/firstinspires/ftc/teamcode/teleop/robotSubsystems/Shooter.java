@@ -22,6 +22,7 @@ public class Shooter {
     private final double FAR_SHOT_VELOCITY_TICKS = 1500.0;
     private final double MID_SHOT_VELOCITY_TICKS = 1250.0;
     private final double NEAR_SHOT_VELOCITY_TICKS = 1000.0;
+    private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 75.0;
 
     private boolean outtakeOn = false;
     private boolean lastAState = false;
@@ -50,7 +51,7 @@ public class Shooter {
 
         double currentBatteryVoltage = batteryVoltageSensor.getVoltage();
         double kF = kV * NOMINAL_VOLTAGE / currentBatteryVoltage;
-        outtakeMotor.setVelocityPIDFCoefficients(kP, 0, 0, kF); // we use only kP and kF here
+//        outtakeMotor.setVelocityPIDFCoefficients(kP, 0, 0, kF); // we use only kP and kF here
         hoodServo.setPosition(hoodPosition);
     }
 
@@ -60,7 +61,7 @@ public class Shooter {
 
         // on every loop cycle, update the feedforward coefficient to account for changing battery voltage
         // this makes it so a drop in battery voltage doesn't cause a drop in flywheel velocity
-        updateFeedForwardCoefficient();
+//        updateFeedForwardCoefficient();
         // Toggle motor on/off
         if (a && ! lastAState) {
             outtakeOn = !outtakeOn;
@@ -121,7 +122,7 @@ public class Shooter {
     private void updateFeedForwardCoefficient() {
         double currentBatteryVoltage = batteryVoltageSensor.getVoltage();
         double kF = kV * NOMINAL_VOLTAGE / currentBatteryVoltage;
-        outtakeMotor.setVelocityPIDFCoefficients(0.01, 0, 0, kF); // we use only kP and kF here
+//        outtakeMotor.setVelocityPIDFCoefficients(0.01, 0, 0, kF); // we use only kP and kF here
     }
 
     public void dynamicallyUpdateHoodPosition(double horizontalDistanceToGoalInches) {
@@ -163,5 +164,12 @@ public class Shooter {
         } else { // NEAR SHOT
             targetVelocityTicks = NEAR_SHOT_VELOCITY_TICKS;
         }
+    }
+
+    public boolean isAtShootingSpeed() {
+        double currentVelocity = outtakeMotor.getVelocity();
+        double velocityError = Math.abs(targetVelocityTicks - currentVelocity);
+
+        return velocityError <= ACCEPTABLE_VELOCITY_ERROR_TICKS;
     }
 }

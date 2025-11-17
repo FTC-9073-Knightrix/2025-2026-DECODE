@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.teleop.mainRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.Intake;
+import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.Transfer;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.drivetrain.TeleOpMecanumDrive;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.Shooter;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.vision.VisionSystem;
@@ -12,6 +13,7 @@ public abstract class RobotBaseHwMap extends OpMode {
     VisionSystem vision = new VisionSystem();
     Shooter shooter = new Shooter();
     Intake intake = new Intake();
+    Transfer transfer = new Transfer();
 
     @Override
     public void init() {
@@ -20,5 +22,6 @@ public abstract class RobotBaseHwMap extends OpMode {
         vision.init(hardwareMap);
         shooter.init(hardwareMap);
         intake.init(hardwareMap);
+        transfer.init(hardwareMap);
     }
 }

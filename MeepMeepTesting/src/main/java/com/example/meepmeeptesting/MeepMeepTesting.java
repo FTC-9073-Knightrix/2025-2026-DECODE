@@ -15,7 +15,7 @@ public class MeepMeepTesting {
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-45, 47, Math.toRadians(135)))
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-56, 45.7, Math.toRadians(127)))
                 .strafeToLinearHeading(new Vector2d(-20, 20), Math.toRadians(135)) // shooting 1st ball
                 // make it wait here
                 .strafeToLinearHeading(new Vector2d(-10, 30), Math.toRadians(90))

@@ -74,12 +74,8 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                 }
             }
             else {
-                if (shooter.isAtShootingSpeed()) {
+                // todo have shooter is at shooting speed
                     transfer.runTransferIn();
-                }
-                else {
-                    transfer.runTransferStop();
-                }
             }
         }
         else {

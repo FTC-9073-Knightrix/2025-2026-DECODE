@@ -19,9 +19,9 @@ public class Shooter {
     public double targetVelocityTicks = 0.0;
 
     // TODO CHANGE THESE TEMP VALUES BASED ON TESTING
-    private final double FAR_SHOT_VELOCITY_TICKS = 1500.0;
-    private final double MID_SHOT_VELOCITY_TICKS = 1250.0;
-    private final double NEAR_SHOT_VELOCITY_TICKS = 1000.0;
+    private final double FAR_SHOT_VELOCITY_TICKS = -1500.0;
+    private final double MID_SHOT_VELOCITY_TICKS = -1250.0;
+    private final double NEAR_SHOT_VELOCITY_TICKS = -800.0;
     private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 100.0;
 
     private boolean outtakeOn = false;

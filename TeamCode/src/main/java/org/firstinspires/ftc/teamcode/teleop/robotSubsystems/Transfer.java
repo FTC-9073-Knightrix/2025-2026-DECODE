@@ -16,8 +16,8 @@ public class Transfer {
 
     public DcMotor transferMotor;
     public DistanceSensor transferDistanceSensor;
-    private final double TRANSFER_IN_POWER = 0.5;
-    private final double TRANSFER_OUT_POWER = -0.5;
+    private final double TRANSFER_IN_POWER = 1.0;
+    private final double TRANSFER_OUT_POWER = -1.0;
     private final double TRANSFER_STOP_POWER = 0.0;
 
     boolean transferActive = false;
@@ -65,7 +65,9 @@ public class Transfer {
         transferMotor.setPower(TRANSFER_OUT_POWER);
     }
 
-    public void runTransferStop() { transferMotor.setPower(TRANSFER_STOP_POWER); }
+    public void runTransferStop() {
+        transferMotor.setPower(TRANSFER_STOP_POWER);
+    }
 
     public DetectedColor getDetectedColor() {
         return currentColor;

@@ -9,8 +9,8 @@ public class Intake {
     private boolean isTogglePressed;
     private boolean intakeOn;
 
-    private final double INTAKE_IN_POWER = 0.4;
-    private final double INTAKE_OUT_POWER = -1.0;
+    private final double INTAKE_IN_POWER = -1.0;
+    private final double INTAKE_OUT_POWER = 1.0;
     private final double INTAKE_STOP_POWER = 0.0;
 
     public void init(HardwareMap hw) {

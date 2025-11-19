@@ -64,7 +64,7 @@ public class Shooter {
 //        updateFeedForwardCoefficient();
 
         // update target velocity based on distance to goal if needed
-        updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
+//        updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
         // Toggle motor on/off
         if (a && ! lastAState) {
             outtakeOn = !outtakeOn;
@@ -86,14 +86,13 @@ public class Shooter {
 
         // Adjust velocity
         if (dpad_up && !lastDpadUp) {
-            targetVelocityTicks += 50;
+            targetVelocityTicks -= 50;
             if (targetVelocityTicks > 2000) targetVelocityTicks = 2000;
         }
         lastDpadUp = dpad_up;
 
         if (dpad_down && !lastDpadDown) {
-            targetVelocityTicks -= 100;
-            if (targetVelocityTicks < 0) targetVelocityTicks = 0;
+            targetVelocityTicks += 50;
         }
         lastDpadDown = dpad_down;
 
@@ -112,7 +111,6 @@ public class Shooter {
         telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
         telemetry.addData("Current Velocity (ticks/sec)", ticksPerSecond);
         telemetry.addData("Servo Position", hoodPosition);
-        telemetry.update();
     }
 
     private void updateFeedForwardCoefficient() {

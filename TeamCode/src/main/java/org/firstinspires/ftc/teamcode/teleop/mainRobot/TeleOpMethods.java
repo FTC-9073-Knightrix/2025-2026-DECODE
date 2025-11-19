@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 
 import com.acmerobotics.dashboard.config.Config;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.drivetrain.TeleOpMecanumDrive;
 
 @Config
@@ -93,7 +94,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         else {
             int defaultDistance = 40; // TODO midshot inches
             shooter.runOuttake(gamepad1.a, gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.dpad_up, gamepad1.dpad_down, telemetry, 40);
-            shooter.dynamicallyUpdateHoodPosition(defaultDistance);
+//            shooter.dynamicallyUpdateHoodPosition(defaultDistance);
         }
     }
 
@@ -103,5 +104,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         telemetry.addData("Drive Mode: ", drive.getDriveMode());
         telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());
         telemetry.addData("Sequence: " , vision.getSequence());
+        telemetry.addData("distance sensor: (CM)" , transfer.transferDistanceSensor.getDistance(DistanceUnit.CM));
+        telemetry.update();
     }
 }

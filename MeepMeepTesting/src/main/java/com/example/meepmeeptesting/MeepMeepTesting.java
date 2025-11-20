@@ -14,7 +14,7 @@ public class MeepMeepTesting {
     }
 
     public static void main(String[] args) {
-        AllianceColor color = AllianceColor.BLUE; // Change color accordingly
+        AllianceColor color = AllianceColor.RED; // Change color accordingly
         MeepMeep meepMeep = new MeepMeep(600);
 
         RoadRunnerBotEntity myBot = new DefaultBotBuilder(meepMeep)
@@ -29,7 +29,7 @@ public class MeepMeepTesting {
 
                 .turn(Math.toRadians((color == AllianceColor.RED) ? (-135 + 90) : -(-135 + 90)))
                 .setTangent(Math.toRadians((color == AllianceColor.RED) ? 75 : -75))
-                .strafeToLinearHeading(new Vector2d(-10, (color == AllianceColor.RED) ? 54 : -54), Math.toRadians((color == AllianceColor.RED) ? 90 : -90)) // Added missing closing parenthesis and tangent
+                .splineToLinearHeading(new Pose2d(-11, (color == AllianceColor.RED) ? 54 : -54, (color == AllianceColor.RED ? Math.toRadians(90) : Math.toRadians(-90))), Math.toRadians((color == AllianceColor.RED) ? 90 : -90)) // Added missing closing parenthesis and tangent
                 //wait for 3 seconds
                 // .turn(Math.toRadians(60)) lets say u want to miss the ball
                 .strafeToLinearHeading(new Vector2d(-15, (color == AllianceColor.RED) ? 15 : -15), Math.toRadians((color == AllianceColor.RED) ? 135 : -135)) // shooting ball 2nd time

@@ -27,7 +27,7 @@ public class TeleOpMecanumDrive {
     public final double fastSpeed = 1.0;
     public final double slowSpeed = 0.30;
     private boolean rightStickPrevPressed = false;
-
+    boolean robotCentric;
 
     public void init(HardwareMap hwMap) {
         frontLeftMotor = hwMap.get(DcMotor.class, "leftFront");
@@ -46,6 +46,7 @@ public class TeleOpMecanumDrive {
         );
         rev_imu.initialize(new IMU.Parameters(RevOrientation));
 
+        robotCentric = false;
         driveTimer.reset();
     }
 
@@ -126,7 +127,41 @@ public class TeleOpMecanumDrive {
         this.frontRightMotor.setPower(frontRightPower * finalSlowMode);
         this.backRightMotor.setPower(backRightPower * finalSlowMode);
 
+        robotCentric = false;
         driveTimer.reset(); // reset timer when in manual mode so derivative term is accurate when switching to auto-align
+    }
+
+    // New robot-centric manual drive method: uses stick inputs directly (no IMU/heading transform)
+    public void runManualRobotCentricDrive(boolean rb, boolean lb, double y, double x, double rx) {
+        // Speed mode selection (same as field-oriented method)
+        if (rb) {
+            finalSlowMode = slowSpeed;
+        } else if (lb) {
+            finalSlowMode = fastSpeed;
+        } else {
+            finalSlowMode = driveSpeed;
+        }
+
+        // Direct robot-centric stick mapping
+        double rotX = x;
+        double rotY = y;
+
+        // small scaling to X to match behavior of field-oriented version
+        rotX = rotX * 1.1;
+
+        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
+        double frontLeftPower = (rotY + rotX + rx) / denominator;
+        double backLeftPower = (rotY - rotX + rx) / denominator;
+        double frontRightPower = (rotY - rotX - rx) / denominator;
+        double backRightPower = (rotY + rotX - rx) / denominator;
+
+        this.frontLeftMotor.setPower(frontLeftPower * finalSlowMode);
+        this.backLeftMotor.setPower(backLeftPower * finalSlowMode);
+        this.frontRightMotor.setPower(frontRightPower * finalSlowMode);
+        this.backRightMotor.setPower(backRightPower * finalSlowMode);
+
+        robotCentric = true;
+        driveTimer.reset();
     }
 
 
@@ -136,7 +171,7 @@ public class TeleOpMecanumDrive {
     public void runAutoAlignToTag(double bearingOffsetRad, boolean rb, boolean lb, double y, double x) {
         // proportional and derivate coefficients
         double kP = 0.805;
-        double kD = 0.12; // TODO TUNE
+        double kD = 0.04; // TODO TUNE
 
         double maxPower = 0.9; // maximum turn power
         double alignmentThreshold = 0.03; // radians, adjust as needed

@@ -48,7 +48,8 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
             drive.runAutoAlignToTag(Math.toRadians(vision.getTagBearing()), rb, lb, leftY, leftX);
         }
         else {
-            drive.runManualMecanumDrive(rb, lb, leftY, leftX, rightX, yButton);
+//            drive.runManualMecanumDrive(rb, lb, leftY, leftX, rightX, yButton);
+            drive.runManualRobotCentricDrive(rb, lb, leftY, leftX, rightX);
         }
     }
 
@@ -78,6 +79,9 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                 // todo have shooter is at shooting speed
                     transfer.runTransferIn();
             }
+        }
+        else if (gamepad1.right_trigger > 0.5) {
+            transfer.runTransferOut();
         }
         else {
             transfer.runTransferStop();

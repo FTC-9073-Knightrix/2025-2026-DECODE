@@ -25,11 +25,12 @@ public class NOMINAL extends OpMode {
     VoltageSensor voltageSensor;
     FtcDashboard dashboard;
     Telemetry dashboardTelemetry;
+    DcMotorEx intake, intake2, transfer;
 
     double NOMINAL_VOLTAGE = 10.0;
 
     // Fields for tuning via gamepad
-    double targetVelocity = 1250.0;
+    double targetVelocity = -1250.0;
     int selectedCoeff = 0; // 0 = kP, 1 = kI, 2 = kD, 3 = kF
     final double COEFF_STEP = 0.01;
     final long COEFF_ADJUST_INTERVAL_MS = 150;
@@ -41,6 +42,9 @@ public class NOMINAL extends OpMode {
         dashboardTelemetry = dashboard.getTelemetry();
         shooter = hardwareMap.get(DcMotorEx.class, "shooter");
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        intake = hardwareMap.get(DcMotorEx.class, "intake");
+        intake2 = hardwareMap.get(DcMotorEx.class, "intake2");
+        transfer = hardwareMap.get(DcMotorEx.class, "transfer");
         voltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
     }
 
@@ -52,6 +56,12 @@ public class NOMINAL extends OpMode {
             shooter.setVelocity(targetVelocity);
         } else {
             shooter.setPower(0);
+        }
+
+        if (gamepad1.right_trigger > 0.5) {
+            intake.setPower(-0.75);
+            intake2.setPower(-0.75);
+            transfer.setPower(-0.75);
         }
 
         // Select which coefficient: A -> kP, X -> kI, Y -> kD, B -> kF

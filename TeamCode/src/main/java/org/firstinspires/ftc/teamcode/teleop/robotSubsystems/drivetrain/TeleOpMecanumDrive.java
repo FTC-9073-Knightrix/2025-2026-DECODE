@@ -22,22 +22,25 @@ public class TeleOpMecanumDrive {
     public IMU rev_imu;
     public YawPitchRollAngles orientation;
     public GoBildaPinpointDriver pinpoint;
+
     public double finalSlowMode = 0.0;
     public final double driveSpeed = 0.66;
     public final double fastSpeed = 1.0;
     public final double slowSpeed = 0.30;
-    private boolean rightStickPrevPressed = false;
+
     boolean robotCentric;
+    private boolean toggleRobotCentricButtonPrevPressed = false;
 
     public void init(HardwareMap hwMap) {
         frontLeftMotor = hwMap.get(DcMotor.class, "leftFront");
         backLeftMotor = hwMap.get(DcMotor.class, "leftBack");
         frontRightMotor = hwMap.get(DcMotor.class, "rightFront");
         backRightMotor = hwMap.get(DcMotor.class, "rightBack");
+
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-//        pinpoint = hwMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        pinpoint = hwMap.get(GoBildaPinpointDriver.class, "pinpoint");
         rev_imu = hwMap.get(IMU.class, "imu");
 
         RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(
@@ -58,49 +61,17 @@ public class TeleOpMecanumDrive {
         this.driveMode = driveMode;
     }
 
-    // unused method
-    public void runMecanumDrive(boolean rb, boolean lb, double y, double x, double rx, boolean yButton, boolean rightStickPressed, double bearingRadians) {
-        // Toggle logic
-        if (rightStickPressed && !rightStickPrevPressed) {
-            if (driveMode == DriveMode.MANUAL) {
-                driveMode = DriveMode.LOCKED_ON;
-            } else {
-                driveMode = DriveMode.MANUAL;
-            }
-        }
-        rightStickPrevPressed = rightStickPressed;
-
-        // Run drive modes
-        switch (driveMode) {
-            case MANUAL:
-                runManualMecanumDrive(rb, lb, y, x, rx, yButton);
-                break;
-
-            case LOCKED_ON:
-                runAutoAlignToTag(bearingRadians, rb, lb, y, x);
-                break;
-        }
-    }
-    public void runManualMecanumDrive(boolean rb, boolean lb, double y, double x, double rx, boolean yButton) {
+    public void runManualMecanumDrive(boolean rb, boolean lb, double y, double x, double rx, boolean resetHeadingButton) {
         // Only update the heading because that is all you need in Teleop
 //        pinpoint.update(GoBildaPinpointDriver.ReadData.ONLY_UPDATE_HEADING);
-        //Setting boolean hold
-        if(rb) {
-            //Slow mode
+
+        if (rb) {
             finalSlowMode = slowSpeed;
-        } else if (lb) {
-            //Fast mode
-            finalSlowMode = fastSpeed;
         } else {
-            //Regular
-            finalSlowMode = driveSpeed;
+            finalSlowMode = fastSpeed;
         }
 
-//        double y = -gamepad1.left_stick_y;
-//        double x = gamepad1.left_stick_x;
-//        double rx = gamepad1.right_stick_x * .8;
-
-        if (yButton) {
+        if (resetHeadingButton) {
             rev_imu.resetYaw();
 //            pinpoint.resetPosAndIMU();
         }
@@ -111,10 +82,18 @@ public class TeleOpMecanumDrive {
         double botHeading = rev_imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 //        double botHeading = pinpoint.getHeading(AngleUnit.RADIANS);
 
-        double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
-        double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+        double rotX, rotY;
+        if (robotCentric) {
+            rotX = x;
+            rotY = y;
+        }
+        else {
+            rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
+            rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
+        }
 
-        rotX = rotX * 1.1;
+        // scale rotX to speed up turning
+        rotX = rotX * 1.2;
 
         double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
         double frontLeftPower = (rotY + rotX + rx) / denominator;
@@ -131,50 +110,22 @@ public class TeleOpMecanumDrive {
         driveTimer.reset(); // reset timer when in manual mode so derivative term is accurate when switching to auto-align
     }
 
-    // New robot-centric manual drive method: uses stick inputs directly (no IMU/heading transform)
-    public void runManualRobotCentricDrive(boolean rb, boolean lb, double y, double x, double rx) {
-        // Speed mode selection (same as field-oriented method)
-        if (rb) {
-            finalSlowMode = slowSpeed;
-        } else if (lb) {
-            finalSlowMode = fastSpeed;
-        } else {
-            finalSlowMode = driveSpeed;
+    public void toggleRobotCentric(boolean toggleButtonPressed) {
+        if (toggleButtonPressed && !toggleRobotCentricButtonPrevPressed) {
+            robotCentric = !robotCentric;
         }
-
-        // Direct robot-centric stick mapping
-        double rotX = x;
-        double rotY = y;
-
-        // small scaling to X to match behavior of field-oriented version
-        rotX = rotX * 1.1;
-
-        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
-        double frontLeftPower = (rotY + rotX + rx) / denominator;
-        double backLeftPower = (rotY - rotX + rx) / denominator;
-        double frontRightPower = (rotY - rotX - rx) / denominator;
-        double backRightPower = (rotY + rotX - rx) / denominator;
-
-        this.frontLeftMotor.setPower(frontLeftPower * finalSlowMode);
-        this.backLeftMotor.setPower(backLeftPower * finalSlowMode);
-        this.frontRightMotor.setPower(frontRightPower * finalSlowMode);
-        this.backRightMotor.setPower(backRightPower * finalSlowMode);
-
-        robotCentric = true;
-        driveTimer.reset();
+        toggleRobotCentricButtonPrevPressed = toggleButtonPressed;
     }
-
 
     private double lastBearingError = 0.0;
     ElapsedTime driveTimer = new ElapsedTime();
-
     public void runAutoAlignToTag(double bearingOffsetRad, boolean rb, boolean lb, double y, double x) {
         // proportional and derivate coefficients
         double kP = 0.805;
-        double kD = 0.04; // TODO TUNE
+        double kD = 0.01; // TODO TUNE
 
         double maxPower = 0.9; // maximum turn power
-        double alignmentThreshold = 0.03; // radians, adjust as needed
+        double alignmentThreshold = 0.01; // radians, adjust as needed
         double turnPower = 0.0;
 
         if (Math.abs(bearingOffsetRad) > alignmentThreshold) {

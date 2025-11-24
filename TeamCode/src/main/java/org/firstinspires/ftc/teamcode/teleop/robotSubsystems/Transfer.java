@@ -50,9 +50,8 @@ public class Transfer {
         }
 
         if (transferActive) {
-            if (distance < 5.0) { // if an object is detected within 5 cm
+            if (distance < 2.0) { // if an object is detected within 2 cm
                 runTransferStop();
-                forceStopTransfer = true;
             } else {
                 runTransferIn();
             }
@@ -63,7 +62,6 @@ public class Transfer {
 
     public void runTransferIn() {
         transferMotor.setPower(TRANSFER_IN_POWER);
-        forceStopTransfer = false;
     }
 
     public void runTransferOut() {

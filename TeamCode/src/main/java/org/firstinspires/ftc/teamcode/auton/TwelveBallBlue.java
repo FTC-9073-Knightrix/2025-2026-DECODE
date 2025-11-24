@@ -5,27 +5,26 @@ import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
-import com.acmerobotics.roadrunner.TurnConstraints;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous(name="Twelve Ball Red", group="Autonomous")
-public class TwelveBallRed extends AutonMethods {
+@Autonomous(name="Twelve Ball Blue", group="Autonomous")
+public class TwelveBallBlue extends AutonMethods {
     @Override
     public void runOpMode() throws InterruptedException {
         super.runOpMode();
-        beginPose = new Pose2d(-56, 45.7, Math.toRadians(127));
+        beginPose = new Pose2d(-56, -45.7, Math.toRadians(-127));
         drive = new MecanumDrive(hardwareMap, beginPose);
         drive.updatePoseEstimate();
 
         AutonActions autonActions = new AutonActions(hardwareMap);
 
         // Drive back to pick up third ball
-        Vector2d shootPos = new Vector2d(-17, 18);
-        double shootHeading = Math.toRadians(135);
+        Vector2d shootPos = new Vector2d(-17, -18);
+        double shootHeading = Math.toRadians(-135);
 
         Action driveBackFromGoal = drive.actionBuilder(beginPose)
                 .strafeToLinearHeading(shootPos, shootHeading, minVelConstraint)
@@ -33,18 +32,18 @@ public class TwelveBallRed extends AutonMethods {
 
         // Drive into first row of balls
         Action driveToFirstRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
-                .turn(Math.toRadians(-45))
-                .strafeToLinearHeading(new Vector2d(-10, 27), Math.toRadians(90), minVelConstraint)
+                .turn(Math.toRadians(45))
+                .strafeToLinearHeading(new Vector2d(-10, -27), Math.toRadians(-90), minVelConstraint)
                 .waitSeconds(1)
-                .strafeToConstantHeading(new Vector2d(-10, 45), minVelConstraint)
+                .strafeToConstantHeading(new Vector2d(-10, -45), minVelConstraint)
                 .build();
 
-        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-11, 40, Math.toRadians(90)))
+        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-11, -40, Math.toRadians(-90)))
                 .strafeToLinearHeading(shootPos, shootHeading)
                 .build();
         // Drive into second row of balls
         Action driveToSecondRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
-                .strafeToLinearHeading(new Vector2d(1, 20), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(1, -20), Math.toRadians(-90))
 //                .splineToConstantHeading(new Vector2d(14, 50), Math.toRadians(90))
                 .build();
 

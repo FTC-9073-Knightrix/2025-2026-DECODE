@@ -1,16 +1,17 @@
 package org.firstinspires.ftc.teamcode.teleop.robotSubsystems;
 
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class RGBLights {
-    private Servo blinkin;
+    private RevBlinkinLedDriver blinkin;
 
     public void init(HardwareMap hardwareMap) {
-        blinkin = hardwareMap.get(Servo.class, "blinkin");
+        blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
     }
 
-    public void setPattern(double value) {
-        blinkin.setPosition(value);
+    public void setColor(RevBlinkinLedDriver.BlinkinPattern pattern) {
+        blinkin.setPattern(pattern);
     }
 }

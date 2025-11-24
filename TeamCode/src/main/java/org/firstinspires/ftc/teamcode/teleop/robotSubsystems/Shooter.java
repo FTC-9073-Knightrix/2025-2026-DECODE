@@ -14,15 +14,22 @@ public class Shooter {
     DcMotorEx outtakeMotor;
     VoltageSensor batteryVoltageSensor;
 
-    private double hoodPosition = 0.0;
+    private double hoodPosition = 0.9;
     static final double TICKS_PER_REV = 28; // FOR GO BILDA 5202 SERIES
     public double targetVelocityTicks = 0.0;
 
     // TODO CHANGE THESE TEMP VALUES BASED ON TESTING
     private final double FAR_SHOT_VELOCITY_TICKS = -1500.0;
-    private final double MID_SHOT_VELOCITY_TICKS = -1250.0;
-    private final double NEAR_SHOT_VELOCITY_TICKS = -800.0;
-    private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 100.0;
+    private final double MID_SHOT_VELOCITY_TICKS = -1150.0;
+    private final double NEAR_SHOT_VELOCITY_TICKS = -1050.0;
+    private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 50.0;
+
+    private final int FAR_INCHES = 100;
+    private final int MID_INCHES = 50;
+
+    private final double CLOSE_SHOT_HOOD = 0.8;
+    private final double MID_SHOT_HOOD = 0.75;
+    private final double FAR_SHOT_HOOD = 0.65;
 
     private boolean outtakeOn = false;
     private boolean lastAState = false;
@@ -38,7 +45,10 @@ public class Shooter {
 
     // TODO TUNE kP
     // After kV is set, tune kP to minimize error, use small increases
-    private final double kP = 0.00;
+    private final double kP = 10;
+    private final double kI = 0.5;
+    private final double kD = 0.1;
+    private final double kF = 0.149;
 
 
     public void init(HardwareMap hardwareMap) {
@@ -51,7 +61,7 @@ public class Shooter {
 
         double currentBatteryVoltage = batteryVoltageSensor.getVoltage();
         double kF = kV * NOMINAL_VOLTAGE / currentBatteryVoltage;
-//        outtakeMotor.setVelocityPIDFCoefficients(kP, 0, 0, kF); // we use only kP and kF here
+        outtakeMotor.setVelocityPIDFCoefficients(kP, kI, kD, kF); // we use only kP and kF here
         hoodServo.setPosition(hoodPosition);
     }
 
@@ -64,7 +74,7 @@ public class Shooter {
 //        updateFeedForwardCoefficient();
 
         // update target velocity based on distance to goal if needed
-//        updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
+        updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
         // Toggle motor on/off
         if (a && ! lastAState) {
             outtakeOn = !outtakeOn;
@@ -127,16 +137,25 @@ public class Shooter {
 
         double x = horizontalDistanceToGoalInches;
         // TODO Create a regression here based on empirical data points (desmos.com)
-        double targetHoodPosition = 0.0000025 * x * x - 0.0015 * x + 0.85; // a filler regression curve
-        double deltaPos = targetHoodPosition - hoodPosition;
+//        double targetHoodPosition = 0.0000025 * x * x - 0.0015 * x + 0.85; // a filler regression curve
+//        double deltaPos = targetHoodPosition - hoodPosition;
+//
+//        if (Math.abs(deltaPos) < 0.05) {
+//            hoodPosition = targetHoodPosition;
+//        } else {
+//            double adjustment = deltaPos > 0 ? 0.05 : -0.05;
+//            hoodPosition += adjustment;
+//        }
 
-        if (Math.abs(deltaPos) < 0.05) {
-            hoodPosition = targetHoodPosition;
-        } else {
-            double adjustment = deltaPos > 0 ? 0.05 : -0.05;
-            hoodPosition += adjustment;
+        if (horizontalDistanceToGoalInches > FAR_INCHES) {
+            hoodPosition = FAR_SHOT_HOOD;
         }
-
+        else if (horizontalDistanceToGoalInches > MID_INCHES) {
+            hoodPosition = MID_SHOT_HOOD;
+        }
+        else {
+            hoodPosition = CLOSE_SHOT_HOOD;
+        }
         // Clamp the hood position to valid servo range [0.0, 1.0]
         hoodPosition = Range.clip(hoodPosition, 0.0, 1.0);
 
@@ -151,9 +170,9 @@ public class Shooter {
 
         double distance = horizontalDistanceToGoalInches;
 
-        if (distance > 100) { // FAR SHOT
+        if (distance > FAR_INCHES) { // FAR SHOT
             targetVelocityTicks = FAR_SHOT_VELOCITY_TICKS;
-        } else if (distance > 30) { // MID SHOT
+        } else if (distance > MID_INCHES) { // MID SHOT
             targetVelocityTicks = MID_SHOT_VELOCITY_TICKS;
         } else { // NEAR SHOT
             targetVelocityTicks = NEAR_SHOT_VELOCITY_TICKS;

@@ -11,14 +11,14 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 public class VisionSystem {
     public WebcamName webCam;
-    public static String goalTagSequence = "NONE";
+    public static String motifTagSequence = "NONE";
     VisionPortal visionPortal;
 
     AprilTagProcessor tagProcessor = new AprilTagProcessor.Builder()
-            .setDrawAxes(true)
-            .setDrawCubeProjection(true)
-            .setDrawTagID(true)
-            .setDrawTagOutline(true)
+//            .setDrawAxes(true)
+//            .setDrawCubeProjection(true)
+//            .setDrawTagID(true)
+//            .setDrawTagOutline(true)
             .build();
 
     public void init(HardwareMap hwMap) {
@@ -33,10 +33,11 @@ public class VisionSystem {
 
     public boolean isDetectingAGoalTag() {
         if (!tagProcessor.getDetections().isEmpty()) {
-            AprilTagDetection tag = tagProcessor.getDetections().get(0);
-            if (tag.id == AprilTagEnums.BLUE_GOAL.getId()
-            || tag.id == AprilTagEnums.RED_GOAL.getId()) {;
-                return true;
+            for (AprilTagDetection tag: tagProcessor.getDetections()) {
+                if (tag.id == AprilTagEnums.RED_GOAL.getId() ||
+                    tag.id == AprilTagEnums.BLUE_GOAL.getId()) {
+                    return true;
+                }
             }
         }
         return false;
@@ -55,21 +56,23 @@ public class VisionSystem {
         return false;
     }
 
-    public void scanGoalTagSequence() {
-        AprilTagDetection tag;
-        for (AprilTagDetection detectedTag : tagProcessor.getDetections()) {
-            if (detectedTag.id == AprilTagEnums.OBELISK_TAG_21.getId()
-                    || detectedTag.id == AprilTagEnums.OBELISK_TAG_22.getId()
-                    || detectedTag.id == AprilTagEnums.OBELISK_TAG_23.getId()) {
-                tag = detectedTag;
-                if (tag.id == AprilTagEnums.OBELISK_TAG_21.getId()) {
-                    goalTagSequence = AprilTagEnums.OBELISK_TAG_21.getDescription();
-                } else if (tag.id == AprilTagEnums.OBELISK_TAG_22.getId()) {
-                    goalTagSequence = AprilTagEnums.OBELISK_TAG_22.getDescription();
-                } else if (tag.id == AprilTagEnums.OBELISK_TAG_23.getId()) {
-                    goalTagSequence = AprilTagEnums.OBELISK_TAG_23.getDescription();
+    public void scanMotifTagSequence() {
+        if (!tagProcessor.getDetections().isEmpty()) {
+            AprilTagDetection tag;
+            for (AprilTagDetection detectedTag : tagProcessor.getDetections()) {
+                if (detectedTag.id == AprilTagEnums.OBELISK_TAG_21.getId()
+                        || detectedTag.id == AprilTagEnums.OBELISK_TAG_22.getId()
+                        || detectedTag.id == AprilTagEnums.OBELISK_TAG_23.getId()) {
+                    tag = detectedTag;
+                    if (tag.id == AprilTagEnums.OBELISK_TAG_21.getId()) {
+                        motifTagSequence = AprilTagEnums.OBELISK_TAG_21.getDescription();
+                    } else if (tag.id == AprilTagEnums.OBELISK_TAG_22.getId()) {
+                        motifTagSequence = AprilTagEnums.OBELISK_TAG_22.getDescription();
+                    } else {
+                        motifTagSequence = AprilTagEnums.OBELISK_TAG_23.getDescription();
+                    }
+                    break;
                 }
-                break;
             }
         }
     }
@@ -78,10 +81,14 @@ public class VisionSystem {
      * Bearing is the angle to the tag relative to the camera's forward direction.
      * Returns Bearing in Degrees
      */
-    public double getTagBearing() {
+    public double getGoalTagBearing() {
         if (!tagProcessor.getDetections().isEmpty()) {
-            AprilTagDetection tag = tagProcessor.getDetections().get(0);
-            return tag.ftcPose.bearing;
+            for (AprilTagDetection tag : tagProcessor.getDetections()) {
+                if (tag.id == AprilTagEnums.RED_GOAL.getId() ||
+                    tag.id == AprilTagEnums.BLUE_GOAL.getId()) {
+                    return tag.ftcPose.bearing;
+                }
+            }
         }
         return 0;
     }
@@ -94,24 +101,34 @@ public class VisionSystem {
      * @return The forward horizontal distance to the first detected tag in distance units (typically inches),
      *         or -1 if no tags are detected
      */
-    public double getTagHorizontalDistance() {
-
+    public double getGoalTagHorizontalDistance() {
         if (!tagProcessor.getDetections().isEmpty()) {
-            AprilTagDetection tag = tagProcessor.getDetections().get(0);
-            return tag.ftcPose.y;
+            for (AprilTagDetection tag : tagProcessor.getDetections()) {
+                if (tag.id == AprilTagEnums.RED_GOAL.getId() ||
+                        tag.id == AprilTagEnums.BLUE_GOAL.getId()) {
+                    return tag.ftcPose.y;
+                }
+            }
         }
         return -1;
     }
 
     public boolean alignedForShot() {
         if (isDetectingAGoalTag()) {
-            double bearing = getTagBearing();
+            double bearing = getGoalTagBearing();
             return Math.abs(bearing) < 5.0;
         }
         return false;
     }
 
-    public String getSequence() {
-        return goalTagSequence;
+    public int getDetectedTagId() {
+        if (!tagProcessor.getDetections().isEmpty()) {
+            AprilTagDetection tag = tagProcessor.getDetections().get(0);
+            return tag.id;
+        }
+        return -1;
+    }
+    public String getMotif() {
+        return motifTagSequence;
     }
 }

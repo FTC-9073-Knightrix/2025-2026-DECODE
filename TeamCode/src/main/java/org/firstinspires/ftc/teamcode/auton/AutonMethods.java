@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -23,23 +24,23 @@ public class AutonMethods extends AutonBase {
     // ------------------------------- Outtake Motor --------------------------------
     public DcMotorEx outtakeMotor;
     public Servo hoodServo;
-    public double midShotTargetVelocityTicks = 1100.0;
+    public double midShotTargetVelocityTicks = -1275.0;
     static final double TICKS_PER_REV = 28;
-    public double hoodPosition = 0.25;
+    public double hoodPosition = 0.8;
 
-    final private double ACCEPTABLE_VELOCITY_ERROR = 50.0;
+    final private double ACCEPTABLE_VELOCITY_ERROR = 75.0;
 
     // ------------------------------- Transfer Motor --------------------------------
     public DcMotor transferMotor;
     public DistanceSensor transferDistanceSensor;
-    final double TRANSFER_IN_POWER = 1.0;
+    final double TRANSFER_IN_POWER = 0.6;
     final double TRANSFER_OUT_POWER = -1.0;
     final double TRANSFER_STOP_POWER = 0.0;
     final double DISTANCE_TO_DETECT_BALL_CM = 2.0; // in cm
 
 
     // ------------------------------- Blinkin --------------------------------
-    public Servo blinkin;
+    public RevBlinkinLedDriver blinkin;
     private final double COLOR_INTAKING = 0.61;  // red goes BRRRR am i right andrew :)
     private final double COLOR_SHOOTING = 0.95;  /* blue as in the color
     */
@@ -75,7 +76,7 @@ public class AutonMethods extends AutonBase {
             transferDistanceSensor = hardwareMap.get(DistanceSensor.class, "transferDistanceSensor");
 
             // Blinkin
-            blinkin = hardwareMap.get(Servo.class, "blinkin");
+            blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
         }
 
         // ------------------------------- Intake Actions --------------------------------
@@ -83,18 +84,10 @@ public class AutonMethods extends AutonBase {
             boolean initialized = false;
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                if (!isStopRequested()) {
-                    if (!initialized) {
-                        intakeMotor.setPower(INTAKE_POWER);
-                        intake2Motor.setPower(INTAKE_POWER);
-                        blinkin.setPosition(COLOR_INTAKING);
-                        initialized = true;
-                    }
-                    packet.put("Intake Power", INTAKE_POWER);
-                } else {
-                    intakeMotor.setPower(STOP_POWER);
-                    intake2Motor.setPower(STOP_POWER);
-                    packet.put("Intake", "Stopped");
+                if (!initialized) {
+                    intakeMotor.setPower(INTAKE_POWER);
+                    intake2Motor.setPower(INTAKE_POWER);
+                    initialized = true;
                 }
                 return false;
             }
@@ -108,6 +101,7 @@ public class AutonMethods extends AutonBase {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 intakeMotor.setPower(STOP_POWER);
+                intake2Motor.setPower(STOP_POWER);
                 packet.put("Intake", "Stopped");
                 return false;
             }
@@ -127,7 +121,6 @@ public class AutonMethods extends AutonBase {
                 if (!initialized) {
                     outtakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     outtakeMotor.setVelocity(midShotTargetVelocityTicks);
-                    blinkin.setPosition(COLOR_SHOOTING);
                     startTime = getRuntime();
 
                     initialized = true;
@@ -153,7 +146,6 @@ public class AutonMethods extends AutonBase {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 outtakeMotor.setVelocity(velocity);
-                blinkin.setPosition(COLOR_SHOOTING);
                 packet.put("Outtake Target Vel", velocity);
                 packet.put("Outtake Actual Vel", outtakeMotor.getVelocity());
                 return false;
@@ -177,6 +169,17 @@ public class AutonMethods extends AutonBase {
             return new StopOuttake();
         }
 
+        public class StallOuttake implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                outtakeMotor.setVelocity(-400);
+                packet.put("Outtake", "Stalled");
+                return false;
+            }
+        }
+        public Action stallOuttake() {
+            return new StallOuttake();
+        }
         // ------------------------------- Hood Actions --------------------------------
         public class HoodPositionAction implements Action {
             double pos;
@@ -200,8 +203,8 @@ public class AutonMethods extends AutonBase {
         public class SetHoodToMidShot implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                hoodServo.setPosition(0.85);
-                packet.put("Hood Pos", 0.85);
+                hoodServo.setPosition(0.9);
+                packet.put("Hood Pos", 0.9);
                 return false;
             }
         }
@@ -256,7 +259,7 @@ public class AutonMethods extends AutonBase {
                         startTime = getRuntime();
                         initialized = true;
                     }
-                    return getRuntime() - startTime < 2.5;
+                    return getRuntime() - startTime < 4;
                 } else {
                     transferMotor.setPower(TRANSFER_STOP_POWER);
                     packet.put("Transfer", "Stopped");

@@ -23,6 +23,7 @@ public abstract class AutonBase extends LinearOpMode {
     protected Pose2d beginPose;
     protected VelConstraint maxSpeedConstraint;
     protected  VelConstraint baseVelConstraint;
+    protected  VelConstraint minVelConstraint;
     protected AccelConstraint maxAccelConstraint;
     protected  AccelConstraint baseAccelConstraint;
 
@@ -42,6 +43,10 @@ public abstract class AutonBase extends LinearOpMode {
 
 //        intake = new AutonIntake(hardwareMap);
 
+        minVelConstraint = new MinVelConstraint(Arrays.asList(
+                new TranslationalVelConstraint(20.0),
+                new AngularVelConstraint(Math.PI / 4)
+        ));
         baseVelConstraint = new MinVelConstraint(Arrays.asList(
                 new TranslationalVelConstraint(30.0),
                 new AngularVelConstraint(Math.PI / 2)

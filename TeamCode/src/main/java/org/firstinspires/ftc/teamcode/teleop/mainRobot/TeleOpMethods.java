@@ -65,13 +65,13 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     public void runIntake() {
         boolean xPressed = gamepad1.x;
         intake.runIntake(xPressed);
-        transfer.runTransferWithAutomaticStop(xPressed);
+//        transfer.runTransferWithAutomaticStop(xPressed);
     }
 
     public void runTransfer() {
-        boolean holdToEject = gamepad1.right_trigger > 0.5;
+        boolean holdToShoot = gamepad1.right_trigger > 0.5;
 
-        if (holdToEject) {
+        if (holdToShoot) {
             if (requireCameraLockToShoot) {
                 if (vision.alignedForShot() && shooter.isAtShootingSpeed()) {
                     transfer.runTransferIn();
@@ -83,11 +83,18 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
             else {
                 if (shooter.isAtShootingSpeed()) {
                     transfer.runTransferIn();
+                } else {
+                    transfer.runTransferStop();
                 }
             }
         }
-        else if (gamepad1.left_bumper) {
+        else if (gamepad1.dpad_up) {
+            // force transfer out
             transfer.runTransferOut();
+        }
+        else if (gamepad1.left_bumper) {
+            // force transfer in
+            transfer.runTransferIn();
         }
         else {
             transfer.runTransferStop();
@@ -116,6 +123,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         telemetry.addData("Tag Horizontal Distance (in): " , String.format("%.2f", vision.getGoalTagHorizontalDistance()));
         telemetry.addData("Tag Bearing:", String.format("%.2f", vision.getGoalTagBearing()));
         telemetry.addData("distance sensor: (CM)" , transfer.transferDistanceSensor.getDistance(DistanceUnit.CM));
+        telemetry.addData("transfer active: " , transfer.transferActive);
         telemetry.update();
     }
 }

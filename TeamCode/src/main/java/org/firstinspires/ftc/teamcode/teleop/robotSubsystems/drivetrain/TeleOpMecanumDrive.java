@@ -92,6 +92,14 @@ public class TeleOpMecanumDrive {
             rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
         }
 
+        // If we're in fast mode, apply a quadratic (signed square) scaling to
+        // translational inputs so small joystick deflections are finer while
+        // full deflections still reach maximum speed.
+        if (finalSlowMode == fastSpeed) {
+            rotX = Math.signum(rotX) * rotX * rotX;
+            rotY = Math.signum(rotY) * rotY * rotY;
+        }
+
         // scale rotX to speed up turning
         rotX = rotX * 1.2;
 
@@ -121,10 +129,10 @@ public class TeleOpMecanumDrive {
     ElapsedTime driveTimer = new ElapsedTime();
     public void runAutoAlignToTag(double bearingOffsetRad, boolean rb, boolean lb, double y, double x) {
         // proportional and derivate coefficients
-        double kP = 0.805;
+        double kP = 1.0;
         double kD = 0.01; // TODO TUNE
 
-        double maxPower = 0.9; // maximum turn power
+        double maxPower = 1.0; // maximum turn power
         double alignmentThreshold = 0.01; // radians, adjust as needed
         double turnPower = 0.0;
 

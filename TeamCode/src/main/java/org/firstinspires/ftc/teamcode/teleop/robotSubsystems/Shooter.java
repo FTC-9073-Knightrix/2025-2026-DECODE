@@ -20,16 +20,16 @@ public class Shooter {
 
     // TODO CHANGE THESE TEMP VALUES BASED ON TESTING
     private final double FAR_SHOT_VELOCITY_TICKS = -1500.0;
-    private final double MID_SHOT_VELOCITY_TICKS = -1150.0;
+    private final double MID_SHOT_VELOCITY_TICKS = -1200.0;
     private final double NEAR_SHOT_VELOCITY_TICKS = -1050.0;
     private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 50.0;
 
     private final int FAR_INCHES = 100;
     private final int MID_INCHES = 50;
 
-    private final double CLOSE_SHOT_HOOD = 0.8;
+    private final double CLOSE_SHOT_HOOD = 0.85;
     private final double MID_SHOT_HOOD = 0.75;
-    private final double FAR_SHOT_HOOD = 0.65;
+    private final double FAR_SHOT_HOOD = 0.62;
 
     private boolean outtakeOn = false;
     private boolean lastAState = false;
@@ -60,7 +60,7 @@ public class Shooter {
         batteryVoltageSensor = hardwareMap.voltageSensor.get("Control Hub");
 
         double currentBatteryVoltage = batteryVoltageSensor.getVoltage();
-        double kF = kV * NOMINAL_VOLTAGE / currentBatteryVoltage;
+//        double kF = kV * NOMINAL_VOLTAGE / currentBatteryVoltage;
         outtakeMotor.setVelocityPIDFCoefficients(kP, kI, kD, kF); // we use only kP and kF here
         hoodServo.setPosition(hoodPosition);
     }

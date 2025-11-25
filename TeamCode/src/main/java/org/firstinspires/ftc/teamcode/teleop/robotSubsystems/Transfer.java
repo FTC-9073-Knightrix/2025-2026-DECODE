@@ -9,8 +9,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class Transfer {
     public DcMotor transferMotor;
     public DistanceSensor transferDistanceSensor;
-    private boolean forceStopTransfer;
-    private boolean transferActive;
+    public boolean transferActive;
     private boolean isTogglePressed;
 
     private final double TRANSFER_IN_POWER = 1.0;
@@ -22,7 +21,6 @@ public class Transfer {
         transferDistanceSensor = hw.get(DistanceSensor.class, "transferDistanceSensor");
 
         transferMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        forceStopTransfer = false;
         transferActive = false;
         isTogglePressed = false;
     }
@@ -31,23 +29,10 @@ public class Transfer {
         // handle toggle on the rising edge first so the operator can re-enable even after an automatic stop
         if (toggleButton && !isTogglePressed) {
             transferActive = !transferActive;
-            // if operator explicitly turns transfer back on, clear the forced stop
-            if (transferActive) {
-                forceStopTransfer = false;
-            }
         }
         isTogglePressed = toggleButton;
 
-        if (forceStopTransfer) {
-            runTransferStop();
-            return;
-        }
-
         double distance = transferDistanceSensor.getDistance(DistanceUnit.CM); // in cm
-        // make sensor reading robust: if invalid, treat as "no object" (very far)
-        if (Double.isNaN(distance) || distance <= 0) {
-            distance = Double.POSITIVE_INFINITY;
-        }
 
         if (transferActive) {
             if (distance < 2.0) { // if an object is detected within 2 cm

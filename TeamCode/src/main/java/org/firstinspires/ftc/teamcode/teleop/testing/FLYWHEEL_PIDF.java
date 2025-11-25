@@ -12,15 +12,16 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 
 @Config
-class RB {
+class Params {
     public static double kP = 0;
     public static double kI = 0;
     public static double kD = 0;
     public static double kF = 0;
+    public static double targetVelocity = -1250.0;
 }
 
 @TeleOp
-public class NOMINAL extends OpMode {
+public class FLYWHEEL_PIDF extends OpMode {
     DcMotorEx shooter;
     VoltageSensor voltageSensor;
     FtcDashboard dashboard;
@@ -30,7 +31,6 @@ public class NOMINAL extends OpMode {
     double NOMINAL_VOLTAGE = 10.0;
 
     // Fields for tuning via gamepad
-    double targetVelocity = -1250.0;
     int selectedCoeff = 0; // 0 = kP, 1 = kI, 2 = kD, 3 = kF
     final double COEFF_STEP = 0.01;
     final long COEFF_ADJUST_INTERVAL_MS = 150;
@@ -53,7 +53,7 @@ public class NOMINAL extends OpMode {
         double voltage = voltageSensor.getVoltage();
 
         if (gamepad1.left_trigger > 0.5) {
-            shooter.setVelocity(targetVelocity);
+            shooter.setVelocity(Params.targetVelocity);
         } else {
             shooter.setPower(0);
         }
@@ -62,6 +62,14 @@ public class NOMINAL extends OpMode {
             intake.setPower(-0.75);
             intake2.setPower(-0.75);
             transfer.setPower(-0.75);
+        }
+
+        // change the target velocity
+        if (gamepad1.dpad_up) {
+            Params.targetVelocity -= 10;
+        }
+        else if (gamepad1.dpad_down) {
+            Params.targetVelocity += 10;
         }
 
         // Select which coefficient: A -> kP, X -> kI, Y -> kD, B -> kF
@@ -77,32 +85,32 @@ public class NOMINAL extends OpMode {
             double change = (stickY < -0.5) ? COEFF_STEP : -COEFF_STEP;
             switch (selectedCoeff) {
                 case 0:
-                    RB.kP += change * 20;
-                    if (RB.kP < 0) RB.kP = 0;
+                    Params.kP += change * 20;
+                    if (Params.kP < 0) Params.kP = 0;
                     break;
                 case 1:
-                    RB.kI += change;
-                    if (RB.kI < 0) RB.kI = 0;
+                    Params.kI += change * 10;
+                    if (Params.kI < 0) Params.kI = 0;
                     break;
                 case 2:
-                    RB.kD += change;
-                    if (RB.kD < 0) RB.kD = 0;
+                    Params.kD += change * 10;
+                    if (Params.kD < 0) Params.kD = 0;
                     break;
                 case 3:
-                    RB.kF += change;
-                    if (RB.kF < 0) RB.kF = 0;
+                    Params.kF += change * 10;
+                    if (Params.kF < 0) Params.kF = 0;
                     break;
             }
             lastCoeffAdjustMs = now;
         }
 
-        shooter.setVelocityPIDFCoefficients(RB.kP, RB.kI, RB.kD, RB.kF);
+        shooter.setVelocityPIDFCoefficients(Params.kP, Params.kI, Params.kD, Params.kF);
 
-        dashboardTelemetry.addData("kP", RB.kP);
-        dashboardTelemetry.addData("kI", RB.kI);
-        dashboardTelemetry.addData("kD", RB.kD);
-        dashboardTelemetry.addData("kF", RB.kF);
-        dashboardTelemetry.addData("Target Velocity", targetVelocity);
+        dashboardTelemetry.addData("kP", Params.kP);
+        dashboardTelemetry.addData("kI", Params.kI);
+        dashboardTelemetry.addData("kD", Params.kD);
+        dashboardTelemetry.addData("kF", Params.kF);
+        dashboardTelemetry.addData("Target Velocity", Params.targetVelocity);
         dashboardTelemetry.addData("Shooter Velocity", shooter.getVelocity());
 
         String selectedName;
@@ -119,7 +127,7 @@ public class NOMINAL extends OpMode {
         telemetry.addData("Shooter Voltage", voltage);
         telemetry.addData("Nominal Voltage", NOMINAL_VOLTAGE);
         telemetry.addData("Shooter Power", shooter.getPower());
-        telemetry.addData("Target Velocity", targetVelocity);
+        telemetry.addData("Target Velocity", Params.targetVelocity);
         telemetry.addData("Shooter Velocity", shooter.getVelocity());
         telemetry.addData("PIDF Coefficients", shooter.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
         telemetry.addData("Selected Coeff", selectedName);

@@ -20,16 +20,18 @@ public class Shooter {
 
     // TODO CHANGE THESE TEMP VALUES BASED ON TESTING
     private final double FAR_SHOT_VELOCITY_TICKS = -1500.0;
-    private final double MID_SHOT_VELOCITY_TICKS = -1200.0;
+    private final double MID_FAR_SHOT_VELOCITY_TICKS = -1250;
+    private final double MID_SHOT_VELOCITY_TICKS = -1150.0;
     private final double NEAR_SHOT_VELOCITY_TICKS = -1050.0;
     private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 50.0;
 
     private final int FAR_INCHES = 100;
-    private final int MID_INCHES = 50;
+    private final int MID_INCHES = 45;
+    private final int MID_FAR_INCHES = 56;
 
     private final double CLOSE_SHOT_HOOD = 0.85;
-    private final double MID_SHOT_HOOD = 0.75;
-    private final double FAR_SHOT_HOOD = 0.62;
+    private final double MID_SHOT_HOOD = 0.70;
+    private final double FAR_SHOT_HOOD = 0.60;
 
     private boolean outtakeOn = false;
     private boolean lastAState = false;
@@ -45,10 +47,10 @@ public class Shooter {
 
     // TODO TUNE kP
     // After kV is set, tune kP to minimize error, use small increases
-    private final double kP = 10;
-    private final double kI = 0.5;
-    private final double kD = 0.1;
-    private final double kF = 0.149;
+    private final double kP = 29;
+    private final double kI = 0.9;
+    private final double kD = 0.0;
+    private final double kF = 0.7;
 
 
     public void init(HardwareMap hardwareMap) {
@@ -174,6 +176,8 @@ public class Shooter {
             targetVelocityTicks = FAR_SHOT_VELOCITY_TICKS;
         } else if (distance > MID_INCHES) { // MID SHOT
             targetVelocityTicks = MID_SHOT_VELOCITY_TICKS;
+        } else if (distance > MID_FAR_INCHES) {
+            targetVelocityTicks = MID_FAR_SHOT_VELOCITY_TICKS;
         } else { // NEAR SHOT
             targetVelocityTicks = NEAR_SHOT_VELOCITY_TICKS;
         }

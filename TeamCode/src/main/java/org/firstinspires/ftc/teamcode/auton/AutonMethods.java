@@ -24,9 +24,9 @@ public class AutonMethods extends AutonBase {
     // ------------------------------- Outtake Motor --------------------------------
     public DcMotorEx outtakeMotor;
     public Servo hoodServo;
-    public double midShotTargetVelocityTicks = -1275.0;
+    public double midShotTargetVelocityTicks = -1150.0;
     static final double TICKS_PER_REV = 28;
-    public double hoodPosition = 0.8;
+    public double hoodPosition = 0.72;
 
     final private double ACCEPTABLE_VELOCITY_ERROR = 75.0;
 
@@ -68,6 +68,13 @@ public class AutonMethods extends AutonBase {
 
             outtakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
             outtakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+            double kP = 30;
+            double kI = 0.9;
+            double kD = 0.0;
+            double kF = 0.7;
+
+            outtakeMotor.setVelocityPIDFCoefficients(kP, kI, kD, kF);
             hoodServo.setPosition(hoodPosition);
 
             // Transfer

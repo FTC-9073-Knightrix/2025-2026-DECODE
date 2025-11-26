@@ -97,15 +97,15 @@ public class TwelveBallRed extends AutonMethods {
                     new SequentialAction(
                             // DRIVE BACK AND SPIN UP SHOOTER SIMULTANEOUSLY
                             new ParallelAction(
-                                driveBackFromGoal
-//                                autonActions.setHoodToMidShot(),
-//                                autonActions.spinShooterToMidShotVelocity()
+                                driveBackFromGoal,
+                                autonActions.setHoodToMidShot(),
+                                autonActions.spinShooterToMidShotVelocity()
                             ),
-//                            Shoot3Balls,
+                            Shoot3Balls,
                             // DRIVE TO FIRST ROW WHILE INTAKING
                             new ParallelAction(
-//                                autonActions.runIntake(),
-//                                autonActions.runTransfer(),
+                                autonActions.runIntake(),
+                                autonActions.runTransferUntilBallDetected(),
                                 driveToFirstRow
                             ),
 //                            // DRIVE BACK TO SHOOTING POSITION

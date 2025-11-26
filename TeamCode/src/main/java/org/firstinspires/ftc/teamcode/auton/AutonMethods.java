@@ -28,15 +28,17 @@ public class AutonMethods extends AutonBase {
     static final double TICKS_PER_REV = 28;
     public double hoodPosition = 0.72;
 
-    final private double ACCEPTABLE_VELOCITY_ERROR = 75.0;
+    final private double ACCEPTABLE_VELOCITY_ERROR = 50.0;
 
     // ------------------------------- Transfer Motor --------------------------------
     public DcMotor transferMotor;
     public DistanceSensor transferDistanceSensor;
-    final double TRANSFER_IN_POWER = 0.6;
+    final double TRANSFER_IN_POWER = 1.0;
     final double TRANSFER_OUT_POWER = -1.0;
     final double TRANSFER_STOP_POWER = 0.0;
     final double DISTANCE_TO_DETECT_BALL_CM = 2.0; // in cm
+
+    final int BALLS_TO_TRANSFER = 3;
 
 
     // ------------------------------- Blinkin --------------------------------
@@ -143,26 +145,6 @@ public class AutonMethods extends AutonBase {
             return new SpinShooterToMidShotVelocity();
         }
 
-        public class OuttakeVelocityAction implements Action {
-            private double velocity;
-
-            public OuttakeVelocityAction(double velocity) {
-                this.velocity = velocity;
-            }
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                outtakeMotor.setVelocity(velocity);
-                packet.put("Outtake Target Vel", velocity);
-                packet.put("Outtake Actual Vel", outtakeMotor.getVelocity());
-                return false;
-            }
-        }
-
-        public Action setOuttakeVelocity(double velocity) {
-            return new OuttakeVelocityAction(velocity);
-        }
-
         public class StopOuttake implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
@@ -223,6 +205,8 @@ public class AutonMethods extends AutonBase {
         // ------------------------------- Transfer Action --------------------------------
         public class RunTransferUntilBallDetected implements Action {
             boolean initialized = false;
+            int detectionCount = 0;
+            final int REQUIRED_DETECTIONS = 2;
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
@@ -230,21 +214,31 @@ public class AutonMethods extends AutonBase {
                     if (!initialized) {
                         transferMotor.setPower(TRANSFER_IN_POWER);
                         initialized = true;
+                        detectionCount = 0;
                     }
                     double distance = transferDistanceSensor.getDistance(DistanceUnit.CM); // in cm
-                    if (Double.isNaN(distance) || distance <= 0) {
-                        distance = Double.POSITIVE_INFINITY;
-                    }
+
                     if (distance < DISTANCE_TO_DETECT_BALL_CM) {
-                        transferMotor.setPower(TRANSFER_STOP_POWER);
-                        packet.put("Transfer", "Ball Detected, Stopped");
-                        return false;
+                        detectionCount++;
+                        if (detectionCount >= REQUIRED_DETECTIONS) {
+                            transferMotor.setPower(TRANSFER_STOP_POWER);
+                            packet.put("Transfer", "Ball Detected, Stopped");
+                            initialized = false;
+                            detectionCount = 0;
+                            return false;
+                        } else {
+                            // wait one more cycle to confirm
+                            return true;
+                        }
                     } else {
+                        detectionCount = 0;
                         return true;
                     }
                 } else {
                     transferMotor.setPower(TRANSFER_STOP_POWER);
                     packet.put("Transfer", "Stopped");
+                    initialized = false;
+                    detectionCount = 0;
                     return false;
                 }
             }
@@ -256,6 +250,8 @@ public class AutonMethods extends AutonBase {
 
         public class RunTransfer implements Action {
             boolean initialized = false;
+            boolean wentToShootingSpeed = false;
+            int ballsTransferred = 0;
             double startTime;
 
             @Override
@@ -266,7 +262,23 @@ public class AutonMethods extends AutonBase {
                         startTime = getRuntime();
                         initialized = true;
                     }
-                    return getRuntime() - startTime < 4;
+
+                    if (isAtShootingSpeed()) {
+                        transferMotor.setPower(TRANSFER_IN_POWER);
+                        if (!wentToShootingSpeed) {
+                            wentToShootingSpeed = true;
+                        }
+                    }
+                    else {
+                        transferMotor.setPower(TRANSFER_STOP_POWER);
+
+                        if (wentToShootingSpeed) {
+                            ballsTransferred += 1;
+                            wentToShootingSpeed = false;
+                        }
+                    }
+
+                    return ballsTransferred < BALLS_TO_TRANSFER;
                 } else {
                     transferMotor.setPower(TRANSFER_STOP_POWER);
                     packet.put("Transfer", "Stopped");
@@ -289,6 +301,13 @@ public class AutonMethods extends AutonBase {
         }
         public Action stopTransfer() {
             return new StopTransfer();
+        }
+
+        private boolean isAtShootingSpeed() {
+            double currentVelocity = outtakeMotor.getVelocity();
+            double velocityError = Math.abs(midShotTargetVelocityTicks - currentVelocity);
+
+            return velocityError <= ACCEPTABLE_VELOCITY_ERROR;
         }
     }
 }

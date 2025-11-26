@@ -34,10 +34,10 @@ public class TwelveBallRed extends AutonMethods {
         // Drive into first row of balls
         Action driveToFirstRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
                 .turnTo(Math.toRadians(90))
-                .strafeToConstantHeading(new Vector2d(-11, 45))
+                .strafeToConstantHeading(new Vector2d(-11, 43))
                 .build();
 
-        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-11, 45, Math.toRadians(90)))
+        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-11, 43, Math.toRadians(90)))
                 .strafeToLinearHeading(shootPos, shootHeading)
                 .build();
         // Drive into second row of balls

@@ -18,7 +18,6 @@ import java.util.Arrays;
 @Config
 public abstract class AutonBase extends LinearOpMode {
     MecanumDrive drive;
-//    AutonIntake intake;
 
     protected Pose2d beginPose;
     protected VelConstraint maxSpeedConstraint;
@@ -41,7 +40,6 @@ public abstract class AutonBase extends LinearOpMode {
         // 3.958 in / 2000 ticks = 0.001979 inches per tick
         double inPerTick = 0.00198;
 
-//        intake = new AutonIntake(hardwareMap);
 
         minVelConstraint = new MinVelConstraint(Arrays.asList(
                 new TranslationalVelConstraint(20.0),
@@ -52,7 +50,7 @@ public abstract class AutonBase extends LinearOpMode {
                 new AngularVelConstraint(Math.PI / 2)
         ));
         maxSpeedConstraint = new MinVelConstraint(Arrays.asList(
-                new TranslationalVelConstraint(65.0),
+                new TranslationalVelConstraint(50.0),
                 new AngularVelConstraint(Math.PI / 2)
         ));
 

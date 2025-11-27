@@ -35,7 +35,8 @@ public class MeepMeepTesting {
 //                //wait for 3 seconds
                 .strafeToLinearHeading(new Vector2d(12.5, (color == AllianceColor.RED) ? 26 : -26), Math.toRadians((color == AllianceColor.RED) ? 90 : -90)) // intakes middle row
                 .strafeToConstantHeading(new Vector2d(12.5, 50)) // Added missing closing parenthesis and tangent
-                .strafeToLinearHeading(new Vector2d(-11, (color == AllianceColor.RED) ? 17 : -17), Math.toRadians((color == AllianceColor.RED) ? 140 : -135)) // shooting 1st ball
+                .setTangent(Math.toRadians(-90))
+                .splineToLinearHeading(new Pose2d(-11, (color == AllianceColor.RED) ? 17 : -17, Math.toRadians((color == AllianceColor.RED) ? 140 : -140)), Math.toRadians(220)) // shooting 1st ball
 
                 .strafeToLinearHeading(new Vector2d(36, (color == AllianceColor.RED) ? 26 : -26), Math.toRadians((color == AllianceColor.RED) ? 90 : -90)) // intakes middle row
                 .strafeToConstantHeading(new Vector2d(36, 50)) // Added missing closing parenthesis and tangent

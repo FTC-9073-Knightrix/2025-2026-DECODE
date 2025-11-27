@@ -24,9 +24,10 @@ public class AutonMethods extends AutonBase {
     // ------------------------------- Outtake Motor --------------------------------
     public DcMotorEx outtakeMotor;
     public Servo hoodServo;
-    public double midShotTargetVelocityTicks = -1150.0;
+    private double midShotTargetVelocityTicks = -1200.0;
+    private double farShotTargetVelocityTicks = -1500.0;
     static final double TICKS_PER_REV = 28;
-    public double hoodPosition = 0.72;
+    public double hoodPosition = 0.69;
 
     final private double ACCEPTABLE_VELOCITY_ERROR = 50.0;
 
@@ -71,10 +72,10 @@ public class AutonMethods extends AutonBase {
             outtakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
             outtakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-            double kP = 30;
-            double kI = 0.9;
-            double kD = 0.0;
-            double kF = 0.7;
+            final double kP = 30;
+            final double kI = 0.9;
+            final double kD = 0.0;
+            final double kF = 0.7;
 
             outtakeMotor.setVelocityPIDFCoefficients(kP, kI, kD, kF);
             hoodServo.setPosition(hoodPosition);
@@ -121,28 +122,34 @@ public class AutonMethods extends AutonBase {
         }
 
         // ------------------------------- Outtake Actions --------------------------------
-        public class SpinShooterToMidShotVelocity implements Action {
+        public class SpinShooterToVelocity implements Action {
             boolean initialized = false;
+            double targetVelocityTicks;
             double startTime;
+
+            public SpinShooterToVelocity(double targetVelocityTicks) {
+                this.targetVelocityTicks = targetVelocityTicks;
+            }
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
                     outtakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                    outtakeMotor.setVelocity(midShotTargetVelocityTicks);
+                    outtakeMotor.setVelocity(targetVelocityTicks);
                     startTime = getRuntime();
 
                     initialized = true;
                 }
 
-                packet.put("Outtake Target Vel", midShotTargetVelocityTicks);
-                packet.put("Outtake Actual Vel", outtakeMotor.getVelocity());
-                return (Math.abs(outtakeMotor.getVelocity() - midShotTargetVelocityTicks) > ACCEPTABLE_VELOCITY_ERROR) || (getRuntime() - startTime < 2);
+                return (Math.abs(outtakeMotor.getVelocity() - targetVelocityTicks) > ACCEPTABLE_VELOCITY_ERROR) || (getRuntime() - startTime < 2);
             }
         }
-
         public Action spinShooterToMidShotVelocity() {
-            return new SpinShooterToMidShotVelocity();
+            return new SpinShooterToVelocity(midShotTargetVelocityTicks);
+        }
+
+        public Action spinShooterToFarShotVelocity() {
+            return new SpinShooterToVelocity(farShotTargetVelocityTicks);
         }
 
         public class StopOuttake implements Action {
@@ -158,37 +165,7 @@ public class AutonMethods extends AutonBase {
             return new StopOuttake();
         }
 
-        public class StallOuttake implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                outtakeMotor.setVelocity(-400);
-                packet.put("Outtake", "Stalled");
-                return false;
-            }
-        }
-        public Action stallOuttake() {
-            return new StallOuttake();
-        }
         // ------------------------------- Hood Actions --------------------------------
-        public class HoodPositionAction implements Action {
-            double pos;
-
-            public HoodPositionAction(double pos) {
-                this.pos = pos;
-            }
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                hoodServo.setPosition(pos);
-                packet.put("Hood Pos", pos);
-                return false;
-            }
-        }
-
-        public Action setHood(double pos) {
-            return new HoodPositionAction(pos);
-        }
-
         public class SetHoodToMidShot implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
@@ -259,6 +236,7 @@ public class AutonMethods extends AutonBase {
                 if (!isStopRequested()) {
                     if (!initialized) {
                         transferMotor.setPower(TRANSFER_IN_POWER);
+                        ballsTransferred = 0;
                         startTime = getRuntime();
                         initialized = true;
                     }
@@ -272,13 +250,13 @@ public class AutonMethods extends AutonBase {
                     else {
                         transferMotor.setPower(TRANSFER_STOP_POWER);
 
-                        if (wentToShootingSpeed) {
+                        if (wentToShootingSpeed && velocityDropped(midShotTargetVelocityTicks)) {
                             ballsTransferred += 1;
                             wentToShootingSpeed = false;
                         }
                     }
 
-                    return ballsTransferred < BALLS_TO_TRANSFER;
+                    return ballsTransferred < 3 && (startTime - getRuntime() < 4);
                 } else {
                     transferMotor.setPower(TRANSFER_STOP_POWER);
                     packet.put("Transfer", "Stopped");
@@ -308,6 +286,14 @@ public class AutonMethods extends AutonBase {
             double velocityError = Math.abs(midShotTargetVelocityTicks - currentVelocity);
 
             return velocityError <= ACCEPTABLE_VELOCITY_ERROR;
+        }
+
+        private boolean velocityDropped(double targetVelocity) {
+            double currentVelocity = outtakeMotor.getVelocity();
+            double velocityError = targetVelocity - currentVelocity;
+
+            // A NEGATIVE NUMBER BC VELOCITY TIKCS ARE NEGATIVE
+            return velocityError < -80;
         }
     }
 }

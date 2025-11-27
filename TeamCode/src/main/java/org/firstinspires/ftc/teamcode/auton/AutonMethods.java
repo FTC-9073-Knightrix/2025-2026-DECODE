@@ -21,7 +21,7 @@ public class AutonMethods extends AutonBase {
     final private double INTAKE_POWER = -1.0;
     final private double STOP_POWER = 0.0;
 
-    // ------------------------------- Outtake Motor --------------------------------
+    // ------------------------------- Outtake --------------------------------
     public DcMotorEx outtakeMotor;
     public Servo hoodServo;
     private double midShotTargetVelocityTicks = -1200.0;
@@ -30,6 +30,9 @@ public class AutonMethods extends AutonBase {
     public double hoodPosition = 0.69;
 
     final private double ACCEPTABLE_VELOCITY_ERROR = 50.0;
+
+    final double MID_SHOT_HOOD = 0.8;
+    final double FAR_SHOT_HOOD = 0.65;
 
     // ------------------------------- Transfer Motor --------------------------------
     public DcMotor transferMotor;
@@ -166,17 +169,25 @@ public class AutonMethods extends AutonBase {
         }
 
         // ------------------------------- Hood Actions --------------------------------
-        public class SetHoodToMidShot implements Action {
+        public class SetHood implements Action {
+            double targetPos;
+
+            public SetHood(double targetPos) {
+                this.targetPos = targetPos;
+            }
+
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                hoodServo.setPosition(0.9);
-                packet.put("Hood Pos", 0.9);
+                hoodServo.setPosition(targetPos);
                 return false;
             }
         }
 
         public Action setHoodToMidShot() {
-            return new SetHoodToMidShot();
+            return new SetHood(MID_SHOT_HOOD);
+        }
+        public Action setHoodToFarShot() {
+            return new SetHood(FAR_SHOT_HOOD);
         }
 
         // ------------------------------- Transfer Action --------------------------------
@@ -292,7 +303,7 @@ public class AutonMethods extends AutonBase {
             double currentVelocity = outtakeMotor.getVelocity();
             double velocityError = targetVelocity - currentVelocity;
 
-            // A NEGATIVE NUMBER BC VELOCITY TIKCS ARE NEGATIVE
+            // A NEGATIVE NUMBER BC VELOCITY TICKS ARE NEGATIVE
             return velocityError < -80;
         }
     }

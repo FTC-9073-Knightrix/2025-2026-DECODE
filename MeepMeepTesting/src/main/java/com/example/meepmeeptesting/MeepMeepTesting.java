@@ -21,6 +21,18 @@ public class MeepMeepTesting {
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
+// FAR THREE BALL RED
+//        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(62, 14, Math.toRadians(180)))
+//                .strafeToLinearHeading(new Vector2d(54, 16), Math.toRadians(160))
+//                .strafeToLinearHeading(new Vector2d(52, 56.5), Math.toRadians(70))
+//                .strafeToLinearHeading(new Vector2d(58, 59), Math.toRadians(75))
+//                .strafeToLinearHeading(new Vector2d(54, 54), Math.toRadians(45))
+//                .strafeToLinearHeading(new Vector2d(60.5, 60.5), Math.toRadians(45))
+//                .strafeToLinearHeading(new Vector2d(54, 16), Math.toRadians(160))
+//                .strafeToLinearHeading(new Vector2d(59, 38), Math.toRadians(90))
+//
+//                .build());
+
 
         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-58, (color == AllianceColor.RED) ? 44 : -44, Math.toRadians((color == AllianceColor.RED) ? 127 : -127)))
                 .strafeToLinearHeading(new Vector2d(-11, (color == AllianceColor.RED) ? 17 : -17), Math.toRadians((color == AllianceColor.RED) ? 140 : -140)) // shooting 1st ball
@@ -29,10 +41,12 @@ public class MeepMeepTesting {
 
                 .turnTo(Math.toRadians((color == AllianceColor.RED) ? (90) : -(90)))
                 .strafeToConstantHeading(new Vector2d(-11, 50)) // Added missing closing parenthesis and tangent
+
+                // open the gate
+                .setTangent(Math.toRadians(-90))
+                .splineToLinearHeading(new Pose2d(-2, 51, Math.toRadians(180)), Math.toRadians(90))
                 .strafeToLinearHeading(new Vector2d(-11, (color == AllianceColor.RED) ? 17 : -17), Math.toRadians((color == AllianceColor.RED) ? 140 : -135)) // shooting 1st ball
 
-//                .waitSeconds(2.5)
-//                //wait for 3 seconds
                 .strafeToLinearHeading(new Vector2d(12.5, (color == AllianceColor.RED) ? 26 : -26), Math.toRadians((color == AllianceColor.RED) ? 90 : -90)) // intakes middle row
                 .strafeToConstantHeading(new Vector2d(12.5, 50)) // Added missing closing parenthesis and tangent
                 .setTangent(Math.toRadians(-90))

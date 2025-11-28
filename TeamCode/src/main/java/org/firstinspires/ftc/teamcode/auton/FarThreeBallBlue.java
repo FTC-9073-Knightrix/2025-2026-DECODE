@@ -11,19 +11,19 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 @Autonomous (name="Far Three Ball Blue", group="Autonomous")
-class FarThreeBallBlue extends AutonMethods {
+public class FarThreeBallBlue extends AutonMethods {
     @Override
     public void runOpMode() throws InterruptedException {
         super.runOpMode();
-        beginPose = new Pose2d(62, -14, Math.toRadians(-180));
+        beginPose = new Pose2d(62, -14, Math.toRadians(180));
         drive = new MecanumDrive(hardwareMap, beginPose);
         drive.updatePoseEstimate();
 
         AutonActions autonActions = new AutonActions(hardwareMap);
 
         // Drive back to pick up third ball
-        Vector2d shootPos = new Vector2d(54, -16);
-        double shootHeading = Math.toRadians(-160);
+        Vector2d shootPos = new Vector2d(56, -14);
+        double shootHeading = Math.toRadians(-161);
 
         Action turnToGoal = drive.actionBuilder(beginPose)
                 .strafeToLinearHeading(shootPos, shootHeading)
@@ -42,14 +42,14 @@ class FarThreeBallBlue extends AutonMethods {
                 .build();
 
         Action leaveLaunchZone = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
-                .strafeToLinearHeading(new Vector2d(59, -38), Math.toRadians(-90))
+                .strafeToLinearHeading(new Vector2d(61, -38), Math.toRadians(-90))
                 .build();
 
         Action Shoot3Balls = new SequentialAction(
                 // SHOOT 3 BALLS
                 new ParallelAction(
                         autonActions.runIntake(),
-                        autonActions.runTransfer()
+                        autonActions.runTransferToFarShot()
                 ),
                 // STOP INTAKE AND TRANSFER
                 new ParallelAction(
@@ -62,7 +62,7 @@ class FarThreeBallBlue extends AutonMethods {
                 // SHOOT 3 BALLS
                 new ParallelAction(
                         autonActions.runIntake(),
-                        autonActions.runTransfer()
+                        autonActions.runTransferToFarShot()
                 ),
                 // STOP INTAKE AND TRANSFER
                 new ParallelAction(
@@ -98,7 +98,7 @@ class FarThreeBallBlue extends AutonMethods {
 //                            new ParallelAction(
 //                                    intakeCornerBalls,
 //                                    autonActions.runIntake(),
-//                                    autonActions.runTransfer()
+//                                    autonActions.runTransferToMidShot()
 //                            ),
 //                            driveToShoot,
 //                            Shoot3Balls2,

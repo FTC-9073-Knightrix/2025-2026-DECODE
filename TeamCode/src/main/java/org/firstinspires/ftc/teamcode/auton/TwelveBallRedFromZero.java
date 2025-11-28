@@ -69,7 +69,7 @@ public class TwelveBallRedFromZero extends AutonMethods {
                 // SHOOT 3 BALLS
                 new ParallelAction(
                         autonActions.runIntake(),
-                        autonActions.runTransfer()
+                        autonActions.runTransferToMidShot()
                 ),
                 // STOP INTAKE AND TRANSFER
                 new ParallelAction(

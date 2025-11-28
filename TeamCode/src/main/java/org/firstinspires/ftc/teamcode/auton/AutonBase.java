@@ -55,7 +55,7 @@ public abstract class AutonBase extends LinearOpMode {
         ));
 
         baseAccelConstraint = new ProfileAccelConstraint(-50.0, 50);
-        maxAccelConstraint = new ProfileAccelConstraint(-40.0, 70);
+        maxAccelConstraint = new ProfileAccelConstraint(-40.0, 60);
     }
 }
 

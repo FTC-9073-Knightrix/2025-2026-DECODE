@@ -5,7 +5,6 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -24,21 +23,20 @@ public class AutonMethods extends AutonBase {
     // ------------------------------- Outtake --------------------------------
     public DcMotorEx outtakeMotor;
     public Servo hoodServo;
-    private double midShotTargetVelocityTicks = -1200.0;
-    private double farShotTargetVelocityTicks = -1500.0;
+    private final double midShotTargetVelocityTicks = -1200.0;
+    private final double farShotTargetVelocityTicks = -1490.0;
     static final double TICKS_PER_REV = 28;
     public double hoodPosition = 0.69;
 
-    final private double ACCEPTABLE_VELOCITY_ERROR = 50.0;
+    final private double ACCEPTABLE_VELOCITY_ERROR = 40.0;
 
-    final double MID_SHOT_HOOD = 0.8;
-    final double FAR_SHOT_HOOD = 0.65;
+    final double MID_SHOT_HOOD = 0.7;
+    final double FAR_SHOT_HOOD = 0.50;
 
     // ------------------------------- Transfer Motor --------------------------------
     public DcMotor transferMotor;
     public DistanceSensor transferDistanceSensor;
     final double TRANSFER_IN_POWER = 1.0;
-    final double TRANSFER_OUT_POWER = -1.0;
     final double TRANSFER_STOP_POWER = 0.0;
     final double DISTANCE_TO_DETECT_BALL_CM = 2.0; // in cm
 
@@ -47,9 +45,6 @@ public class AutonMethods extends AutonBase {
 
     // ------------------------------- Blinkin --------------------------------
     public RevBlinkinLedDriver blinkin;
-    private final double COLOR_INTAKING = 0.61;  // red goes BRRRR am i right andrew :)
-    private final double COLOR_SHOOTING = 0.95;  /* blue as in the color
-    */
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -240,7 +235,12 @@ public class AutonMethods extends AutonBase {
             boolean initialized = false;
             boolean wentToShootingSpeed = false;
             int ballsTransferred = 0;
+            double targetVelocity;
             double startTime;
+
+            public RunTransfer(double targetVelocity) {
+                this.targetVelocity = targetVelocity;
+            }
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
@@ -252,7 +252,7 @@ public class AutonMethods extends AutonBase {
                         initialized = true;
                     }
 
-                    if (isAtShootingSpeed()) {
+                    if (isAtShootingSpeed(targetVelocity)) {
                         transferMotor.setPower(TRANSFER_IN_POWER);
                         if (!wentToShootingSpeed) {
                             wentToShootingSpeed = true;
@@ -261,13 +261,13 @@ public class AutonMethods extends AutonBase {
                     else {
                         transferMotor.setPower(TRANSFER_STOP_POWER);
 
-                        if (wentToShootingSpeed && velocityDropped(midShotTargetVelocityTicks)) {
+                        if (wentToShootingSpeed && velocityDropped(targetVelocity)) {
                             ballsTransferred += 1;
                             wentToShootingSpeed = false;
                         }
                     }
 
-                    return ballsTransferred < 3 && (startTime - getRuntime() < 4);
+                    return ballsTransferred < 3 && (getRuntime() - startTime < 3);
                 } else {
                     transferMotor.setPower(TRANSFER_STOP_POWER);
                     packet.put("Transfer", "Stopped");
@@ -276,8 +276,11 @@ public class AutonMethods extends AutonBase {
             }
         }
 
-        public Action runTransfer() {
-            return new RunTransfer();
+        public Action runTransferToMidShot() {
+            return new RunTransfer(midShotTargetVelocityTicks);
+        }
+        public Action runTransferToFarShot() {
+            return new RunTransfer(farShotTargetVelocityTicks);
         }
 
         public class StopTransfer implements Action {
@@ -292,9 +295,9 @@ public class AutonMethods extends AutonBase {
             return new StopTransfer();
         }
 
-        private boolean isAtShootingSpeed() {
+        private boolean isAtShootingSpeed(double targetVelocity) {
             double currentVelocity = outtakeMotor.getVelocity();
-            double velocityError = Math.abs(midShotTargetVelocityTicks - currentVelocity);
+            double velocityError = Math.abs(targetVelocity - currentVelocity);
 
             return velocityError <= ACCEPTABLE_VELOCITY_ERROR;
         }

@@ -43,7 +43,7 @@ public class MeepMeepTesting {
                 .strafeToConstantHeading(new Vector2d(-11, 50)) // Added missing closing parenthesis and tangent
 
                 // open the gate
-                .setTangent(Math.toRadians(-90))
+                .setTangent(Math.toRadians(-45))
                 .splineToLinearHeading(new Pose2d(-2, 51, Math.toRadians(180)), Math.toRadians(90))
                 .strafeToLinearHeading(new Vector2d(-11, (color == AllianceColor.RED) ? 17 : -17), Math.toRadians((color == AllianceColor.RED) ? 140 : -135)) // shooting 1st ball
 

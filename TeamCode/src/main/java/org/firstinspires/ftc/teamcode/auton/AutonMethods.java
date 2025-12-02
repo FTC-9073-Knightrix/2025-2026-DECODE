@@ -14,6 +14,16 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+// EasyOpenCV / AprilTag imports
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.apriltag.AprilTagDetection;
+import org.openftc.apriltag.AprilTagDetectionPipeline;
+
+import java.util.List;
+
 public class AutonMethods extends AutonBase {
     // ------------------------------- Intake Motor --------------------------------
     public DcMotorEx intakeMotor;
@@ -45,8 +55,75 @@ public class AutonMethods extends AutonBase {
     private final double COLOR_SHOOTING = 0.95;  /* blue as in the color
     */
 
+    // ------------------------------- AprilTag / Webcam --------------------------------
+    // Minimal EasyOpenCV-style webcam + AprilTag pipeline support
+    public OpenCvCamera webcam;
+    public AprilTagDetectionPipeline aprilTagPipeline;
+
+    // Detected motif ID (final stored after start)
+    public int motifID = -1;
+    // Last-seen tag during init loop
+    private int lastSeenTagId = -1;
+
+    // Tune these for your camera; these are common example intrinsics for a 640x480 webcam
+    private static final double TAG_SIZE_METERS = 0.166; // example tag size in meters
+    private static final double FX = 578.272; // focal length x
+    private static final double FY = 578.272; // focal length y
+    private static final double CX = 402.145; // principal point x
+    private static final double CY = 221.506; // principal point y
+
     @Override
     public void runOpMode() throws InterruptedException {
+        // Initialize webcam and AprilTag pipeline
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+
+        aprilTagPipeline = new AprilTagDetectionPipeline(TAG_SIZE_METERS, FX, FY, CX, CY);
+        webcam.setPipeline(aprilTagPipeline);
+
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                webcam.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+                // camera failed to open; keep motifID as -1 and continue
+            }
+        });
+
+        while (!isStarted() && !isStopRequested()) {
+            List<AprilTagDetection> detections = aprilTagPipeline.getLatestDetections();
+            if (detections != null && detections.size() > 0) {
+                // store the most recently seen tag id
+                lastSeenTagId = detections.get(0).id;
+                telemetry.addData("AprilTag Detected ID", lastSeenTagId);
+            } else {
+                telemetry.addData("AprilTag Detected ID", "None");
+            }
+            telemetry.update();
+
+            // small delay to avoid spamming
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        motifID = lastSeenTagId;
+
+        if (webcam != null) {
+            try {
+                webcam.stopStreaming();
+            } catch (Exception ignored) {}
+            try {
+                webcam.closeCameraDevice();
+            } catch (Exception ignored) {}
+        }
+
         super.runOpMode();
     }
 
@@ -285,3 +362,4 @@ public class AutonMethods extends AutonBase {
         }
     }
 }
+

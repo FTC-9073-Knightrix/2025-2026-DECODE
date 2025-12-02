@@ -42,24 +42,32 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                 offsetDegrees = 0.0;
             }
             else if (vision.getDetectedTagId() == AprilTagEnums.RED_GOAL.getId()) {
-                offsetDegrees = -3.0;
+                offsetDegrees = -2.5;
             }
             else if (vision.getDetectedTagId() == AprilTagEnums.BLUE_GOAL.getId()) {
-                offsetDegrees = 3.0;
+                offsetDegrees = 2.5;
             }
 
             drive.runAutoAlignToTag(Math.toRadians(vision.getGoalTagBearing() + offsetDegrees), rb, lb, leftY, leftX);
-            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+
+            // SET LIGHTS TO GREEN IF THE CAMERA IS LOCKED ON
+            if (vision.alignedForShot(offsetDegrees)) {
+                lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+            }
+            else {
+                lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
+            }
         }
         else {
             drive.runManualMecanumDrive(rb, lb, leftY, leftX, rightX, resetHeadingButton);
             drive.toggleRobotCentric(toggleDriveModeButton);
-            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
+            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.VIOLET);
         }
     }
 
     public void runVision() {
-        vision.scanMotifTagSequence();
+//        not using motif sequence yet
+//        vision.scanMotifTagSequence();
     }
 
     public void runIntake() {
@@ -73,7 +81,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 
         if (holdToShoot) {
             if (requireCameraLockToShoot) {
-                if (vision.alignedForShot() && shooter.isAtShootingSpeed()) {
+                if (vision.alignedForShot(0) && shooter.isAtShootingSpeed()) {
                     transfer.runTransferIn();
                 }
                 else {

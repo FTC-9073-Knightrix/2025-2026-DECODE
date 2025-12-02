@@ -9,6 +9,7 @@ public class RGBLights {
 
     public void init(HardwareMap hardwareMap) {
         blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
+        blinkin.setPattern(RevBlinkinLedDriver.BlinkinPattern.VIOLET);
     }
 
     public void setColor(RevBlinkinLedDriver.BlinkinPattern pattern) {

@@ -27,7 +27,7 @@ public class Shooter {
 
     private final int FAR_INCHES = 100;
     private final int MID_INCHES = 45;
-    private final int MID_FAR_INCHES = 56;
+    private final int MID_FAR_INCHES = 60;
 
     private final double CLOSE_SHOT_HOOD = 0.85;
     private final double MID_SHOT_HOOD = 0.70;
@@ -152,6 +152,9 @@ public class Shooter {
         if (horizontalDistanceToGoalInches > FAR_INCHES) {
             hoodPosition = FAR_SHOT_HOOD;
         }
+        else if (horizontalDistanceToGoalInches > MID_FAR_INCHES) {
+            hoodPosition = FAR_SHOT_HOOD;
+        }
         else if (horizontalDistanceToGoalInches > MID_INCHES) {
             hoodPosition = MID_SHOT_HOOD;
         }
@@ -174,10 +177,10 @@ public class Shooter {
 
         if (distance > FAR_INCHES) { // FAR SHOT
             targetVelocityTicks = FAR_SHOT_VELOCITY_TICKS;
-        } else if (distance > MID_INCHES) { // MID SHOT
-            targetVelocityTicks = MID_SHOT_VELOCITY_TICKS;
         } else if (distance > MID_FAR_INCHES) {
             targetVelocityTicks = MID_FAR_SHOT_VELOCITY_TICKS;
+        } else if (distance > MID_INCHES) { // MID SHOT
+            targetVelocityTicks = MID_SHOT_VELOCITY_TICKS;
         } else { // NEAR SHOT
             targetVelocityTicks = NEAR_SHOT_VELOCITY_TICKS;
         }

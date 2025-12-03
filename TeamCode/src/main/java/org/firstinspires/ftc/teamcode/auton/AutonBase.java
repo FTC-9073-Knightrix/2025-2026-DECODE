@@ -17,7 +17,7 @@ import java.util.Arrays;
 
 @Config
 public abstract class AutonBase extends LinearOpMode {
-    MecanumDrive drive;
+    public MecanumDrive drive;
 
     protected Pose2d beginPose;
     protected VelConstraint maxSpeedConstraint;

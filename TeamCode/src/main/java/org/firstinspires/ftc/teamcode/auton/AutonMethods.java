@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.auton;
 
+import android.util.Size;
+
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -11,7 +13,12 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.vision.AprilTagEnums;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 public class AutonMethods extends AutonBase {
     // ------------------------------- Intake Motor --------------------------------
@@ -45,7 +52,12 @@ public class AutonMethods extends AutonBase {
 
     // ------------------------------- Blinkin --------------------------------
     public RevBlinkinLedDriver blinkin;
+    // ------------------------------- Vision --------------------------------
+    public WebcamName webCam;
+    public String motif = "PPG";
+    VisionPortal visionPortal;
 
+    AprilTagProcessor tagProcessor = new AprilTagProcessor.Builder().build();
     @Override
     public void runOpMode() throws InterruptedException {
         super.runOpMode();
@@ -85,6 +97,15 @@ public class AutonMethods extends AutonBase {
 
             // Blinkin
             blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
+
+            // Vision
+            webCam = hardwareMap.get(WebcamName.class, "Webcam 1");
+            visionPortal = new VisionPortal.Builder()
+                    .addProcessor(tagProcessor)
+                    .setCamera(webCam)
+                    .setCameraResolution(new Size(640, 480))
+                    .enableLiveView(true)
+                    .build();
         }
 
         // ------------------------------- Intake Actions --------------------------------
@@ -267,7 +288,7 @@ public class AutonMethods extends AutonBase {
                         }
                     }
 
-                    return ballsTransferred < 3 && (getRuntime() - startTime < 3);
+                    return ballsTransferred < BALLS_TO_TRANSFER && (getRuntime() - startTime < 2.25);
                 } else {
                     transferMotor.setPower(TRANSFER_STOP_POWER);
                     packet.put("Transfer", "Stopped");
@@ -295,6 +316,48 @@ public class AutonMethods extends AutonBase {
             return new StopTransfer();
         }
 
+        // ------------------------------- Vision Actions --------------------------------
+        public class ScanMotif implements Action {
+            boolean initialized = false;
+            boolean scanned;
+            double startTime;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    scanned = false;
+                    initialized = true;
+                    startTime = getRuntime();
+                }
+                if (!tagProcessor.getDetections().isEmpty()) {
+                    AprilTagDetection tag;
+                    for (AprilTagDetection detectedTag : tagProcessor.getDetections()) {
+                        if (detectedTag.id == AprilTagEnums.OBELISK_TAG_21.getId()
+                                || detectedTag.id == AprilTagEnums.OBELISK_TAG_22.getId()
+                                || detectedTag.id == AprilTagEnums.OBELISK_TAG_23.getId()) {
+                            tag = detectedTag;
+                            scanned = true;
+                            if (tag.id == AprilTagEnums.OBELISK_TAG_21.getId()) {
+                                motif = AprilTagEnums.OBELISK_TAG_21.getDescription();
+                            } else if (tag.id == AprilTagEnums.OBELISK_TAG_22.getId()) {
+                                motif = AprilTagEnums.OBELISK_TAG_22.getDescription();
+                            } else {
+                                motif = AprilTagEnums.OBELISK_TAG_23.getDescription();
+                            }
+                            break;
+                        }
+                    }
+                }
+                // return true if not scanned and time elapsed is less than 0.4 seconds
+                return !scanned && (getRuntime() - startTime < 0.25);
+            }
+        }
+
+        public Action scanMotif() {
+            return new ScanMotif();
+        }
+
+        // ------------------------------- Helper Methods --------------------------------
         private boolean isAtShootingSpeed(double targetVelocity) {
             double currentVelocity = outtakeMotor.getVelocity();
             double velocityError = Math.abs(targetVelocity - currentVelocity);

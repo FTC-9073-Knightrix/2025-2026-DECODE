@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -15,6 +16,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.auton.BallOrderCalculator.BallColor;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.vision.AprilTagEnums;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -32,6 +34,7 @@ public class AutonMethods extends AutonBase {
     public Servo hoodServo;
     private final double midShotTargetVelocityTicks = -1200.0;
     private final double farShotTargetVelocityTicks = -1490.0;
+    private final double MISS_SHOT_VELOCITY_TICKS = -400.0; // Intentionally too slow to make basket
     static final double TICKS_PER_REV = 28;
     public double hoodPosition = 0.69;
 
@@ -39,6 +42,7 @@ public class AutonMethods extends AutonBase {
 
     final double MID_SHOT_HOOD = 0.7;
     final double FAR_SHOT_HOOD = 0.50;
+    final double MISS_SHOT_HOOD = 0.85; // Aim too high to miss
 
     // ------------------------------- Transfer Motor --------------------------------
     public DcMotor transferMotor;
@@ -49,21 +53,33 @@ public class AutonMethods extends AutonBase {
 
     final int BALLS_TO_TRANSFER = 3;
 
+    // ------------------------------- Color Sensor --------------------------------
+    public RevColorSensorV3 colorSensor;
+    // Thresholds for color detection - TUNE THESE based on testing
+    final double PURPLE_RED_THRESHOLD = 150;    // Purple has high red
+    final double PURPLE_BLUE_THRESHOLD = 100;   // Purple has moderate blue
+    final double GREEN_GREEN_THRESHOLD = 120;   // Green has high green
+    final double GREEN_RED_RATIO = 0.7;         // Green: red/green ratio < 0.7
 
     // ------------------------------- Blinkin --------------------------------
     public RevBlinkinLedDriver blinkin;
+
     // ------------------------------- Vision --------------------------------
     public WebcamName webCam;
     public String motif = "PPG";
     VisionPortal visionPortal;
 
     AprilTagProcessor tagProcessor = new AprilTagProcessor.Builder().build();
+
     @Override
     public void runOpMode() throws InterruptedException {
         super.runOpMode();
     }
 
     public class AutonActions {
+
+        // Ball tracking
+        private int currentBallIndex = 0; // Tracks which ball we're on (0-11 for 12 balls)
 
         // ------------------------------- Constructor --------------------------------
         public AutonActions(HardwareMap hardwareMap) {
@@ -95,6 +111,13 @@ public class AutonMethods extends AutonBase {
             transferMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             transferDistanceSensor = hardwareMap.get(DistanceSensor.class, "transferDistanceSensor");
 
+            // Color Sensor
+            try {
+                colorSensor = hardwareMap.get(RevColorSensorV3.class, "colorSensor");
+            } catch (Exception e) {
+                // Color sensor not configured - will use ball index only
+            }
+
             // Blinkin
             blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
 
@@ -106,6 +129,34 @@ public class AutonMethods extends AutonBase {
                     .setCameraResolution(new Size(640, 480))
                     .enableLiveView(true)
                     .build();
+        }
+
+        // ------------------------------- Color Detection --------------------------------
+        /**
+         * Detect ball color using color sensor
+         */
+        private BallColor detectBallColor() {
+            if (colorSensor == null) {
+                // Fallback: use ball index to predict color based on preloaded order
+                return BallOrderCalculator.getExpectedColor(currentBallIndex);
+            }
+
+            int red = colorSensor.red();
+            int green = colorSensor.green();
+            int blue = colorSensor.blue();
+
+            // Purple detection: High red, moderate blue, lower green
+            if (red > PURPLE_RED_THRESHOLD && blue > PURPLE_BLUE_THRESHOLD && red > green) {
+                return BallColor.PURPLE;
+            }
+
+            // Green detection: High green, red/green ratio < threshold
+            if (green > GREEN_GREEN_THRESHOLD && ((double)red / green) < GREEN_RED_RATIO) {
+                return BallColor.GREEN;
+            }
+
+            // If detection fails, fallback to expected color based on ball index
+            return BallOrderCalculator.getExpectedColor(currentBallIndex);
         }
 
         // ------------------------------- Intake Actions --------------------------------
@@ -163,12 +214,17 @@ public class AutonMethods extends AutonBase {
                 return (Math.abs(outtakeMotor.getVelocity() - targetVelocityTicks) > ACCEPTABLE_VELOCITY_ERROR) || (getRuntime() - startTime < 2);
             }
         }
+
         public Action spinShooterToMidShotVelocity() {
             return new SpinShooterToVelocity(midShotTargetVelocityTicks);
         }
 
         public Action spinShooterToFarShotVelocity() {
             return new SpinShooterToVelocity(farShotTargetVelocityTicks);
+        }
+
+        public Action spinShooterToMissVelocity() {
+            return new SpinShooterToVelocity(MISS_SHOT_VELOCITY_TICKS);
         }
 
         public class StopOuttake implements Action {
@@ -202,11 +258,96 @@ public class AutonMethods extends AutonBase {
         public Action setHoodToMidShot() {
             return new SetHood(MID_SHOT_HOOD);
         }
+
         public Action setHoodToFarShot() {
             return new SetHood(FAR_SHOT_HOOD);
         }
 
-        // ------------------------------- Transfer Action --------------------------------
+        public Action setHoodToMiss() {
+            return new SetHood(MISS_SHOT_HOOD);
+        }
+
+        // ------------------------------- NEW: Smart Transfer with Color Detection --------------------------------
+        /**
+         * NEW ACTION: Smart transfer that detects ball color and decides whether to make or miss the shot
+         * This replaces the old transfer actions for autonomous
+         */
+        public class SmartTransferWithColorDetection implements Action {
+            boolean initialized = false;
+            boolean wentToShootingSpeed = false;
+            int ballsTransferred = 0;
+            double makeTargetVelocity;
+            double missTargetVelocity;
+            double startTime;
+            String motif;
+
+            public SmartTransferWithColorDetection(double makeTargetVelocity, String motif) {
+                this.makeTargetVelocity = makeTargetVelocity;
+                this.missTargetVelocity = MISS_SHOT_VELOCITY_TICKS;
+                this.motif = motif;
+            }
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!isStopRequested()) {
+                    if (!initialized) {
+                        transferMotor.setPower(TRANSFER_STOP_POWER);
+                        ballsTransferred = 0;
+                        startTime = getRuntime();
+                        initialized = true;
+                    }
+
+                    // Detect ball color at transfer position
+                    BallColor detectedColor = detectBallColor();
+                    boolean shouldMake = BallOrderCalculator.shouldMakeShot(detectedColor, currentBallIndex, motif);
+
+                    double currentTargetVelocity = shouldMake ? makeTargetVelocity : missTargetVelocity;
+
+                    packet.put("Ball Index", currentBallIndex);
+                    packet.put("Detected Color", detectedColor.toString());
+                    packet.put("Expected Color", BallOrderCalculator.getExpectedColor(currentBallIndex).toString());
+                    packet.put("Required Color", BallOrderCalculator.getRequiredColor(currentBallIndex, motif).toString());
+                    packet.put("Action", shouldMake ? "MAKE SHOT" : "MISS SHOT");
+                    packet.put("Balls Transferred", ballsTransferred);
+
+                    // Adjust shooter velocity based on decision
+                    if (!wentToShootingSpeed) {
+                        outtakeMotor.setVelocity(currentTargetVelocity);
+                    }
+
+                    if (isAtShootingSpeed(currentTargetVelocity)) {
+                        transferMotor.setPower(TRANSFER_IN_POWER);
+                        if (!wentToShootingSpeed) {
+                            wentToShootingSpeed = true;
+                        }
+                    } else {
+                        transferMotor.setPower(TRANSFER_STOP_POWER);
+
+                        if (wentToShootingSpeed && velocityDropped(currentTargetVelocity)) {
+                            ballsTransferred += 1;
+                            currentBallIndex += 1; // Increment global ball counter
+                            wentToShootingSpeed = false;
+                        }
+                    }
+
+                    return ballsTransferred < BALLS_TO_TRANSFER && (getRuntime() - startTime < 4.0);
+                } else {
+                    transferMotor.setPower(TRANSFER_STOP_POWER);
+                    packet.put("Transfer", "Stopped");
+                    return false;
+                }
+            }
+        }
+
+        public Action smartTransferMidShot(String motif) {
+            return new SmartTransferWithColorDetection(midShotTargetVelocityTicks, motif);
+        }
+
+        public Action smartTransferFarShot(String motif) {
+            return new SmartTransferWithColorDetection(farShotTargetVelocityTicks, motif);
+        }
+
+        // ------------------------------- Transfer Action (Keep for compatibility) --------------------------------
         public class RunTransferUntilBallDetected implements Action {
             boolean initialized = false;
             int detectionCount = 0;
@@ -312,6 +453,7 @@ public class AutonMethods extends AutonBase {
                 return false;
             }
         }
+
         public Action stopTransfer() {
             return new StopTransfer();
         }
@@ -372,5 +514,13 @@ public class AutonMethods extends AutonBase {
             // A NEGATIVE NUMBER BC VELOCITY TICKS ARE NEGATIVE
             return velocityError < -80;
         }
+
+        /**
+         * Reset ball counter (call at start of autonomous)
+         */
+        public void resetBallCounter() {
+            currentBallIndex = 0;
+        }
     }
 }
+

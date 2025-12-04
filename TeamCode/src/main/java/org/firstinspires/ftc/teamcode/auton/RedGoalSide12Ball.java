@@ -39,18 +39,14 @@ public class RedGoalSide12Ball extends AutonMethods {
                 }
             }
 
-            telemetry.addData("=== NEW STRATEGY ===", "COLLECT ALL, MISS WRONG COLORS");
             telemetry.addData("Detected Motif", motif);
             telemetry.addData("Required Order", BallOrderCalculator.getOrderDescription(motif));
             telemetry.addData("Preloaded Order", BallOrderCalculator.getPreloadedDescription());
             telemetry.addData("Shot Plan", BallOrderCalculator.getShotPlanDescription(motif));
-            telemetry.addData("", "Robot will collect ALL balls");
-            telemetry.addData("", "but intentionally miss wrong colors!");
             telemetry.addData("Status", "Waiting for Start");
             telemetry.update();
         }
 
-        telemetry.addData("STARTING AUTONOMOUS", "");
         telemetry.addData("Final Motif", motif);
         telemetry.update();
 
@@ -103,9 +99,7 @@ public class RedGoalSide12Ball extends AutonMethods {
 
             autonActions.resetBallCounter();
 
-            telemetry.addData("=== EXECUTING AUTONOMOUS ===", "");
             telemetry.addData("Motif", motif);
-            telemetry.addData("Strategy", "Collect ALL balls, miss wrong colors");
             telemetry.update();
 
             Actions.runBlocking(

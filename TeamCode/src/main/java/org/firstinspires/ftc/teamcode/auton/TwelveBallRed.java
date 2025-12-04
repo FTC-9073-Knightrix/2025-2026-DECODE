@@ -32,19 +32,20 @@ public class TwelveBallRed extends AutonMethods {
         // Drive into first row of balls
         Action driveToFirstRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
                 .turnTo(Math.toRadians(90))
-                .strafeToConstantHeading(new Vector2d(-11, 43.5))
+                .strafeToConstantHeading(new Vector2d(-11, 44.5))
                 .build();
 
-        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-11, 43.5, Math.toRadians(90)))
+        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-11, 44.5, Math.toRadians(90)))
                 .strafeToLinearHeading(shootPos, shootHeading)
                 .build();
+
         // Drive into second row of balls
         Action driveToSecondRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
                 .strafeToLinearHeading(new Vector2d(11, 26), Math.toRadians(90), maxSpeedConstraint) // intakes middle row
-                .strafeToConstantHeading(new Vector2d(11, 49.5))
+                .strafeToConstantHeading(new Vector2d(11, 51.5))
                 .build();
 
-        Action driveBackToShoot2 = drive.actionBuilder(new Pose2d(11, 49.5, Math.toRadians(90)))
+        Action driveBackToShoot2 = drive.actionBuilder(new Pose2d(11, 51.5, Math.toRadians(90)))
 //                .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
                 .setTangent(Math.toRadians(-90))
                 .splineToLinearHeading(new Pose2d(shootPos, shootHeading), Math.toRadians(220)) // shooting 1st ball
@@ -53,10 +54,10 @@ public class TwelveBallRed extends AutonMethods {
         // Drive into third row of balls
         Action driveToThirdRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
                 .strafeToLinearHeading(new Vector2d(34, 26), Math.toRadians(90), maxSpeedConstraint)
-                .strafeToConstantHeading(new Vector2d(34, 50))
+                .strafeToConstantHeading(new Vector2d(34, 51.5))
                 .build();
 
-        Action driveBackToShoot3 = drive.actionBuilder(new Pose2d(34, 50, Math.toRadians(90)))
+        Action driveBackToShoot3 = drive.actionBuilder(new Pose2d(34, 51.5, Math.toRadians(90)))
                 .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
                 .build();
 

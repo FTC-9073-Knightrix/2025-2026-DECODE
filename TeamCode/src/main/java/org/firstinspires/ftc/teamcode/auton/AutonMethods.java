@@ -33,9 +33,9 @@ public class AutonMethods extends AutonBase {
     private final double midShotTargetVelocityTicks = -1200.0;
     private final double farShotTargetVelocityTicks = -1490.0;
     static final double TICKS_PER_REV = 28;
-    public double hoodPosition = 0.69;
+    public double hoodPosition = 0.85;
 
-    final private double ACCEPTABLE_VELOCITY_ERROR = 40.0;
+    final private double ACCEPTABLE_VELOCITY_ERROR = 50.0;
 
     final double MID_SHOT_HOOD = 0.7;
     final double FAR_SHOT_HOOD = 0.50;
@@ -370,7 +370,7 @@ public class AutonMethods extends AutonBase {
             double velocityError = targetVelocity - currentVelocity;
 
             // A NEGATIVE NUMBER BC VELOCITY TICKS ARE NEGATIVE
-            return velocityError < -80;
+            return velocityError < -70;
         }
     }
 }

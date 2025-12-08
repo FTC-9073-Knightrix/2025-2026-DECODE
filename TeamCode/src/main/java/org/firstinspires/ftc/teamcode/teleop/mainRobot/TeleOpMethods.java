@@ -12,10 +12,25 @@ import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.vision.AprilTagEnum
 
 @Config
 public abstract class TeleOpMethods extends RobotBaseHwMap {
-    boolean requireCameraLockToShoot = false;
-
+    boolean requireCameraToShoot = true;
+    boolean lastCameraTogglePressed = false;
     @Override
     public void init() {super.init();}
+
+    public void toggleCameraRequirement() {
+        boolean cameraTogglePressed = gamepad2.y;
+        if (cameraTogglePressed && !lastCameraTogglePressed) {
+            requireCameraToShoot = !requireCameraToShoot;
+        }
+        lastCameraTogglePressed = cameraTogglePressed;
+
+        if (requireCameraToShoot) {
+            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.VIOLET);
+        }
+        else {
+            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GRAY);
+        }
+    }
 
     public void runToggledDrive() {
         boolean rb = gamepad1.right_bumper;
@@ -35,26 +50,35 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
             drive.setDriveMode(TeleOpMecanumDrive.DriveMode.MANUAL);
         }
 
-        if (drive.getDriveMode() == TeleOpMecanumDrive.DriveMode.LOCKED_ON && vision.isDetectingAGoalTag())
+        if (drive.getDriveMode() == TeleOpMecanumDrive.DriveMode.LOCKED_ON)
         {
-            double offsetDegrees = 0.0;
-            if (vision.getGoalTagHorizontalDistance() < 100.0) {
-                offsetDegrees = 0.0;
-            }
-            else if (vision.getDetectedTagId() == AprilTagEnums.RED_GOAL.getId()) {
-                offsetDegrees = -3;
-            }
-            else if (vision.getDetectedTagId() == AprilTagEnums.BLUE_GOAL.getId()) {
-                offsetDegrees = 3;
-            }
+            if (vision.isDetectingAGoalTag()) {
+                double offsetDegrees = 0.0;
+                if (vision.getGoalTagHorizontalDistance() < 100.0) {
+                    offsetDegrees = 0.0;
+                }
+                else if (vision.getDetectedTagId() == AprilTagEnums.RED_GOAL.getId()) {
+                    offsetDegrees = -3;
+                }
+                else if (vision.getDetectedTagId() == AprilTagEnums.BLUE_GOAL.getId()) {
+                    offsetDegrees = 3;
+                }
 
-            drive.runAutoAlignToTag(Math.toRadians(vision.getGoalTagBearing() + offsetDegrees), rb, lb, leftY, leftX);
+                drive.runAutoAlignToTag(Math.toRadians(vision.getGoalTagBearing() + offsetDegrees), rb, lb, leftY, leftX);
 
-            // SET LIGHTS TO GREEN IF THE CAMERA IS LOCKED ON
-            if (vision.alignedForShot(offsetDegrees)) {
-                lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+                // SET LIGHTS TO GREEN IF THE CAMERA IS LOCKED ON
+                // try to align with offset (maybe the negative of the offsetDegrees?)
+                if (vision.alignedForShot(-offsetDegrees)) {
+
+                    lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+                }
+                else {
+                    lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
+                }
             }
             else {
+                drive.runManualMecanumDrive(rb, lb, leftY, leftX, rightX, resetHeadingButton);
+                // red color because camera is not detecting tag
                 lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
             }
         }
@@ -65,45 +89,31 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         }
     }
 
-    public void runVision() {
-//        not using motif sequence yet
-//        vision.scanMotifTagSequence();
-    }
-
     public void runIntake() {
         boolean xPressed = gamepad1.x;
         boolean forceEject = gamepad1.b;
         intake.runIntake(xPressed, forceEject);
-//        transfer.runTransferWithAutomaticStop(xPressed);
     }
 
     public void runTransfer() {
         boolean holdToShoot = gamepad1.right_trigger > 0.5;
+        boolean forceTransferForwards = gamepad1.left_bumper;
+        boolean forceTransferBackwards = gamepad1.dpad_down;
 
         if (holdToShoot) {
-            if (requireCameraLockToShoot) {
-                if (vision.alignedForShot(0) && shooter.isAtShootingSpeed()) {
-                    transfer.runTransferIn();
-                }
-                else {
-                    transfer.runTransferStop();
-                }
-            }
-            else {
-                if (shooter.isAtShootingSpeed()) {
-                    transfer.runTransferIn();
-                } else {
-                    transfer.runTransferStop();
-                }
+            if (shooter.isAtShootingSpeed()) {
+                transfer.runTransferIn();
+            } else {
+                transfer.runTransferStop();
             }
         }
-        else if (gamepad1.dpad_down) {
+        else if (forceTransferBackwards) {
             // force transfer out
             transfer.runTransferOut();
         }
-        else if (gamepad1.left_bumper) {
+        else if (forceTransferForwards) {
             // force transfer in
-            transfer.runTransferIn();
+            transfer.runTransferForceIn();
         }
         else {
             transfer.runTransferStop();
@@ -111,15 +121,12 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     }
 
     public void runOuttake() {
-        if (requireCameraLockToShoot) {
-            if (vision.isDetectingAGoalTag()) {
-                shooter.runOuttake(gamepad1.a, gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.dpad_up, gamepad1.dpad_down, telemetry, vision.getGoalTagHorizontalDistance());
-                shooter.dynamicallyUpdateHoodPosition(vision.getGoalTagHorizontalDistance());
-            }
+        if (requireCameraToShoot) {
+            shooter.runDynamicOuttake(gamepad1.a, gamepad1.left_stick_button, telemetry, vision.getGoalTagHorizontalDistance());
         }
         else {
-            shooter.runOuttake(gamepad1.a, gamepad1.dpad_left, gamepad1.dpad_right, gamepad1.dpad_up, gamepad1.dpad_down, telemetry, vision.getGoalTagHorizontalDistance());
-            shooter.dynamicallyUpdateHoodPosition(vision.getGoalTagHorizontalDistance());
+            shooter.runManualOuttake(gamepad2.a, gamepad2.dpad_left, gamepad2.dpad_right,
+                    gamepad2.dpad_up, gamepad2.dpad_down, telemetry);
         }
     }
 

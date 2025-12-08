@@ -12,13 +12,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 public class Shooter {
     Servo hoodServo;
     DcMotorEx outtakeMotor;
-    VoltageSensor batteryVoltageSensor;
 
-    private double hoodPosition = 0.9;
+    private double hoodPosition = 0.85;
     static final double TICKS_PER_REV = 28; // FOR GO BILDA 5202 SERIES
     public double targetVelocityTicks = 0.0;
 
-    // TODO CHANGE THESE TEMP VALUES BASED ON TESTING
     private final double FAR_SHOT_VELOCITY_TICKS = -1500.0;
     private final double MID_FAR_SHOT_VELOCITY_TICKS = -1250;
     private final double MID_SHOT_VELOCITY_TICKS = -1150.0;
@@ -41,11 +39,7 @@ public class Shooter {
     private boolean lastDpadDown = false;
 
     // PIDF tuning resources: https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/tuning-flywheel.html
-    // TODO TUNE kV
-    private final double kV = 1.0 / 3120.0; // TODO: MEASURE THIS (V_MIN / V_CURR) / (ticks per second at power (V_MIN, / V_CURR))
-    private final double NOMINAL_VOLTAGE = 10.0; // The voltage the kV was measured at
 
-    // TODO TUNE kP
     // After kV is set, tune kP to minimize error, use small increases
     private final double kP = 29;
     private final double kI = 0.9;
@@ -59,21 +53,14 @@ public class Shooter {
 
         outtakeMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         outtakeMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        batteryVoltageSensor = hardwareMap.voltageSensor.get("Control Hub");
 
-        double currentBatteryVoltage = batteryVoltageSensor.getVoltage();
-//        double kF = kV * NOMINAL_VOLTAGE / currentBatteryVoltage;
         outtakeMotor.setVelocityPIDFCoefficients(kP, kI, kD, kF); // we use only kP and kF here
         hoodServo.setPosition(hoodPosition);
     }
 
-    public void runOuttake(boolean a, boolean dpad_left, boolean dpad_right,
-                           boolean dpad_up, boolean dpad_down,
-                           Telemetry telemetry, double horizontalDistanceToGoalInches) {
-
-        // on every loop cycle, update the feedforward coefficient to account for changing battery voltage
-        // this makes it so a drop in battery voltage doesn't cause a drop in flywheel velocity
-//        updateFeedForwardCoefficient();
+    public void runTestOuttake(boolean a, boolean dpad_left, boolean dpad_right,
+                               boolean dpad_up, boolean dpad_down,
+                               Telemetry telemetry, double horizontalDistanceToGoalInches) {
 
         // update target velocity based on distance to goal if needed
         updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
@@ -125,10 +112,85 @@ public class Shooter {
         telemetry.addData("Servo Position", hoodPosition);
     }
 
-    private void updateFeedForwardCoefficient() {
-        double currentBatteryVoltage = batteryVoltageSensor.getVoltage();
-        double kF = kV * NOMINAL_VOLTAGE / currentBatteryVoltage;
-//        outtakeMotor.setVelocityPIDFCoefficients(0.01, 0, 0, kF); // we use only kP and kF here
+    public void runManualOuttake(boolean a, boolean dpad_left, boolean dpad_right,
+                           boolean dpad_up, boolean dpad_down,
+                           Telemetry telemetry) {
+
+        // update target velocity based on distance to goal if needed
+        // Toggle motor on/off
+        if (a && ! lastAState) {
+            outtakeOn = !outtakeOn;
+        }
+        lastAState = a;
+
+        // Close shot
+        if (dpad_down) {
+            targetVelocityTicks = NEAR_SHOT_VELOCITY_TICKS;
+            hoodPosition = CLOSE_SHOT_HOOD;
+        }
+        else if (dpad_left) { // Mid shot
+            targetVelocityTicks = MID_SHOT_VELOCITY_TICKS;
+            hoodPosition = MID_SHOT_HOOD;
+        }
+        else if (dpad_right) { // Mid-far shot
+            targetVelocityTicks = MID_FAR_SHOT_VELOCITY_TICKS;
+            hoodPosition = FAR_SHOT_HOOD;
+        }
+        else if (dpad_up) { // Far shot
+            targetVelocityTicks = FAR_SHOT_VELOCITY_TICKS;
+            hoodPosition = FAR_SHOT_HOOD;
+        }
+
+        // Apply velocity control
+        if (outtakeOn) {
+            outtakeMotor.setVelocity(targetVelocityTicks);
+        } else {
+            outtakeMotor.setVelocity(0);
+        }
+
+        hoodPosition = Range.clip(hoodPosition, 0.0, 1.0);
+        hoodServo.setPosition(hoodPosition);
+
+        // Telemetry
+        double ticksPerSecond = outtakeMotor.getVelocity();
+
+        telemetry.addData("Outtake On", outtakeOn);
+        telemetry.addData("PIDF Coefficients", outtakeMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
+        telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
+        telemetry.addData("Current Velocity (ticks/sec)", ticksPerSecond);
+        telemetry.addData("Servo Position", hoodPosition);
+    }
+
+    public void runDynamicOuttake(boolean a, boolean forceFarShot, Telemetry telemetry, double horizontalDistanceToGoalInches) {
+
+        // update target velocity based on distance to goal if needed
+        updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
+        dynamicallyUpdateHoodPosition(horizontalDistanceToGoalInches);
+        // Toggle motor on/off
+        if (a && ! lastAState) {
+            outtakeOn = !outtakeOn;
+        }
+        lastAState = a;
+
+        // Apply velocity control
+        if (outtakeOn) {
+            if (forceFarShot) {
+                targetVelocityTicks = FAR_SHOT_VELOCITY_TICKS;
+                hoodPosition = FAR_SHOT_HOOD;
+            }
+            outtakeMotor.setVelocity(targetVelocityTicks);
+        } else {
+            outtakeMotor.setVelocity(0);
+        }
+
+        // Telemetry
+        double ticksPerSecond = outtakeMotor.getVelocity();
+
+        telemetry.addData("Outtake On", outtakeOn);
+        telemetry.addData("PIDF Coefficients", outtakeMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
+        telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
+        telemetry.addData("Current Velocity (ticks/sec)", ticksPerSecond);
+        telemetry.addData("Servo Position", hoodPosition);
     }
 
     public void dynamicallyUpdateHoodPosition(double horizontalDistanceToGoalInches) {

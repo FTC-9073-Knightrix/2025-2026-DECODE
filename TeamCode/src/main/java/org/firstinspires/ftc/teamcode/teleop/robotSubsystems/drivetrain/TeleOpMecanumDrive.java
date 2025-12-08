@@ -114,7 +114,6 @@ public class TeleOpMecanumDrive {
         this.frontRightMotor.setPower(frontRightPower * finalSlowMode);
         this.backRightMotor.setPower(backRightPower * finalSlowMode);
 
-        robotCentric = false;
         driveTimer.reset(); // reset timer when in manual mode so derivative term is accurate when switching to auto-align
     }
 
@@ -126,24 +125,44 @@ public class TeleOpMecanumDrive {
     }
 
     private double lastBearingError = 0.0;
+    private double integralSum = 0.0;
     ElapsedTime driveTimer = new ElapsedTime();
     public void runAutoAlignToTag(double bearingOffsetRad, boolean rb, boolean lb, double y, double x) {
-        // proportional and derivate coefficients
-        double kP = 1.0;
+        // PID coefficients
+        double kP = 0.75;
+        double kI = 0.15; // Integral coefficient - helps overcome static friction
         double kD = 0.01; // TODO TUNE
 
         double maxPower = 1.0; // maximum turn power
         double alignmentThreshold = 0.01; // radians, adjust as needed
+        double minPower = 0.08; // minimum power to overcome static friction
         double turnPower = 0.0;
 
         if (Math.abs(bearingOffsetRad) > alignmentThreshold) {
             double dt = Math.max(driveTimer.seconds(), 0.001); // guard against zero time interval
+
+            // Accumulate error for integral term
+            integralSum += bearingOffsetRad * dt;
+
+            // Prevent integral windup
+            double maxIntegral = 0.3;
+            integralSum = Range.clip(integralSum, -maxIntegral, maxIntegral);
+
             double derivative = (bearingOffsetRad - lastBearingError) / dt;
 
-            turnPower = (-kP * bearingOffsetRad) + (-kD * derivative);
-            turnPower = Range.clip(turnPower, -maxPower, maxPower);
+            turnPower = (-kP * bearingOffsetRad) + (-kI * integralSum) + (-kD * derivative);
 
+            // Add minimum power to overcome static friction
+            if (Math.abs(turnPower) > 0 && Math.abs(turnPower) < minPower) {
+                turnPower = Math.signum(turnPower) * minPower;
+            }
+
+            turnPower = Range.clip(turnPower, -maxPower, maxPower);
+        } else {
+            // Reset integral when aligned
+            integralSum = 0.0;
         }
+
         lastBearingError = bearingOffsetRad;
         driveTimer.reset();
 

@@ -116,7 +116,7 @@ public class VisionSystem {
     public boolean alignedForShot(double offsetAngleDegrees) {
         if (isDetectingAGoalTag()) {
             double bearing = getGoalTagBearing();
-            return Math.abs(bearing + offsetAngleDegrees) < 2.0;
+            return Math.abs(bearing - offsetAngleDegrees) < 2.5;
         }
         return false;
     }

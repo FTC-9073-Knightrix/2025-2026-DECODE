@@ -13,6 +13,7 @@ public class Transfer {
     private boolean isTogglePressed;
 
     private final double TRANSFER_IN_POWER = 1.0;
+    private final double TRANSFER_FORCE_IN_POWER = 0.7;
     private final double TRANSFER_OUT_POWER = -1.0;
     private final double TRANSFER_STOP_POWER = 0.0;
 
@@ -48,6 +49,8 @@ public class Transfer {
     public void runTransferIn() {
         transferMotor.setPower(TRANSFER_IN_POWER);
     }
+
+    public void runTransferForceIn() { transferMotor.setPower(TRANSFER_FORCE_IN_POWER); }
 
     public void runTransferOut() {
         transferMotor.setPower(TRANSFER_OUT_POWER);

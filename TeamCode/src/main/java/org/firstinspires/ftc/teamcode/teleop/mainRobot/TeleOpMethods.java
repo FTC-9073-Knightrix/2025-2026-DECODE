@@ -42,10 +42,10 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                 offsetDegrees = 0.0;
             }
             else if (vision.getDetectedTagId() == AprilTagEnums.RED_GOAL.getId()) {
-                offsetDegrees = -2.5;
+                offsetDegrees = -3;
             }
             else if (vision.getDetectedTagId() == AprilTagEnums.BLUE_GOAL.getId()) {
-                offsetDegrees = 2.5;
+                offsetDegrees = 3;
             }
 
             drive.runAutoAlignToTag(Math.toRadians(vision.getGoalTagBearing() + offsetDegrees), rb, lb, leftY, leftX);
@@ -61,7 +61,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         else {
             drive.runManualMecanumDrive(rb, lb, leftY, leftX, rightX, resetHeadingButton);
             drive.toggleRobotCentric(toggleDriveModeButton);
-            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.VIOLET);
+            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.BLUE_VIOLET);
         }
     }
 
@@ -72,7 +72,8 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 
     public void runIntake() {
         boolean xPressed = gamepad1.x;
-        intake.runIntake(xPressed);
+        boolean forceEject = gamepad1.b;
+        intake.runIntake(xPressed, forceEject);
 //        transfer.runTransferWithAutomaticStop(xPressed);
     }
 
@@ -96,7 +97,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                 }
             }
         }
-        else if (gamepad1.dpad_up) {
+        else if (gamepad1.dpad_down) {
             // force transfer out
             transfer.runTransferOut();
         }

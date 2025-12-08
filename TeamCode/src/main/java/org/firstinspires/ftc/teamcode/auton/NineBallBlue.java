@@ -10,8 +10,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous(name="Twelve Ball Blue", group="Autonomous")
-public class TwelveBallBlue extends AutonMethods {
+@Autonomous(name="Nine Ball Blue", group="Autonomous")
+public class NineBallBlue extends AutonMethods {
     @Override
     public void runOpMode() throws InterruptedException {
         super.runOpMode();
@@ -31,7 +31,7 @@ public class TwelveBallBlue extends AutonMethods {
 
         // Drive into first row of balls
         Action driveToFirstRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
-                .turnTo(Math.toRadians(-90))
+                .turnTo(Math.toRadians(90))
                 .strafeToConstantHeading(new Vector2d(-11, -44.5))
                 .build();
 
@@ -63,7 +63,7 @@ public class TwelveBallBlue extends AutonMethods {
 
         // Drive to the gate
         Action driveToGate = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
-                .strafeToLinearHeading(new Vector2d(0, -20), Math.toRadians(-90), maxSpeedConstraint, maxAccelConstraint)
+                .strafeToLinearHeading(new Vector2d(0, -20), Math.toRadians(-90), maxSpeedConstraint)
                 .build();
 
         Action Shoot3Balls = new SequentialAction(
@@ -91,18 +91,6 @@ public class TwelveBallBlue extends AutonMethods {
                 )
         );
         Action Shoot3BallsThree = new SequentialAction(
-                // SHOOT 3 BALLS
-                new ParallelAction(
-                        autonActions.runIntake(),
-                        autonActions.runTransferToMidShot()
-                ),
-                // STOP INTAKE AND TRANSFER
-                new ParallelAction(
-                        autonActions.stopIntake(),
-                        autonActions.stopTransfer()
-                )
-        );
-        Action Shoot3BallsFour = new SequentialAction(
                 // SHOOT 3 BALLS
                 new ParallelAction(
                         autonActions.runIntake(),
@@ -161,20 +149,11 @@ public class TwelveBallBlue extends AutonMethods {
                                     driveBackToShoot2
                             ),
                             Shoot3BallsThree,
-                            // DRIVE TO THIRD ROW WHILE INTAKING
-                            new ParallelAction(
-                                    autonActions.runIntake(),
-//                                autonActions.runTransferUntilBallDetected(),
-                                    driveToThirdRow
-                            ),
-                            // DRIVE BACK TO SHOOTING POSITION
-                            new ParallelAction(
-                                    driveBackToShoot3
-                            ),
-                            Shoot3BallsFour,
                             // DRIVE TO THE GATE
                             new ParallelAction(
                                     autonActions.stopOuttake(),
+                                    autonActions.stopIntake(),
+                                    autonActions.stopTransfer(),
                                     driveToGate
                             )
                     )

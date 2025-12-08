@@ -22,7 +22,14 @@ public class Intake {
         intakeOn = false;
     }
 
-    public void runIntake(boolean toggleButton) {
+    public void runIntake(boolean toggleButton, boolean ejectButton) {
+        // Force Eject has priority over toggle
+        if (ejectButton) {
+            intakeMotor.setPower(INTAKE_OUT_POWER);
+            intakeMotor2.setPower(INTAKE_OUT_POWER);
+            return;
+        }
+
         if (toggleButton && !isTogglePressed) {
             intakeOn = !intakeOn;
         }

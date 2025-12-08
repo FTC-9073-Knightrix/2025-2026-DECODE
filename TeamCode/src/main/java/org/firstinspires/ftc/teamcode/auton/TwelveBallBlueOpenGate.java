@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -39,37 +40,38 @@ public class TwelveBallBlueOpenGate extends AutonMethods {
         // Open the gate
         Action openGate = drive.actionBuilder(new Pose2d(-11, -42.5, Math.toRadians(-90)))
                 .setTangent(Math.toRadians(-45))
-                .splineToLinearHeading(new Pose2d(0, -51, Math.toRadians(-90)), Math.toRadians(-90), maxSpeedConstraint, maxAccelConstraint)
+                .splineToLinearHeading(new Pose2d(-1, -51, Math.toRadians(-90)), Math.toRadians(-90), maxSpeedConstraint)
                 .build();
 
-        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-11, -43.5, Math.toRadians(-90)))
+        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-1, -51, Math.toRadians(-90)))
                 .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
                 .build();
+
         // Drive into second row of balls
         Action driveToSecondRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
                 .strafeToLinearHeading(new Vector2d(11, -26), Math.toRadians(-90), maxSpeedConstraint) // intakes middle row
-                .strafeToConstantHeading(new Vector2d(11, -49.5))
+                .strafeToConstantHeading(new Vector2d(11, -51), maxSpeedConstraint)
                 .build();
 
-        Action driveBackToShoot2 = drive.actionBuilder(new Pose2d(11, -49.5, Math.toRadians(-90)))
+        Action driveBackToShoot2 = drive.actionBuilder(new Pose2d(11, -51, Math.toRadians(-90)))
 //                .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
-                .setTangent(Math.toRadians(-90))
+                .setTangent(Math.toRadians(90))
                 .splineToLinearHeading(new Pose2d(shootPos, shootHeading), Math.toRadians(-220), maxSpeedConstraint) // shooting 1st ball
                 .build();
 
         // Drive into third row of balls
         Action driveToThirdRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
                 .strafeToLinearHeading(new Vector2d(34, -24), Math.toRadians(-90), maxSpeedConstraint)
-                .strafeToConstantHeading(new Vector2d(34, -50), maxSpeedConstraint)
+                .strafeToConstantHeading(new Vector2d(34, -51), maxSpeedConstraint)
                 .build();
 
-        Action driveBackToShoot3 = drive.actionBuilder(new Pose2d(34, -50, Math.toRadians(-90)))
+        Action driveBackToShoot3 = drive.actionBuilder(new Pose2d(34, -51, Math.toRadians(-90)))
                 .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
                 .build();
 
         // Drive to the gate
         Action driveToGate = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
-                .strafeToLinearHeading(new Vector2d(0, -20), Math.toRadians(-90), maxSpeedConstraint)
+                .strafeToLinearHeading(new Vector2d(0, -20), Math.toRadians(90), maxSpeedConstraint, maxAccelConstraint)
                 .build();
 
         Action Shoot3Balls = new SequentialAction(
@@ -99,25 +101,25 @@ public class TwelveBallBlueOpenGate extends AutonMethods {
         Action Shoot3BallsThree = new SequentialAction(
                 // SHOOT 3 BALLS
                 new ParallelAction(
-                    autonActions.runIntake(),
-                    autonActions.runTransferToMidShot()
+                        autonActions.runIntake(),
+                        autonActions.runTransferToMidShot()
                 ),
                 // STOP INTAKE AND TRANSFER
                 new ParallelAction(
-                    autonActions.stopIntake(),
-                    autonActions.stopTransfer()
+                        autonActions.stopIntake(),
+                        autonActions.stopTransfer()
                 )
         );
         Action Shoot3BallsFour = new SequentialAction(
                 // SHOOT 3 BALLS
                 new ParallelAction(
-                    autonActions.runIntake(),
-                    autonActions.runTransferToMidShot()
+                        autonActions.runIntake(),
+                        autonActions.runTransferToMidShot()
                 ),
                 // STOP INTAKE AND TRANSFER
                 new ParallelAction(
-                    autonActions.stopIntake(),
-                    autonActions.stopTransfer()
+                        autonActions.stopIntake(),
+                        autonActions.stopTransfer()
                 )
         );
 
@@ -140,50 +142,50 @@ public class TwelveBallBlueOpenGate extends AutonMethods {
                     new SequentialAction(
                             // DRIVE BACK AND SPIN UP SHOOTER SIMULTANEOUSLY
                             new ParallelAction(
-                                driveBackFromGoal,
-                                autonActions.setHoodToMidShot(),
-                                autonActions.spinShooterToMidShotVelocity()
+                                    driveBackFromGoal,
+                                    autonActions.setHoodToMidShot(),
+                                    autonActions.spinShooterToMidShotVelocity()
                             ),
                             Shoot3Balls,
                             // DRIVE TO FIRST ROW WHILE INTAKING
                             new ParallelAction(
-                                autonActions.runIntake(),
+                                    autonActions.runIntake(),
 //                                autonActions.runTransferUntilBallDetected(),
-                                driveToFirstRow
+                                    driveToFirstRow
                             ),
                             openGate,
                             new SleepAction(0.3),
                             // DRIVE BACK TO SHOOTING POSITION
                             new ParallelAction(
-                                driveBackToShoot1
+                                    driveBackToShoot1
                             ),
                             Shoot3BallsTwo,
                             // DRIVE TO SECOND ROW WHILE INTAKING
                             new ParallelAction(
-                                autonActions.runIntake(),
+                                    autonActions.runIntake(),
 //                                autonActions.runTransferUntilBallDetected(),
-                                driveToSecondRow
+                                    driveToSecondRow
                             ),
                             // DRIVE BACK TO SHOOTING POSITION
                             new ParallelAction(
-                                driveBackToShoot2
+                                    driveBackToShoot2
                             ),
                             Shoot3BallsThree,
                             // DRIVE TO THIRD ROW WHILE INTAKING
                             new ParallelAction(
-                                autonActions.runIntake(),
+                                    autonActions.runIntake(),
 //                                autonActions.runTransferUntilBallDetected(),
-                                driveToThirdRow
+                                    driveToThirdRow
                             ),
                             // DRIVE BACK TO SHOOTING POSITION
                             new ParallelAction(
-                                driveBackToShoot3
+                                    driveBackToShoot3
                             ),
                             Shoot3BallsFour,
                             // DRIVE TO THE GATE
                             new ParallelAction(
-                                autonActions.stopOuttake(),
-                                driveToGate
+                                    autonActions.stopOuttake(),
+                                    driveToGate
                             )
                     )
             );

@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.MecanumDrive.FollowTrajectoryAction;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.vision.AprilTagEnums;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -160,7 +161,7 @@ public class AutonMethods extends AutonBase {
                     initialized = true;
                 }
 
-                return (Math.abs(outtakeMotor.getVelocity() - targetVelocityTicks) > ACCEPTABLE_VELOCITY_ERROR) || (getRuntime() - startTime < 2);
+                return (Math.abs(outtakeMotor.getVelocity() - targetVelocityTicks) > ACCEPTABLE_VELOCITY_ERROR);
             }
         }
         public Action spinShooterToMidShotVelocity() {
@@ -288,7 +289,7 @@ public class AutonMethods extends AutonBase {
                         }
                     }
 
-                    return ballsTransferred < BALLS_TO_TRANSFER && (getRuntime() - startTime < 2.25);
+                    return ballsTransferred < BALLS_TO_TRANSFER && (getRuntime() - startTime < 5);
                 } else {
                     transferMotor.setPower(TRANSFER_STOP_POWER);
                     packet.put("Transfer", "Stopped");

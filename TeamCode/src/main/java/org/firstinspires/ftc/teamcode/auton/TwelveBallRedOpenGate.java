@@ -40,7 +40,7 @@ public class TwelveBallRedOpenGate extends AutonMethods {
         // Open the gate
         Action openGate = drive.actionBuilder(new Pose2d(-11, 42.5, Math.toRadians(90)))
                 .setTangent(Math.toRadians(-45))
-                .splineToLinearHeading(new Pose2d(-1, 51, Math.toRadians(90)), Math.toRadians(90), maxSpeedConstraint, maxAccelConstraint)
+                .splineToLinearHeading(new Pose2d(-1, 51, Math.toRadians(90)), Math.toRadians(90), maxSpeedConstraint)
                 .build();
 
         Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-1, 51, Math.toRadians(90)))
@@ -71,7 +71,7 @@ public class TwelveBallRedOpenGate extends AutonMethods {
 
         // Drive to the gate
         Action driveToGate = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
-                .strafeToLinearHeading(new Vector2d(0, 20), Math.toRadians(90), maxSpeedConstraint)
+                .strafeToLinearHeading(new Vector2d(0, 20), Math.toRadians(90), maxSpeedConstraint, maxAccelConstraint)
                 .build();
 
         Action Shoot3Balls = new SequentialAction(

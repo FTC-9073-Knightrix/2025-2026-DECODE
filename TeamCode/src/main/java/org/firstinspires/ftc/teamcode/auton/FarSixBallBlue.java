@@ -10,8 +10,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous (name="Far Three Ball Blue", group="Autonomous")
-public class FarThreeBallBlue extends AutonMethods {
+@Autonomous (name="Far Six Ball Blue", group="Autonomous")
+public class FarSixBallBlue extends AutonMethods {
     @Override
     public void runOpMode() throws InterruptedException {
         super.runOpMode();
@@ -22,27 +22,25 @@ public class FarThreeBallBlue extends AutonMethods {
         AutonActions autonActions = new AutonActions(hardwareMap);
 
         // Drive back to pick up third ball
-        Vector2d shootPos = new Vector2d(56, -14);
+        Vector2d shootPos = new Vector2d(56, 14);
         double shootHeading = Math.toRadians(-161);
 
         Action turnToGoal = drive.actionBuilder(beginPose)
                 .strafeToLinearHeading(shootPos, shootHeading)
                 .build();
 
-        // Drive into corner of balls
-        Action intakeCornerBalls = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
-                .strafeToLinearHeading(new Vector2d(52, -56.5), Math.toRadians(-70))
-                .strafeToLinearHeading(new Vector2d(58, -59), Math.toRadians(-75))
-                .strafeToLinearHeading(new Vector2d(54, -54), Math.toRadians(-45))
-                .strafeToLinearHeading(new Vector2d(60.5, -60.5), Math.toRadians(-45))
+        // Drive into third row of balls
+        Action driveToThirdRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
+                .strafeToLinearHeading(new Vector2d(34, -24), Math.toRadians(-90), maxSpeedConstraint)
+                .strafeToConstantHeading(new Vector2d(34, -53.5))
                 .build();
 
-        Action driveToShoot = drive.actionBuilder(new Pose2d(60.5, -60.5, Math.toRadians(-45)))
+        Action driveToShoot = drive.actionBuilder(new Pose2d(34, -53.5, Math.toRadians(-90)))
                 .strafeToLinearHeading(shootPos, shootHeading)
                 .build();
 
         Action leaveLaunchZone = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
-                .strafeToLinearHeading(new Vector2d(61, -38), Math.toRadians(-90))
+                .strafeToLinearHeading(new Vector2d(61, 38), Math.toRadians(90))
                 .build();
 
         Action Shoot3Balls = new SequentialAction(
@@ -95,13 +93,12 @@ public class FarThreeBallBlue extends AutonMethods {
                                     autonActions.spinShooterToFarShotVelocity()
                             ),
                             Shoot3Balls,
-//                            new ParallelAction(
-//                                    intakeCornerBalls,
-//                                    autonActions.runIntake(),
-//                                    autonActions.runTransferToMidShot()
-//                            ),
-//                            driveToShoot,
-//                            Shoot3Balls2,
+                            new ParallelAction(
+                                    driveToThirdRow,
+                                    autonActions.runIntake()
+                            ),
+                            driveToShoot,
+                            Shoot3Balls2,
                             new ParallelAction(
                                     leaveLaunchZone,
                                     autonActions.stopIntake(),

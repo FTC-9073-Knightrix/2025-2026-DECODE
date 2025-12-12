@@ -38,8 +38,8 @@ public class AutonMethods extends AutonBase {
 
     final private double ACCEPTABLE_VELOCITY_ERROR = 50.0;
 
-    final double MID_SHOT_HOOD = 0.7;
-    final double FAR_SHOT_HOOD = 0.50;
+    final double MID_SHOT_HOOD = 0.55;
+    final double FAR_SHOT_HOOD = 0.40;
 
     // ------------------------------- Transfer Motor --------------------------------
     public DcMotor transferMotor;
@@ -54,11 +54,19 @@ public class AutonMethods extends AutonBase {
     // ------------------------------- Blinkin --------------------------------
     public RevBlinkinLedDriver blinkin;
     // ------------------------------- Vision --------------------------------
-    public WebcamName webCam;
-    public String motif = "PPG";
-    VisionPortal visionPortal;
+//    public WebcamName webCam;
+//    public String motif = "PPG";
+//    VisionPortal visionPortal;
+//
+//    AprilTagProcessor tagProcessor = new AprilTagProcessor.Builder().build();
 
-    AprilTagProcessor tagProcessor = new AprilTagProcessor.Builder().build();
+    // ------------------------------- Transfer State Machine --------------------------------
+    enum TransferState {
+        WAITING_FOR_SPEED,      // Waiting for flywheel to reach target speed
+        TRANSFERRING,           // Transfer motor running, feeding ball
+        RECOVERING              // Waiting for flywheel to recover before next ball
+    }
+
     @Override
     public void runOpMode() throws InterruptedException {
         super.runOpMode();
@@ -100,13 +108,13 @@ public class AutonMethods extends AutonBase {
             blinkin = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
 
             // Vision
-            webCam = hardwareMap.get(WebcamName.class, "Webcam 1");
-            visionPortal = new VisionPortal.Builder()
-                    .addProcessor(tagProcessor)
-                    .setCamera(webCam)
-                    .setCameraResolution(new Size(640, 480))
-                    .enableLiveView(true)
-                    .build();
+//            webCam = hardwareMap.get(WebcamName.class, "Webcam 1");
+//            visionPortal = new VisionPortal.Builder()
+//                    .addProcessor(tagProcessor)
+//                    .setCamera(webCam)
+//                    .setCameraResolution(new Size(640, 480))
+//                    .enableLiveView(true)
+//                    .build();
         }
 
         // ------------------------------- Intake Actions --------------------------------
@@ -255,10 +263,15 @@ public class AutonMethods extends AutonBase {
 
         public class RunTransfer implements Action {
             boolean initialized = false;
-            boolean wentToShootingSpeed = false;
+            TransferState state = TransferState.WAITING_FOR_SPEED;
             int ballsTransferred = 0;
             double targetVelocity;
             double startTime;
+            double stateStartTime;
+            double recoveryStartTime;
+            final double RECOVERY_TIME = 0.2; // seconds to wait after detecting a ball
+            // Keep a max time we will run the transfer for a single ball to avoid hanging
+            final double MAX_TRANSFER_TIME = 1.0; // seconds per ball max
 
             public RunTransfer(double targetVelocity) {
                 this.targetVelocity = targetVelocity;
@@ -268,28 +281,59 @@ public class AutonMethods extends AutonBase {
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!isStopRequested()) {
                     if (!initialized) {
-                        transferMotor.setPower(TRANSFER_IN_POWER);
                         ballsTransferred = 0;
                         startTime = getRuntime();
+                        stateStartTime = getRuntime();
+                        state = TransferState.WAITING_FOR_SPEED;
+                        transferMotor.setPower(TRANSFER_STOP_POWER);
                         initialized = true;
                     }
 
-                    if (isAtShootingSpeed(targetVelocity)) {
-                        transferMotor.setPower(TRANSFER_IN_POWER);
-                        if (!wentToShootingSpeed) {
-                            wentToShootingSpeed = true;
-                        }
-                    }
-                    else {
-                        transferMotor.setPower(TRANSFER_STOP_POWER);
+                    double currentTime = getRuntime();
 
-                        if (wentToShootingSpeed && velocityDropped(targetVelocity)) {
-                            ballsTransferred += 1;
-                            wentToShootingSpeed = false;
-                        }
+                    switch (state) {
+                        case WAITING_FOR_SPEED:
+                            transferMotor.setPower(TRANSFER_STOP_POWER);
+                            if (isAtShootingSpeed(targetVelocity)) {
+                                state = TransferState.TRANSFERRING;
+                                stateStartTime = currentTime;
+                                // Start feeding and keep motor on while we wait for a drop
+                                transferMotor.setPower(TRANSFER_IN_POWER);
+                            }
+                            break;
+
+                        case TRANSFERRING:
+                            // Keep running the transfer motor until we detect a velocity drop
+                            transferMotor.setPower(TRANSFER_IN_POWER);
+
+                            if (velocityDropped(targetVelocity)) {
+                                // Ball impacted the flywheel
+                                ballsTransferred += 1;
+                                transferMotor.setPower(TRANSFER_STOP_POWER);
+                                state = TransferState.RECOVERING;
+                                recoveryStartTime = currentTime;
+                            } else if (currentTime - stateStartTime >= MAX_TRANSFER_TIME) {
+                                // Timeout: assume ball passed anyway
+                                ballsTransferred += 1;
+                                transferMotor.setPower(TRANSFER_STOP_POWER);
+                                state = TransferState.RECOVERING;
+                                recoveryStartTime = currentTime;
+                            }
+                            break;
+
+                        case RECOVERING:
+                            transferMotor.setPower(TRANSFER_STOP_POWER);
+                            if (currentTime - recoveryStartTime >= RECOVERY_TIME) {
+                                if (ballsTransferred < BALLS_TO_TRANSFER) {
+                                    state = TransferState.WAITING_FOR_SPEED;
+                                    stateStartTime = currentTime;
+                                }
+                            }
+                            break;
                     }
 
-                    return ballsTransferred < BALLS_TO_TRANSFER && (getRuntime() - startTime < 5);
+                    return ballsTransferred < BALLS_TO_TRANSFER && (currentTime - startTime < 4.5);
+//                    return currentTime - startTime < 2;
                 } else {
                     transferMotor.setPower(TRANSFER_STOP_POWER);
                     packet.put("Transfer", "Stopped");
@@ -318,45 +362,45 @@ public class AutonMethods extends AutonBase {
         }
 
         // ------------------------------- Vision Actions --------------------------------
-        public class ScanMotif implements Action {
-            boolean initialized = false;
-            boolean scanned;
-            double startTime;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    scanned = false;
-                    initialized = true;
-                    startTime = getRuntime();
-                }
-                if (!tagProcessor.getDetections().isEmpty()) {
-                    AprilTagDetection tag;
-                    for (AprilTagDetection detectedTag : tagProcessor.getDetections()) {
-                        if (detectedTag.id == AprilTagEnums.OBELISK_TAG_21.getId()
-                                || detectedTag.id == AprilTagEnums.OBELISK_TAG_22.getId()
-                                || detectedTag.id == AprilTagEnums.OBELISK_TAG_23.getId()) {
-                            tag = detectedTag;
-                            scanned = true;
-                            if (tag.id == AprilTagEnums.OBELISK_TAG_21.getId()) {
-                                motif = AprilTagEnums.OBELISK_TAG_21.getDescription();
-                            } else if (tag.id == AprilTagEnums.OBELISK_TAG_22.getId()) {
-                                motif = AprilTagEnums.OBELISK_TAG_22.getDescription();
-                            } else {
-                                motif = AprilTagEnums.OBELISK_TAG_23.getDescription();
-                            }
-                            break;
-                        }
-                    }
-                }
-                // return true if not scanned and time elapsed is less than 0.4 seconds
-                return !scanned && (getRuntime() - startTime < 0.25);
-            }
-        }
-
-        public Action scanMotif() {
-            return new ScanMotif();
-        }
+//        public class ScanMotif implements Action {
+//            boolean initialized = false;
+//            boolean scanned;
+//            double startTime;
+//
+//            @Override
+//            public boolean run(@NonNull TelemetryPacket packet) {
+//                if (!initialized) {
+//                    scanned = false;
+//                    initialized = true;
+//                    startTime = getRuntime();
+//                }
+//                if (!tagProcessor.getDetections().isEmpty()) {
+//                    AprilTagDetection tag;
+//                    for (AprilTagDetection detectedTag : tagProcessor.getDetections()) {
+//                        if (detectedTag.id == AprilTagEnums.OBELISK_TAG_21.getId()
+//                                || detectedTag.id == AprilTagEnums.OBELISK_TAG_22.getId()
+//                                || detectedTag.id == AprilTagEnums.OBELISK_TAG_23.getId()) {
+//                            tag = detectedTag;
+//                            scanned = true;
+//                            if (tag.id == AprilTagEnums.OBELISK_TAG_21.getId()) {
+//                                motif = AprilTagEnums.OBELISK_TAG_21.getDescription();
+//                            } else if (tag.id == AprilTagEnums.OBELISK_TAG_22.getId()) {
+//                                motif = AprilTagEnums.OBELISK_TAG_22.getDescription();
+//                            } else {
+//                                motif = AprilTagEnums.OBELISK_TAG_23.getDescription();
+//                            }
+//                            break;
+//                        }
+//                    }
+//                }
+//                // return true if not scanned and time elapsed is less than 0.4 seconds
+//                return !scanned && (getRuntime() - startTime < 0.25);
+//            }
+//        }
+//
+//        public Action scanMotif() {
+//            return new ScanMotif();
+//        }
 
         // ------------------------------- Helper Methods --------------------------------
         private boolean isAtShootingSpeed(double targetVelocity) {
@@ -368,10 +412,17 @@ public class AutonMethods extends AutonBase {
 
         private boolean velocityDropped(double targetVelocity) {
             double currentVelocity = outtakeMotor.getVelocity();
-            double velocityError = targetVelocity - currentVelocity;
 
-            // A NEGATIVE NUMBER BC VELOCITY TICKS ARE NEGATIVE
-            return velocityError < -70;
+            // Work with magnitudes to be agnostic to sign (ticks may be negative)
+            double absTarget = Math.abs(targetVelocity);
+            double absCurrent = Math.abs(currentVelocity);
+
+            // Define a threshold in ticks that constitutes a real drop from ball impact
+            final double DROP_THRESHOLD_TICKS = 100.0;
+
+            // A drop is when current magnitude has fallen by at least DROP_THRESHOLD_TICKS below target magnitude
+            return absCurrent <= (absTarget - DROP_THRESHOLD_TICKS);
         }
     }
 }
+

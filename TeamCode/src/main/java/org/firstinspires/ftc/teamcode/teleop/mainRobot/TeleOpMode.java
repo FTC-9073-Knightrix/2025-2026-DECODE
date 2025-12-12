@@ -10,6 +10,7 @@ public class TeleOpMode extends TeleOpMethods {
         // THIS IS THE MAIN RUN LOOP FOR THE ROBOT
         // PUT METHODS IN HERE THAT U WANT TO BE CONTINUOUSLY RUNNING
         // WHILE WE R CONTROLLING THE ROBOT
+        rumbleGamePads();
         runToggledDrive();
         toggleCameraRequirement();
         runIntake();

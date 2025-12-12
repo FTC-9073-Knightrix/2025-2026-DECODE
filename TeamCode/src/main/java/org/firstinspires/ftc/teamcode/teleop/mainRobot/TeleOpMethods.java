@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.RGBLights;
@@ -14,8 +15,16 @@ import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.vision.AprilTagEnum
 public abstract class TeleOpMethods extends RobotBaseHwMap {
     boolean requireCameraToShoot = true;
     boolean lastCameraTogglePressed = false;
+    ElapsedTime gameTime = new ElapsedTime();
     @Override
     public void init() {super.init();}
+
+    public void rumbleGamePads() {
+//        if (gameTime.seconds() > 100) {
+//            gamepad1.rumble(1000);
+//            gamepad2.rumble(1000);
+//        }
+    }
 
     public void toggleCameraRequirement() {
         boolean cameraTogglePressed = gamepad2.y;
@@ -23,13 +32,6 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
             requireCameraToShoot = !requireCameraToShoot;
         }
         lastCameraTogglePressed = cameraTogglePressed;
-
-        if (requireCameraToShoot) {
-            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.VIOLET);
-        }
-        else {
-            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GRAY);
-        }
     }
 
     public void runToggledDrive() {
@@ -135,8 +137,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         telemetry.addData("Runtime: ", getRuntime());
         telemetry.addData("Drive Mode: ", drive.getDriveMode());
         telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());
-        telemetry.addData("Sequence: " , vision.getMotif());
-        telemetry.addData("Tag Horizontal Distance (in): " , String.format("%.2f", vision.getGoalTagHorizontalDistance()));
+//        telemetry.addData("Tag Horizontal Distance (in): " , String.format("%.2f", vision.getGoalTagHorizontalDistance()));
         telemetry.addData("Tag Bearing:", String.format("%.2f", vision.getGoalTagBearing()));
         telemetry.addData("distance sensor: (CM)" , transfer.transferDistanceSensor.getDistance(DistanceUnit.CM));
         telemetry.addData("transfer active: " , transfer.transferActive);

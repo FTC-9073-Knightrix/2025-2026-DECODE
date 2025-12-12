@@ -4,6 +4,7 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -22,8 +23,8 @@ public class TwelveBallBlue extends AutonMethods {
         AutonActions autonActions = new AutonActions(hardwareMap);
 
         // Drive back to pick up third ball
-        Vector2d shootPos = new Vector2d(-12, -18);
-        double shootHeading = Math.toRadians(-137.5);
+        Vector2d shootPos = new Vector2d(-14, -18);
+        double shootHeading = Math.toRadians(-139);
 
         Action driveBackFromGoal = drive.actionBuilder(beginPose)
                 .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
@@ -32,20 +33,20 @@ public class TwelveBallBlue extends AutonMethods {
         // Drive into first row of balls
         Action driveToFirstRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
                 .turnTo(Math.toRadians(-90))
-                .strafeToConstantHeading(new Vector2d(-11, -44.5))
+                .strafeToConstantHeading(new Vector2d(-15, -47), maxSpeedConstraint)
                 .build();
 
-        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-11, -44.5, Math.toRadians(-90)))
-                .strafeToLinearHeading(shootPos, shootHeading)
+        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-15, -47, Math.toRadians(-90)))
+                .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
                 .build();
 
         // Drive into second row of balls
         Action driveToSecondRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
-                .strafeToLinearHeading(new Vector2d(11, -26), Math.toRadians(-90), maxSpeedConstraint) // intakes middle row
-                .strafeToConstantHeading(new Vector2d(11, -51.5))
+                .strafeToLinearHeading(new Vector2d(8, -26), Math.toRadians(-90), maxSpeedConstraint) // intakes middle row
+                .strafeToConstantHeading(new Vector2d(8, -55), maxSpeedConstraint)
                 .build();
 
-        Action driveBackToShoot2 = drive.actionBuilder(new Pose2d(11, -51.5, Math.toRadians(-90)))
+        Action driveBackToShoot2 = drive.actionBuilder(new Pose2d(8, -55, Math.toRadians(-90)))
 //                .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
                 .setTangent(Math.toRadians(90))
                 .splineToLinearHeading(new Pose2d(shootPos, shootHeading), Math.toRadians(-220)) // shooting 1st ball
@@ -53,11 +54,11 @@ public class TwelveBallBlue extends AutonMethods {
 
         // Drive into third row of balls
         Action driveToThirdRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
-                .strafeToLinearHeading(new Vector2d(34, -26), Math.toRadians(-90), maxSpeedConstraint)
-                .strafeToConstantHeading(new Vector2d(34, -51.5))
+                .strafeToLinearHeading(new Vector2d(32, -24.5), Math.toRadians(-90), maxSpeedConstraint)
+                .strafeToConstantHeading(new Vector2d(32, -55))
                 .build();
 
-        Action driveBackToShoot3 = drive.actionBuilder(new Pose2d(34, -51.5, Math.toRadians(-90)))
+        Action driveBackToShoot3 = drive.actionBuilder(new Pose2d(32, -55, Math.toRadians(-90)))
                 .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
                 .build();
 
@@ -161,17 +162,6 @@ public class TwelveBallBlue extends AutonMethods {
                                     driveBackToShoot2
                             ),
                             Shoot3BallsThree,
-                            // DRIVE TO THIRD ROW WHILE INTAKING
-                            new ParallelAction(
-                                    autonActions.runIntake(),
-//                                autonActions.runTransferUntilBallDetected(),
-                                    driveToThirdRow
-                            ),
-                            // DRIVE BACK TO SHOOTING POSITION
-                            new ParallelAction(
-                                    driveBackToShoot3
-                            ),
-                            Shoot3BallsFour,
                             // DRIVE TO THE GATE
                             new ParallelAction(
                                     autonActions.stopOuttake(),

@@ -28,8 +28,8 @@ public class Shooter {
     private final int MID_FAR_INCHES = 60;
 
     private final double CLOSE_SHOT_HOOD = 0.85;
-    private final double MID_SHOT_HOOD = 0.70;
-    private final double FAR_SHOT_HOOD = 0.60;
+    private final double MID_SHOT_HOOD = 0.64;
+    private final double FAR_SHOT_HOOD = 0.50;
 
     private boolean outtakeOn = false;
     private boolean lastAState = false;

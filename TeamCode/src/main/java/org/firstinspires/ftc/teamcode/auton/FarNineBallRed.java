@@ -4,6 +4,7 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.VelConstraint;
 import com.acmerobotics.roadrunner.ftc.Actions;
@@ -47,7 +48,7 @@ public class FarNineBallRed extends AutonMethods {
                 .strafeToConstantHeading(new Vector2d(20, 49))
                 .build();
 
-        Action driveToShoot2 = drive.actionBuilder(new Pose2d(21, 49, Math.toRadians(90)))
+        Action driveToShoot2 = drive.actionBuilder(new Pose2d(20, 49, Math.toRadians(90)))
                 .strafeToLinearHeading(new Vector2d(54, 14), Math.toRadians(152))
                 .build();
 
@@ -121,6 +122,7 @@ public class FarNineBallRed extends AutonMethods {
                                     autonActions.setHoodToFarShot(),
                                     autonActions.spinShooterToFarShotVelocity()
                             ),
+                            new SleepAction(1),
                             Shoot3Balls,
                             new ParallelAction(
                                     driveToThirdRow,

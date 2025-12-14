@@ -6,14 +6,13 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
-import com.acmerobotics.roadrunner.VelConstraint;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-@Autonomous (name="Far Six Ball Red", group="Autonomous")
-public class FarSixBallRed extends AutonMethods {
+@Autonomous (name="Far Six Ball Red Delayed 18 Seconds", group="Autonomous")
+public class FarSixBallRedDelayed extends AutonMethods {
     @Override
     public void runOpMode() throws InterruptedException {
         super.runOpMode();
@@ -25,7 +24,7 @@ public class FarSixBallRed extends AutonMethods {
 
         // Drive back to pick up third ball
         Vector2d shootPos = new Vector2d(56, 14);
-        double shootHeading = Math.toRadians(159);
+        double shootHeading = Math.toRadians(160.5);
 
         Action turnToGoal = drive.actionBuilder(beginPose)
                 .strafeToLinearHeading(shootPos, shootHeading)
@@ -38,7 +37,7 @@ public class FarSixBallRed extends AutonMethods {
                 .build();
 
         Action driveToShoot = drive.actionBuilder(new Pose2d(41, 50, Math.toRadians(90)))
-                .strafeToLinearHeading(new Vector2d(54, 14), Math.toRadians(150), minVelConstraint)
+                .strafeToLinearHeading(new Vector2d(54, 14), Math.toRadians(148), minVelConstraint)
                 .build();
 
         // Drive into corner of balls
@@ -94,12 +93,13 @@ public class FarSixBallRed extends AutonMethods {
             Actions.runBlocking(
                     new SequentialAction(
                             // TURN TOWARD GOAL AND SPIN UP SHOOTER SIMULTANEOUSLY
+                            new SleepAction(15),
                             new ParallelAction(
                                     turnToGoal,
                                     autonActions.setHoodToFarShot(),
                                     autonActions.spinShooterToFarShotVelocity()
                             ),
-                            new SleepAction(1),
+                            new SleepAction(0.75),
                             Shoot3Balls,
                             new ParallelAction(
                                     driveToThirdRow,

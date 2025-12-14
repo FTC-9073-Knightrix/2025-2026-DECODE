@@ -2,6 +2,9 @@ package com.example.meepmeeptesting;
 
 import com.acmerobotics.roadrunner.Pose2d;
 import com.noahbres.meepmeep.MeepMeep;
+import com.noahbres.meepmeep.core.colorscheme.ColorScheme;
+import com.noahbres.meepmeep.core.colorscheme.scheme.ColorSchemeBlueDark;
+import com.noahbres.meepmeep.core.colorscheme.scheme.ColorSchemeBlueLight;
 import com.noahbres.meepmeep.roadrunner.DefaultBotBuilder;
 import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -25,11 +28,20 @@ public class MeepMeepTesting {
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
-
+        RoadRunnerBotEntity myBot3 = new DefaultBotBuilder(meepMeep)
+                // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
+                .setColorScheme(new ColorSchemeBlueLight()) // Blue color scheme
+                .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
+                .build();
+        RoadRunnerBotEntity myBot4 = new DefaultBotBuilder(meepMeep)
+                // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
+                .setColorScheme(new ColorSchemeBlueLight()) // Blue color scheme
+                .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
+                .build();
 // FAR THREE BALL RED
         myBot2.runAction(myBot2.getDrive().actionBuilder(new Pose2d(62, 14, Math.toRadians(180)))
-                                .strafeToLinearHeading(new Vector2d())
-//                .strafeToLinearHeading(new Vector2d(54, 16), Math.toRadians(160))
+                .waitSeconds(2)
+                .strafeToLinearHeading(new Vector2d(54, 16), Math.toRadians(160))
 //
 //                .strafeToLinearHeading(new Vector2d(36, 30), Math.toRadians(90))
 //                .strafeToLinearHeading(new Vector2d(36, 60), Math.toRadians(90))
@@ -46,6 +58,7 @@ public class MeepMeepTesting {
 
 
         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-58, (color == AllianceColor.RED) ? 44 : -44, Math.toRadians((color == AllianceColor.RED) ? 127 : -127)))
+                .waitSeconds(2)
                 .strafeToConstantHeading(new Vector2d(-58, 44.5))
 //                .strafeToLinearHeading(new Vector2d(-11, (color == AllianceColor.RED) ? 17 : -17), Math.toRadians((color == AllianceColor.RED) ? 140 : -140)) // shooting 1st ball
 //                // make it wait here
@@ -81,11 +94,23 @@ public class MeepMeepTesting {
 //                .strafeToLinearHeading(new Vector2d(0, (color == AllianceColor.RED) ? 45 : -45), Math.toRadians((color == AllianceColor.RED) ? 90 : -90)) // park in the middle
 //                // wait for 3 seconds
                 .build());
+        myBot3.runAction(myBot3.getDrive().actionBuilder(new Pose2d(62, -14, Math.toRadians(180)))
+                .waitSeconds(2)
+                .strafeToLinearHeading(new Vector2d(62, -14.5), Math.toRadians(180))
+                .build());
 
-        meepMeep.setBackground(MeepMeep.Background.FIELD_DECODE_JUICE_DARK)
+        myBot4.runAction(myBot4.getDrive().actionBuilder(new Pose2d(-58, -44, Math.toRadians(-127)))
+                .waitSeconds(2)
+                .strafeToConstantHeading(new Vector2d(-58, -44.5))
+                .build());
+
+        meepMeep.setBackground(MeepMeep.Background.FIELD_DECODE_JUICE_LIGHT)
                 .setDarkMode(false)
                 .setBackgroundAlpha(1f)
                 .addEntity(myBot2)
+                .addEntity(myBot)
+                .addEntity(myBot3)
+                .addEntity(myBot4)
                 .start();
     }
 }

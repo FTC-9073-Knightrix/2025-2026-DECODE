@@ -23,13 +23,13 @@ public class Shooter {
     private final double NEAR_SHOT_VELOCITY_TICKS = -1050.0;
     private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 50.0;
 
-    private final int FAR_INCHES = 100;
+    private final int FAR_INCHES = 85;
     private final int MID_INCHES = 45;
-    private final int MID_FAR_INCHES = 60;
+    private final int MID_FAR_INCHES = 55;
 
     private final double CLOSE_SHOT_HOOD = 0.85;
-    private final double MID_SHOT_HOOD = 0.64;
-    private final double FAR_SHOT_HOOD = 0.50;
+    private final double MID_SHOT_HOOD = 0.60;
+    private final double FAR_SHOT_HOOD = 0.45;
 
     private boolean outtakeOn = false;
     private boolean lastAState = false;

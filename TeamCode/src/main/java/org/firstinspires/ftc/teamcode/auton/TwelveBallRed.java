@@ -23,8 +23,8 @@ public class TwelveBallRed extends AutonMethods {
         AutonActions autonActions = new AutonActions(hardwareMap);
 
         // Drive back to pick up third ball
-        Vector2d shootPos = new Vector2d(-13, 17);
-        double shootHeading = Math.toRadians(139);
+        Vector2d shootPos = new Vector2d(-14, 16.6);
+        double shootHeading = Math.toRadians(137);
 
         Action driveBackFromGoal = drive.actionBuilder(beginPose)
                 .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
@@ -33,10 +33,10 @@ public class TwelveBallRed extends AutonMethods {
         // Drive into first row of balls
         Action driveToFirstRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
                 .turnTo(Math.toRadians(90))
-                .strafeToConstantHeading(new Vector2d(-12.5, 44.5), maxSpeedConstraint)
+                .strafeToConstantHeading(new Vector2d(-12.5, 46), maxSpeedConstraint)
                 .build();
 
-        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-12.5, 44.5, Math.toRadians(90)))
+        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-12.5, 46, Math.toRadians(90)))
                 .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
                 .build();
 
@@ -165,7 +165,6 @@ public class TwelveBallRed extends AutonMethods {
                             // DRIVE TO THIRD ROW WHILE INTAKING
                             new ParallelAction(
                                 autonActions.runIntake(),
-//                                autonActions.runTransferUntilBallDetected(),
                                 driveToThirdRow
                             ),
                             // DRIVE BACK TO SHOOTING POSITION

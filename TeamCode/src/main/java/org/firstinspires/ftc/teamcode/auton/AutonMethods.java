@@ -31,15 +31,15 @@ public class AutonMethods extends AutonBase {
     // ------------------------------- Outtake --------------------------------
     public DcMotorEx outtakeMotor;
     public Servo hoodServo;
-    private final double midShotTargetVelocityTicks = -1200.0;
-    private final double farShotTargetVelocityTicks = -1490.0;
+    private final double midShotTargetVelocityTicks = -1190.0;
+    private final double farShotTargetVelocityTicks = -1500.0;
     static final double TICKS_PER_REV = 28;
     public double hoodPosition = 0.85;
 
     final private double ACCEPTABLE_VELOCITY_ERROR = 50.0;
 
-    final double MID_SHOT_HOOD = 0.55;
-    final double FAR_SHOT_HOOD = 0.40;
+    final double MID_SHOT_HOOD = 0.6;
+    final double FAR_SHOT_HOOD = 0.37;
 
     // ------------------------------- Transfer Motor --------------------------------
     public DcMotor transferMotor;

@@ -24,7 +24,7 @@ public class NineBallBlue extends AutonMethods {
 
         // Drive back to pick up third ball
         Vector2d shootPos = new Vector2d(-14, -18);
-        double shootHeading = Math.toRadians(-139);
+        double shootHeading = Math.toRadians(-138);
 
         Action driveBackFromGoal = drive.actionBuilder(beginPose)
                 .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
@@ -33,20 +33,20 @@ public class NineBallBlue extends AutonMethods {
         // Drive into first row of balls
         Action driveToFirstRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
                 .turnTo(Math.toRadians(-90))
-                .strafeToConstantHeading(new Vector2d(-15, -47), maxSpeedConstraint)
+                .strafeToConstantHeading(new Vector2d(-15, -51.5), maxSpeedConstraint)
                 .build();
 
-        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-15, -47, Math.toRadians(-90)))
+        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-15, -51.5, Math.toRadians(-90)))
                 .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
                 .build();
 
         // Drive into second row of balls
         Action driveToSecondRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
                 .strafeToLinearHeading(new Vector2d(8, -26), Math.toRadians(-90), maxSpeedConstraint) // intakes middle row
-                .strafeToConstantHeading(new Vector2d(8, -55), maxSpeedConstraint)
+                .strafeToConstantHeading(new Vector2d(8, -57.5), maxSpeedConstraint)
                 .build();
 
-        Action driveBackToShoot2 = drive.actionBuilder(new Pose2d(8, -55, Math.toRadians(-90)))
+        Action driveBackToShoot2 = drive.actionBuilder(new Pose2d(8, -57.5, Math.toRadians(-90)))
 //                .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
                 .setTangent(Math.toRadians(90))
                 .splineToLinearHeading(new Pose2d(shootPos, shootHeading), Math.toRadians(-220)) // shooting 1st ball
@@ -54,16 +54,20 @@ public class NineBallBlue extends AutonMethods {
 
         // Drive into third row of balls
         Action driveToThirdRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
-                .strafeToLinearHeading(new Vector2d(34, -24.5), Math.toRadians(-90), maxSpeedConstraint)
-                .strafeToConstantHeading(new Vector2d(34, -51.5))
+                .strafeToLinearHeading(new Vector2d(30, -24.5), Math.toRadians(-90), maxSpeedConstraint)
+                .strafeToConstantHeading(new Vector2d(30, -55))
                 .build();
 
-        Action driveBackToShoot3 = drive.actionBuilder(new Pose2d(34, -51.5, Math.toRadians(-90)))
+        Action driveBackToShoot3 = drive.actionBuilder(new Pose2d(33, -55, Math.toRadians(-90)))
                 .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
                 .build();
 
         // Drive to the gate
         Action driveToGate = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
+                .strafeToLinearHeading(new Vector2d(0, -20), Math.toRadians(-90), maxSpeedConstraint, maxAccelConstraint)
+                .build();
+
+        Action driveToGateFromThirdRow = drive.actionBuilder(new Pose2d(30, -55, Math.toRadians(-90)))
                 .strafeToLinearHeading(new Vector2d(0, -20), Math.toRadians(-90), maxSpeedConstraint, maxAccelConstraint)
                 .build();
 
@@ -162,10 +166,16 @@ public class NineBallBlue extends AutonMethods {
                                     driveBackToShoot2
                             ),
                             Shoot3BallsThree,
+                            new ParallelAction(
+                                    autonActions.runIntake(),
+                                    driveToThirdRow
+                            ),
                             // DRIVE TO THE GATE
                             new ParallelAction(
                                     autonActions.stopOuttake(),
-                                    driveToGate
+                                    autonActions.stopIntake(),
+                                    autonActions.stopTransfer(),
+                                    driveToGateFromThirdRow
                             )
                     )
             );

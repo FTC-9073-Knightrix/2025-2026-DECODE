@@ -23,8 +23,8 @@ public class NineBallRed extends AutonMethods {
         AutonActions autonActions = new AutonActions(hardwareMap);
 
         // Drive back to pick up third ball
-        Vector2d shootPos = new Vector2d(-14, 18);
-        double shootHeading = Math.toRadians(138);
+        Vector2d shootPos = new Vector2d(-14, 16.6);
+        double shootHeading = Math.toRadians(137);
 
         Action driveBackFromGoal = drive.actionBuilder(beginPose)
                 .strafeToLinearHeading(shootPos, shootHeading)
@@ -33,20 +33,20 @@ public class NineBallRed extends AutonMethods {
         // Drive into first row of balls
         Action driveToFirstRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
                 .turnTo(Math.toRadians(90))
-                .strafeToConstantHeading(new Vector2d(-12, 44.5))
+                .strafeToConstantHeading(new Vector2d(-12, 46.5))
                 .build();
 
-        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-12, 44.5, Math.toRadians(90)))
+        Action driveBackToShoot1 = drive.actionBuilder(new Pose2d(-11, 46.5, Math.toRadians(90)))
                 .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
                 .build();
 
         // Drive into second row of balls
         Action driveToSecondRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
                 .strafeToLinearHeading(new Vector2d(12, 26), Math.toRadians(90), maxSpeedConstraint) // intakes middle row
-                .strafeToConstantHeading(new Vector2d(12, 51.5), maxSpeedConstraint)
+                .strafeToConstantHeading(new Vector2d(12, 52.5), maxSpeedConstraint)
                 .build();
 
-        Action driveBackToShoot2 = drive.actionBuilder(new Pose2d(11, 51.5, Math.toRadians(90)))
+        Action driveBackToShoot2 = drive.actionBuilder(new Pose2d(11, 52.5, Math.toRadians(90)))
 //                .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
                 .setTangent(Math.toRadians(-90))
                 .splineToLinearHeading(new Pose2d(shootPos, shootHeading), Math.toRadians(220), maxSpeedConstraint) // shooting 1st ball
@@ -55,10 +55,10 @@ public class NineBallRed extends AutonMethods {
         // Drive into third row of balls
         Action driveToThirdRow = drive.actionBuilder(new Pose2d(shootPos, shootHeading))
                 .strafeToLinearHeading(new Vector2d(34, 24.5), Math.toRadians(90), maxSpeedConstraint)
-                .strafeToConstantHeading(new Vector2d(34, 51.5))
+                .strafeToConstantHeading(new Vector2d(34, 53))
                 .build();
 
-        Action driveBackToShoot3 = drive.actionBuilder(new Pose2d(34, 51.5, Math.toRadians(90)))
+        Action driveBackToShoot3 = drive.actionBuilder(new Pose2d(34, 53, Math.toRadians(90)))
                 .strafeToLinearHeading(shootPos, shootHeading, maxSpeedConstraint)
                 .build();
 
@@ -68,7 +68,7 @@ public class NineBallRed extends AutonMethods {
                 .build();
 
         Action driveToGateFromThirdRow = drive.actionBuilder(new Pose2d(34, 51.5, Math.toRadians(90)))
-                .strafeToLinearHeading(new Vector2d(0, 40), Math.toRadians(90), maxSpeedConstraint, maxAccelConstraint)
+                .strafeToLinearHeading(new Vector2d(0, 30), Math.toRadians(90), maxSpeedConstraint, maxAccelConstraint)
                 .build();
 
         Action Shoot3Balls = new SequentialAction(

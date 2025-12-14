@@ -16,14 +16,16 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     boolean requireCameraToShoot = true;
     boolean lastCameraTogglePressed = false;
     ElapsedTime gameTime = new ElapsedTime();
+    boolean reachedEndGame = false;
     @Override
     public void init() {super.init();}
 
     public void rumbleGamePads() {
-//        if (gameTime.seconds() > 100) {
-//            gamepad1.rumble(1000);
-//            gamepad2.rumble(1000);
-//        }
+        if (gameTime.seconds() > 100 && !reachedEndGame) {
+            reachedEndGame = true;
+            gamepad1.rumble(1000);
+            gamepad2.rumble(1000);
+        }
     }
 
     public void toggleCameraRequirement() {

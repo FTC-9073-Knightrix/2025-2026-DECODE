@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class TeleOpMecanumDrive {
@@ -27,6 +29,8 @@ public class TeleOpMecanumDrive {
     public final double driveSpeed = 0.66;
     public final double fastSpeed = 1.0;
     public final double slowSpeed = 0.30;
+
+    public Pose2D startPose = new Pose2D(DistanceUnit.INCH, -58, 44, AngleUnit.RADIANS, Math.toRadians(127));
 
     boolean robotCentric;
     private boolean toggleRobotCentricButtonPrevPressed = false;
@@ -49,6 +53,7 @@ public class TeleOpMecanumDrive {
         );
         rev_imu.initialize(new IMU.Parameters(RevOrientation));
 
+        pinpoint.setPosition(startPose);
         robotCentric = false;
         driveTimer.reset();
     }
@@ -62,9 +67,7 @@ public class TeleOpMecanumDrive {
     }
 
     public void runManualMecanumDrive(boolean rb, boolean lb, double y, double x, double rx, boolean resetHeadingButton) {
-        // Only update the heading because that is all you need in Teleop
-//        pinpoint.update(GoBildaPinpointDriver.ReadData.ONLY_UPDATE_HEADING);
-
+        pinpoint.update();
         if (rb) {
             finalSlowMode = slowSpeed;
         } else {
@@ -73,7 +76,7 @@ public class TeleOpMecanumDrive {
 
         if (resetHeadingButton) {
             rev_imu.resetYaw();
-//            pinpoint.resetPosAndIMU();
+            pinpoint.recalibrateIMU();
         }
 
         orientation = rev_imu.getRobotYawPitchRollAngles();
@@ -124,14 +127,35 @@ public class TeleOpMecanumDrive {
         toggleRobotCentricButtonPrevPressed = toggleButtonPressed;
     }
 
+    // returns the offset between the heading of the robot and the tag
+    // in RADIANS
+    public double getRobotOdoHeadingOffset() {
+        double RedGoalX = -72;
+        double RedGoalY = 72;
+
+        double desiredHeading = Math.atan2(RedGoalY - pinpoint.getPosY(DistanceUnit.INCH), RedGoalX - pinpoint.getPosX(DistanceUnit.INCH));
+
+        // Get the robot's current heading
+        double currentHeading = pinpoint.getHeading(AngleUnit.RADIANS);
+
+        // the radian offset (difference between desired and current)
+        double offset = desiredHeading - currentHeading;
+
+        // Normalize the angle to be between -PI and PI
+        while (offset > Math.PI) offset -= 2 * Math.PI;
+        while (offset < -Math.PI) offset += 2 * Math.PI;
+
+        return offset;
+    }
+
     private double lastBearingError = 0.0;
     private double integralSum = 0.0;
     ElapsedTime driveTimer = new ElapsedTime();
     public void runAutoAlignToTag(double bearingOffsetRad, boolean rb, boolean lb, double y, double x) {
         // PID coefficients
-        double kP = 0.75;
+        double kP = 0.8;
         double kI = 0.15; // Integral coefficient - helps overcome static friction
-        double kD = 0.01; // TODO TUNE
+        double kD = 0.03; // TODO TUNE
 
         double maxPower = 1.0; // maximum turn power
         double alignmentThreshold = 0.01; // radians, adjust as needed

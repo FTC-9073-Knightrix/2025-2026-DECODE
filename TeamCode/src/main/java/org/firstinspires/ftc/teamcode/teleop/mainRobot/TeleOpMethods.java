@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.vision.AprilTagEnum
 @Config
 public abstract class TeleOpMethods extends RobotBaseHwMap {
     boolean requireCameraToShoot = true;
+
     boolean lastCameraTogglePressed = false;
     ElapsedTime gameTime = new ElapsedTime();
     boolean reachedEndGame = false;
@@ -56,33 +57,40 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 
         if (drive.getDriveMode() == TeleOpMecanumDrive.DriveMode.LOCKED_ON)
         {
-            if (vision.isDetectingAGoalTag()) {
-                double offsetDegrees = 0.0;
-                if (vision.getGoalTagHorizontalDistance() < 100.0) {
-                    offsetDegrees = 0.0;
-                }
-                else if (vision.getDetectedTagId() == AprilTagEnums.RED_GOAL.getId()) {
-                    offsetDegrees = -3;
-                }
-                else if (vision.getDetectedTagId() == AprilTagEnums.BLUE_GOAL.getId()) {
-                    offsetDegrees = 3;
-                }
-
-                drive.runAutoAlignToTag(Math.toRadians(vision.getGoalTagBearing() + offsetDegrees), rb, lb, leftY, leftX);
-
-                // SET LIGHTS TO GREEN IF THE CAMERA IS LOCKED ON
-                // try to align with offset (maybe the negative of the offsetDegrees?)
-                if (vision.alignedForShot(-offsetDegrees)) {
-
-                    lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
-                }
-                else {
-                    lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
-                }
+//            if (vision.isDetectingAGoalTag()) {
+//                double offsetDegrees = 0.0;
+//                if (vision.getGoalTagHorizontalDistance() < 100.0) {
+//                    offsetDegrees = 0.0;
+//                }
+//                else if (vision.getDetectedTagId() == AprilTagEnums.RED_GOAL.getId()) {
+//                    offsetDegrees = -3;
+//                }
+//                else if (vision.getDetectedTagId() == AprilTagEnums.BLUE_GOAL.getId()) {
+//                    offsetDegrees = 3;
+//                }
+//
+//                drive.runAutoAlignToTag(Math.toRadians(vision.getGoalTagBearing() + offsetDegrees), rb, lb, leftY, leftX);
+//
+//                // SET LIGHTS TO GREEN IF THE CAMERA IS LOCKED ON
+//                // try to align with offset (maybe the negative of the offsetDegrees?)
+//                if (vision.alignedForShot(-offsetDegrees)) {
+//
+//                    lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+//                }
+//                else {
+//                    lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
+//                }
+//            }
+//            else {
+//                drive.runManualMecanumDrive(rb, lb, leftY, leftX, rightX, resetHeadingButton);
+//                // red color because camera is not detecting tag
+//                lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
+//            }
+            drive.runAutoAlignToTag(drive.getRobotOdoHeadingOffset(), rb, lb, leftY, leftX);
+            if (Math.toDegrees(drive.getRobotOdoHeadingOffset()) < 2.0) {
+                lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
             }
             else {
-                drive.runManualMecanumDrive(rb, lb, leftY, leftX, rightX, resetHeadingButton);
-                // red color because camera is not detecting tag
                 lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
             }
         }
@@ -140,9 +148,11 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         telemetry.addData("Drive Mode: ", drive.getDriveMode());
         telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());
 //        telemetry.addData("Tag Horizontal Distance (in): " , String.format("%.2f", vision.getGoalTagHorizontalDistance()));
-        telemetry.addData("Tag Bearing:", String.format("%.2f", vision.getGoalTagBearing()));
-        telemetry.addData("distance sensor: (CM)" , transfer.transferDistanceSensor.getDistance(DistanceUnit.CM));
-        telemetry.addData("transfer active: " , transfer.transferActive);
+//        telemetry.addData("Tag Bearing:", String.format("%.2f", vision.getGoalTagBearing()));
+//        telemetry.addData("distance sensor: (CM)" , transfer.transferDistanceSensor.getDistance(DistanceUnit.CM));
+        telemetry.addData("offset rad", drive.getRobotOdoHeadingOffset());
+        telemetry.addData("robot pose", drive.pinpoint.getPosition());
+//        telemetry.addData("transfer active: " , transfer.transferActive);
         telemetry.update();
     }
 }

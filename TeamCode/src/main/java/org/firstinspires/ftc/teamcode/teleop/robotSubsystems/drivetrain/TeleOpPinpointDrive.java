@@ -12,8 +12,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 public class TeleOpPinpointDrive {
     public enum DriveMode {
         MANUAL,
-        LOCKED_ON
+        LOCKED_ON,
+        ODOMETRY_LOCKED_ON
     }
+
     private DriveMode driveMode = DriveMode.MANUAL;
     public DcMotor frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor;
     public IMU rev_imu;

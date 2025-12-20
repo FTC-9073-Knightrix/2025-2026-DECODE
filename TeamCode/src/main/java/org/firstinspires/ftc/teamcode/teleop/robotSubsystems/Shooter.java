@@ -13,15 +13,14 @@ public class Shooter {
     Servo hoodServo;
     DcMotorEx outtakeMotor;
 
-    private double hoodPosition = 0.85;
-    static final double TICKS_PER_REV = 28; // FOR GO BILDA 5202 SERIES
-    public double targetVelocityTicks = 0.0;
 
     private final double FAR_SHOT_VELOCITY_TICKS = -1500.0;
     private final double MID_FAR_SHOT_VELOCITY_TICKS = -1250;
     private final double MID_SHOT_VELOCITY_TICKS = -1150.0;
     private final double NEAR_SHOT_VELOCITY_TICKS = -1050.0;
     private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 50.0;
+
+    public double targetVelocityTicks = MID_SHOT_VELOCITY_TICKS; // start off at mid shot velocity
 
     private final int FAR_INCHES = 85;
     private final int MID_INCHES = 45;
@@ -30,6 +29,7 @@ public class Shooter {
     private final double CLOSE_SHOT_HOOD = 0.85;
     private final double MID_SHOT_HOOD = 0.60;
     private final double FAR_SHOT_HOOD = 0.45;
+    private double hoodPosition = 0.85;
 
     private boolean outtakeOn = false;
     private boolean lastAState = false;
@@ -39,7 +39,6 @@ public class Shooter {
     private boolean lastDpadDown = false;
 
     // PIDF tuning resources: https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/tuning-flywheel.html
-
     // After kV is set, tune kP to minimize error, use small increases
     private final double kP = 29;
     private final double kI = 0.9;
@@ -64,6 +63,7 @@ public class Shooter {
 
         // update target velocity based on distance to goal if needed
         updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
+
         // Toggle motor on/off
         if (a && ! lastAState) {
             outtakeOn = !outtakeOn;

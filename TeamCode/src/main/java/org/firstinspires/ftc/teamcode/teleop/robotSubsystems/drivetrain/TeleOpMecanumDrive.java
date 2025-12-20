@@ -15,10 +15,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class TeleOpMecanumDrive {
+
     public enum DriveMode {
         MANUAL,
-        LOCKED_ON
+        CAMERA_LOCKED_ON,
+        ODOMETRY_LOCKED_ON
     }
+
     private DriveMode driveMode = DriveMode.MANUAL;
     public DcMotor frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor;
     public IMU rev_imu;
@@ -66,7 +69,7 @@ public class TeleOpMecanumDrive {
         this.driveMode = driveMode;
     }
 
-    public void runManualMecanumDrive(boolean rb, boolean lb, double y, double x, double rx, boolean resetHeadingButton) {
+    public void runManualMecanumDrive(boolean rb, double y, double x, double rx, boolean resetHeadingButton) {
         pinpoint.update();
         if (rb) {
             finalSlowMode = slowSpeed;
@@ -129,14 +132,13 @@ public class TeleOpMecanumDrive {
 
     // returns the offset between the heading of the robot and the tag
     // in RADIANS
-    public double getRobotOdoHeadingOffset() {
-        double RedGoalX = -72;
-        double RedGoalY = 72;
-
-        double desiredHeading = Math.atan2(RedGoalY - pinpoint.getPosY(DistanceUnit.INCH), RedGoalX - pinpoint.getPosX(DistanceUnit.INCH));
+    public double getRobotOdoHeadingOffset(double targetGoalX, double targetGoalY) {
+        double desiredHeading = Math.atan2(targetGoalY - pinpoint.getPosY(DistanceUnit.INCH), targetGoalX - pinpoint.getPosX(DistanceUnit.INCH));
 
         // Get the robot's current heading
         double currentHeading = pinpoint.getHeading(AngleUnit.RADIANS);
+        // uncomment line below to use the rev imu is pinpoint is broken
+//        double currentHeading = rev_imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
         // the radian offset (difference between desired and current)
         double offset = desiredHeading - currentHeading;
@@ -151,7 +153,7 @@ public class TeleOpMecanumDrive {
     private double lastBearingError = 0.0;
     private double integralSum = 0.0;
     ElapsedTime driveTimer = new ElapsedTime();
-    public void runAutoAlignToTag(double bearingOffsetRad, boolean rb, boolean lb, double y, double x) {
+    public void runAutoAlignToTag(double bearingOffsetRad, boolean rb, double y, double x) {
         // PID coefficients
         double kP = 0.8;
         double kI = 0.15; // Integral coefficient - helps overcome static friction
@@ -191,6 +193,6 @@ public class TeleOpMecanumDrive {
         driveTimer.reset();
 
         // The Driver can still translate while auto-aligning, but cannot manually rotate
-        runManualMecanumDrive(rb, lb, y, x, turnPower, false);
+        runManualMecanumDrive(rb, y, x, turnPower, false);
     }
 }

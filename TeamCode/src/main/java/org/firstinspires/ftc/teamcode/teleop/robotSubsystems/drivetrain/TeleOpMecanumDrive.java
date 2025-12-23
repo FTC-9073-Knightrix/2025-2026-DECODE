@@ -33,6 +33,7 @@ public class TeleOpMecanumDrive {
     public final double fastSpeed = 1.0;
     public final double slowSpeed = 0.30;
 
+    // temporary start pose
     public Pose2D startPose = new Pose2D(DistanceUnit.INCH, -58, 44, AngleUnit.RADIANS, Math.toRadians(127));
 
     boolean robotCentric;
@@ -55,7 +56,7 @@ public class TeleOpMecanumDrive {
                 RevHubOrientationOnRobot.UsbFacingDirection.UP
         );
         rev_imu.initialize(new IMU.Parameters(RevOrientation));
-
+//        pinpoint.resetPosAndIMU();
         pinpoint.setPosition(startPose);
         robotCentric = false;
         driveTimer.reset();
@@ -69,7 +70,7 @@ public class TeleOpMecanumDrive {
         this.driveMode = driveMode;
     }
 
-    public void runManualMecanumDrive(boolean rb, double y, double x, double rx, boolean resetHeadingButton) {
+    public void runManualMecanumDrive(boolean rb, double y, double x, double rx, boolean resetHeadingButton, boolean resetPosButton) {
         pinpoint.update();
         if (rb) {
             finalSlowMode = slowSpeed;
@@ -120,7 +121,7 @@ public class TeleOpMecanumDrive {
         this.frontRightMotor.setPower(frontRightPower * finalSlowMode);
         this.backRightMotor.setPower(backRightPower * finalSlowMode);
 
-        driveTimer.reset(); // reset timer when in manual mode so derivative term is accurate when switching to auto-align
+        driveTimer.reset(); // reset timer when in manual mode so derivative and integral term is accurate when switching to auto-align
     }
 
     public void toggleRobotCentric(boolean toggleButtonPressed) {
@@ -135,10 +136,11 @@ public class TeleOpMecanumDrive {
     public double getRobotOdoHeadingOffset(double targetGoalX, double targetGoalY) {
         double desiredHeading = Math.atan2(targetGoalY - pinpoint.getPosY(DistanceUnit.INCH), targetGoalX - pinpoint.getPosX(DistanceUnit.INCH));
 
-        // Get the robot's current heading
+        // Get the robot's current
+        //        double currentHeading = pinpoint.getHeading(AngleUnit.RADIANSheading
         double currentHeading = pinpoint.getHeading(AngleUnit.RADIANS);
-        // uncomment line below to use the rev imu is pinpoint is broken
-//        double currentHeading = rev_imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        // uncomment line below to use the rev imu if pinpoint is broken
+//         double currentHeading = rev_imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
 
         // the radian offset (difference between desired and current)
         double offset = desiredHeading - currentHeading;
@@ -148,6 +150,16 @@ public class TeleOpMecanumDrive {
         while (offset < -Math.PI) offset += 2 * Math.PI;
 
         return offset;
+    }
+
+    public double getOdometryDistanceFromGoal(double targetGoalX, double targetGoalY) {
+        double deltaX = targetGoalX    - pinpoint.getPosX(DistanceUnit.INCH);
+        double deltaY = targetGoalY - pinpoint.getPosY(DistanceUnit.INCH);
+        return Math.hypot(deltaX, deltaY);
+    }
+
+    public static double normalizeAngle(double angleRad) {
+        return Math.atan2(Math.sin(angleRad), Math.cos(angleRad));
     }
 
     private double lastBearingError = 0.0;
@@ -193,6 +205,6 @@ public class TeleOpMecanumDrive {
         driveTimer.reset();
 
         // The Driver can still translate while auto-aligning, but cannot manually rotate
-        runManualMecanumDrive(rb, y, x, turnPower, false);
+        runManualMecanumDrive(rb, y, x, turnPower, false, false);
     }
 }

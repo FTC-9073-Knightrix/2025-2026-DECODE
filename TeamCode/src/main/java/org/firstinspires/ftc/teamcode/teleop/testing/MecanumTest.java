@@ -25,7 +25,7 @@ public class MecanumTest extends OpMode {
         double leftX = gamepad1.left_stick_x;
         double rightX = gamepad1.right_stick_x * .8;
         boolean yButton = gamepad1.y;
-        drive.runManualMecanumDrive(rb, lb, leftY, leftX, rightX, yButton);
+        drive.runManualMecanumDrive(rb, leftY, leftX, rightX, yButton, gamepad1.left_stick_button);
 
         telemetry.addData("FL Power", drive.frontLeftMotor.getPower());
         telemetry.addData("FR Power", drive.frontRightMotor.getPower());

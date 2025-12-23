@@ -18,7 +18,7 @@ public class Shooter {
     private final double MID_FAR_SHOT_VELOCITY_TICKS = -1250;
     private final double MID_SHOT_VELOCITY_TICKS = -1150.0;
     private final double NEAR_SHOT_VELOCITY_TICKS = -1050.0;
-    private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 50.0;
+    private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 125.0;
 
     public double targetVelocityTicks = MID_SHOT_VELOCITY_TICKS; // start off at mid shot velocity
 
@@ -31,7 +31,7 @@ public class Shooter {
     private final double FAR_SHOT_HOOD = 0.45;
     private double hoodPosition = 0.85;
 
-    private boolean outtakeOn = false;
+    private boolean outtakeOn = false; // start the match with outtake on
     private boolean lastAState = false;
     private boolean lastDpadLeft = false;
     private boolean lastDpadRight = false;
@@ -62,7 +62,7 @@ public class Shooter {
                                Telemetry telemetry, double horizontalDistanceToGoalInches) {
 
         // update target velocity based on distance to goal if needed
-        updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
+//        updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
 
         // Toggle motor on/off
         if (a && ! lastAState) {
@@ -85,13 +85,13 @@ public class Shooter {
 
         // Adjust velocity
         if (dpad_up && !lastDpadUp) {
-            targetVelocityTicks -= 50;
-            if (targetVelocityTicks > 2000) targetVelocityTicks = 2000;
+            targetVelocityTicks -= 20;
+            if (targetVelocityTicks < -2000) targetVelocityTicks = -2000;
         }
         lastDpadUp = dpad_up;
 
         if (dpad_down && !lastDpadDown) {
-            targetVelocityTicks += 50;
+            targetVelocityTicks += 25;
         }
         lastDpadDown = dpad_down;
 
@@ -193,6 +193,34 @@ public class Shooter {
         telemetry.addData("Servo Position", hoodPosition);
     }
 
+    public void runDynamicOdometryOuttake(boolean a, Telemetry telemetry, double horizontalDistanceToGoalInches) {
+        // update target velocity based on distance to goal if needed
+        updateShooterVelocityByOdometryDistance(horizontalDistanceToGoalInches);
+        dynamicallyUpdateHoodPositionByOdometry(horizontalDistanceToGoalInches);
+//        updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
+//        dynamicallyUpdateHoodPosition(horizontalDistanceToGoalInches);
+        // Toggle motor on/off
+        if (a && ! lastAState) {
+            outtakeOn = !outtakeOn;
+        }
+        lastAState = a;
+
+        // Apply velocity control
+        if (outtakeOn) {
+            outtakeMotor.setVelocity(targetVelocityTicks);
+        } else {
+            outtakeMotor.setVelocity(0);
+        }
+
+        // Telemetry
+        double ticksPerSecond = outtakeMotor.getVelocity();
+
+        telemetry.addData("Outtake On", outtakeOn);
+        telemetry.addData("PIDF Coefficients", outtakeMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
+        telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
+        telemetry.addData("Current Velocity (ticks/sec)", ticksPerSecond);
+        telemetry.addData("Servo Position", hoodPosition);
+    }
     public void dynamicallyUpdateHoodPosition(double horizontalDistanceToGoalInches) {
         if (horizontalDistanceToGoalInches < 0) {
             // No valid distance, do not update hood position
@@ -248,6 +276,40 @@ public class Shooter {
         }
     }
 
+    public void updateShooterVelocityByOdometryDistance(double x) {
+        if (x < 0) {
+            // No valid distance, do not update velocity
+            return;
+        }
+
+        // regression from desmos of ticks plotted vs distance
+        // y=0.0000118252x^{4}-0.00526023x^{3}+0.839403x^{2}-63.03757x+730.32896
+        targetVelocityTicks = (((0.0000118252 * x - 0.00526023) * x + 0.839403) * x - 63.03757) * x + 730.32896;
+        targetVelocityTicks = Range.clip(targetVelocityTicks, -1600, -1000);
+    }
+
+    public void dynamicallyUpdateHoodPositionByOdometry(double x) {
+        // the hood will be a function of the shooter velocity
+        // to allow for a velocity-based hood for rapid firing
+
+        // have a separate regression to handle for far shot because not modeled well experimentally
+        double hoodPos;
+        if (x < 120) {
+            // close shot
+            hoodPos = -3.559455e-11 * Math.pow(x, 4)
+                    - 1.876337e-7  * Math.pow(x, 3)
+                    - 0.0003661383 * Math.pow(x, 2)
+                    - 0.312676    * x
+                    - 97.81379;
+        }
+        else {
+            // far shot
+            hoodPos = (0.0000126263 * x + 0.0390152) * x + 30.57374;
+        }
+
+        hoodPosition = Range.clip(hoodPos, 0.4, 0.75);
+        hoodServo.setPosition(hoodPosition);
+    }
     public boolean isAtShootingSpeed() {
         double currentVelocity = outtakeMotor.getVelocity();
         double velocityError = Math.abs(targetVelocityTicks - currentVelocity);

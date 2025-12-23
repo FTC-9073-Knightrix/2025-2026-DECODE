@@ -190,13 +190,13 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         // if the robot aiming method is manual adjust, use gamepad 2 dpad to adjust
         switch (robotAimingMethod) {
             case CAMERA:
-               shooter.runDynamicOuttake(gamepad1.a, gamepad1.left_stick_button, telemetry, vision.getGoalTagHorizontalDistance());
+                shooter.runDynamicOuttake(gamepad1.a, gamepad1.left_stick_button, telemetry, vision.getGoalTagHorizontalDistance());
                 break;
             case ODOMETRY:
                 double targetX = (allianceColor == AllianceColor.RED) ? GoalCoords.RedGoalX : GoalCoords.BlueGoalX;
                 double targetY = (allianceColor == AllianceColor.RED) ? GoalCoords.RedGoalY : GoalCoords.BlueGoalY;
                 double distance = drive.getOdometryDistanceFromGoal(targetX, targetY);
-                shooter.runDynamicOdometryOuttake(gamepad1.a, telemetry, distance);
+//                shooter.runDynamicOdometryOuttake(gamepad1.a, telemetry, distance);
                 break;
             case MANUAL_ADJUST:
                 shooter.runManualOuttake(gamepad2.a, gamepad2.dpad_left, gamepad2.dpad_right, gamepad2.dpad_up, gamepad2.dpad_down, telemetry);

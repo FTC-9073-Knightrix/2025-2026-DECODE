@@ -283,8 +283,8 @@ public class Shooter {
         }
 
         // regression from desmos of ticks plotted vs distance
-        // y=0.0000118252x^{4}-0.00526023x^{3}+0.839403x^{2}-63.03757x+730.32896
-        targetVelocityTicks = (((0.0000118252 * x - 0.00526023) * x + 0.839403) * x - 63.03757) * x + 730.32896;
+        // y = -6.47098x-621.32676
+        targetVelocityTicks = -6.47098 * x - 621.32676;
         targetVelocityTicks = Range.clip(targetVelocityTicks, -1600, -1000);
     }
 
@@ -295,16 +295,14 @@ public class Shooter {
         // have a separate regression to handle for far shot because not modeled well experimentally
         double hoodPos;
         if (x < 120) {
+            // y=0.185111\cdot\sin\left(0.00671479x+1.80341\right)+0.582581
             // close shot
-            hoodPos = -3.559455e-11 * Math.pow(x, 4)
-                    - 1.876337e-7  * Math.pow(x, 3)
-                    - 0.0003661383 * Math.pow(x, 2)
-                    - 0.312676    * x
-                    - 97.81379;
+            hoodPos = 0.185111 * Math.sin(0.00671479 * x + 1.80341) + 0.582581;
         }
         else {
             // far shot
-            hoodPos = (0.0000126263 * x + 0.0390152) * x + 30.57374;
+            // y=0.0000126263x^{2}+0.0390152x+30.57374
+            hoodPos = 0.0000126263 * x * x + 0.0390152 * x + 30.57374;
         }
 
         hoodPosition = Range.clip(hoodPos, 0.4, 0.75);

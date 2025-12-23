@@ -83,6 +83,10 @@ public class TeleOpMecanumDrive {
             pinpoint.recalibrateIMU();
         }
 
+        if (resetPosButton) {
+            pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.RADIANS, 0));
+        }
+
         orientation = rev_imu.getRobotYawPitchRollAngles();
 
         // CHANGE BETWEEN PP AND IMU U CHANGE BOTHEADING VARIABLE

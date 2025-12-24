@@ -161,7 +161,7 @@ public class Shooter {
         telemetry.addData("Servo Position", hoodPosition);
     }
 
-    public void runDynamicOuttake(boolean a, boolean forceFarShot, Telemetry telemetry, double horizontalDisœtanceToGoalInches) {
+    public void runDynamicOuttake(boolean a, boolean forceFarShot, Telemetry telemetry, double horizontalDistanceToGoalInches) {
 
         // update target velocity based on distance to goal if needed
         updateShooterVelocityByDistance(horizontalDistanceToGoalInches);

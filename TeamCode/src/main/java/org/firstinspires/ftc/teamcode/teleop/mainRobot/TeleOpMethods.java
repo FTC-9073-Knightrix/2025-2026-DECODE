@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.RGBLights;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.drivetrain.TeleOpMecanumDrive;
@@ -95,7 +96,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                         double offsetRadRed = drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalX, GoalCoords.RedGoalY);
                         drive.runAutoAlignToTag(offsetRadRed, rb, leftY, leftX);
 
-                        if (Math.toDegrees(offsetRadRed) < 1.5) {
+                        if (Math.abs(Math.toDegrees(offsetRadRed)) < 1.5) {
                             lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
                         }
                         else {
@@ -106,7 +107,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                         double offsetRadBlue = drive.getRobotOdoHeadingOffset(GoalCoords.BlueGoalX, GoalCoords.BlueGoalY);
                         drive.runAutoAlignToTag(offsetRadBlue, rb, leftY, leftX);
 
-                        if (Math.toDegrees(offsetRadBlue) < 1.5) {
+                        if (Math.abs(Math.toDegrees(offsetRadBlue)) < 1.5) {
                             lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
                         }
                         else {
@@ -196,7 +197,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                 double targetX = (allianceColor == AllianceColor.RED) ? GoalCoords.RedGoalX : GoalCoords.BlueGoalX;
                 double targetY = (allianceColor == AllianceColor.RED) ? GoalCoords.RedGoalY : GoalCoords.BlueGoalY;
                 double distance = drive.getOdometryDistanceFromGoal(targetX, targetY);
-//                shooter.runDynamicOdometryOuttake(gamepad1.a, telemetry, distance);
+                shooter.runDynamicOdometryOuttake(gamepad1.a, telemetry, distance);
                 break;
             case MANUAL_ADJUST:
                 shooter.runManualOuttake(gamepad2.a, gamepad2.dpad_left, gamepad2.dpad_right, gamepad2.dpad_up, gamepad2.dpad_down, telemetry);
@@ -207,6 +208,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     @SuppressLint("DefaultLocale")
     public void displayTelemetry() {
         telemetry.addData("Drive Mode: ", drive.getDriveMode());
+        telemetry.addData("alliance", allianceColor);
 //        telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());
         telemetry.addData("Aiming method: ", robotAimingMethod);
         telemetry.addData("ODOMETRY DISTANCE", drive.getOdometryDistanceFromGoal(GoalCoords.RedGoalX, GoalCoords.RedGoalY));
@@ -214,7 +216,13 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 //        telemetry.addData("Tag Bearing:", String.format("%.2f", vision.getGoalTagBearing()));
 //        telemetry.addData("distance sensor: (CM)" , transfer.transferDistanceSensor.getDistance(DistanceUnit.CM));
         telemetry.addData("offset rad", drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalX, GoalCoords.RedGoalY));
-        telemetry.addData("robot pose", drive.pinpoint.getPosition());
+        telemetry.addData("heading:", drive.pinpoint.getHeading(AngleUnit.RADIANS));
+        telemetry.addData("heading: (degrees)", drive.pinpoint.getHeading(AngleUnit.DEGREES));
+        telemetry.addData("robot pose x", drive.pinpoint.getPosition().getX(DistanceUnit.INCH));
+        telemetry.addData("robot pose y", drive.pinpoint.getPosition().getY(DistanceUnit.INCH));
+        telemetry.addData("robot pose head", drive.pinpoint.getPosition().getHeading(AngleUnit.RADIANS));
+
+
 //        telemetry.addData("transfer active: " , transfer.transferActive);
         telemetry.update();
     }

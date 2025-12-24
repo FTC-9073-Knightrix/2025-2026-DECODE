@@ -71,7 +71,6 @@ public class TeleOpMecanumDrive {
     }
 
     public void runManualMecanumDrive(boolean rb, double y, double x, double rx, boolean resetHeadingButton, boolean resetPosButton) {
-        pinpoint.update();
         if (rb) {
             finalSlowMode = slowSpeed;
         } else {
@@ -80,7 +79,7 @@ public class TeleOpMecanumDrive {
 
         if (resetHeadingButton) {
             rev_imu.resetYaw();
-            pinpoint.recalibrateIMU();
+//            pinpoint.recalibrateIMU();
         }
 
         if (resetPosButton) {
@@ -124,8 +123,6 @@ public class TeleOpMecanumDrive {
         this.backLeftMotor.setPower(backLeftPower * finalSlowMode);
         this.frontRightMotor.setPower(frontRightPower * finalSlowMode);
         this.backRightMotor.setPower(backRightPower * finalSlowMode);
-
-        driveTimer.reset(); // reset timer when in manual mode so derivative and integral term is accurate when switching to auto-align
     }
 
     public void toggleRobotCentric(boolean toggleButtonPressed) {
@@ -138,27 +135,28 @@ public class TeleOpMecanumDrive {
     // returns the offset between the heading of the robot and the tag
     // in RADIANS
     public double getRobotOdoHeadingOffset(double targetGoalX, double targetGoalY) {
-        double desiredHeading = Math.atan2(targetGoalY - pinpoint.getPosY(DistanceUnit.INCH), targetGoalX - pinpoint.getPosX(DistanceUnit.INCH));
+        // robot pose from odometry/localizer (in inches and radians)
+        double robotX = pinpoint.getPosition().getX(DistanceUnit.INCH);
+        double robotY = pinpoint.getPosition().getY(DistanceUnit.INCH);
+        double robotHeading = pinpoint.getPosition().getHeading(AngleUnit.RADIANS);
 
-        // Get the robot's current
-        //        double currentHeading = pinpoint.getHeading(AngleUnit.RADIANSheading
-        double currentHeading = pinpoint.getHeading(AngleUnit.RADIANS);
-        // uncomment line below to use the rev imu if pinpoint is broken
-//         double currentHeading = rev_imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        // signed deltas
+        double dx = targetGoalX - robotX;
+        double dy = targetGoalY - robotY;
 
-        // the radian offset (difference between desired and current)
-        double offset = desiredHeading - currentHeading;
+        // angle from robot to target in field coords
+        double targetAngle = Math.atan2(dy, dx);
 
-        // Normalize the angle to be between -PI and PI
-        while (offset > Math.PI) offset -= 2 * Math.PI;
-        while (offset < -Math.PI) offset += 2 * Math.PI;
+        // raw difference and robust normalization to [-PI, PI]
+        double delta = targetAngle - robotHeading;
+        double offset = Math.atan2(Math.sin(delta), Math.cos(delta));
 
-        return offset;
+        return offset; // radians, in range (-PI, PI]
     }
 
     public double getOdometryDistanceFromGoal(double targetGoalX, double targetGoalY) {
-        double deltaX = targetGoalX    - pinpoint.getPosX(DistanceUnit.INCH);
-        double deltaY = targetGoalY - pinpoint.getPosY(DistanceUnit.INCH);
+        double deltaX = targetGoalX   - pinpoint.getPosition().getX(DistanceUnit.INCH);
+        double deltaY = targetGoalY - pinpoint.getPosition().getY(DistanceUnit.INCH);
         return Math.hypot(deltaX, deltaY);
     }
 
@@ -177,7 +175,7 @@ public class TeleOpMecanumDrive {
 
         double maxPower = 1.0; // maximum turn power
         double alignmentThreshold = 0.01; // radians, adjust as needed
-        double minPower = 0.08; // minimum power to overcome static friction
+        double minPower = 0.04; // minimum power to overcome static friction
         double turnPower = 0.0;
 
         if (Math.abs(bearingOffsetRad) > alignmentThreshold) {
@@ -191,6 +189,7 @@ public class TeleOpMecanumDrive {
             integralSum = Range.clip(integralSum, -maxIntegral, maxIntegral);
 
             double derivative = (bearingOffsetRad - lastBearingError) / dt;
+            derivative = Range.clip(derivative, -5.0, 5.0);
 
             turnPower = (-kP * bearingOffsetRad) + (-kI * integralSum) + (-kD * derivative);
 

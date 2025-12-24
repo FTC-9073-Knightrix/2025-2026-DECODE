@@ -21,7 +21,7 @@ public class Transfer {
         transferMotor = hw.get(DcMotor.class, "transfer");
         transferDistanceSensor = hw.get(DistanceSensor.class, "transferDistanceSensor");
 
-        transferMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        transferMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         transferActive = false;
         isTogglePressed = false;
     }

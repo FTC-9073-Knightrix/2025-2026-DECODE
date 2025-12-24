@@ -40,10 +40,10 @@ public class Shooter {
 
     // PIDF tuning resources: https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/tuning-flywheel.html
     // After kV is set, tune kP to minimize error, use small increases
-    private final double kP = 29;
-    private final double kI = 0.9;
-    private final double kD = 0.0;
-    private final double kF = 0.7;
+    private final double kP = 33;
+    private final double kI = 1.0;
+    private final double kD = 0.01;
+    private final double kF = 1.0;
 
 
     public void init(HardwareMap hardwareMap) {
@@ -161,7 +161,7 @@ public class Shooter {
         telemetry.addData("Servo Position", hoodPosition);
     }
 
-    public void runDynamicOuttake(boolean a, boolean forceFarShot, Telemetry telemetry, double horizontalDistanceToGoalInches) {
+    public void runDynamicOuttake(boolean a, boolean forceFarShot, Telemetry telemetry, double horizontalDisœtanceToGoalInches) {
 
         // update target velocity based on distance to goal if needed
         updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
@@ -283,9 +283,16 @@ public class Shooter {
         }
 
         // regression from desmos of ticks plotted vs distance
-        // y = -6.47098x-621.32676
-        targetVelocityTicks = -6.47098 * x - 621.32676;
-        targetVelocityTicks = Range.clip(targetVelocityTicks, -1600, -1000);
+        // y = -6.47098x-621.32676 OLD
+        // NEW
+//        targetVelocityTicks =
+//                0.0000330414 * x * x * x * x
+//                        - 0.0136787 * x * x * x
+//                        + 2.0407 * x * x
+//                        - 136.1668 * x
+//                        + 2333.15454;
+        targetVelocityTicks = -6.86887 * x -590.15262;
+        targetVelocityTicks = Range.clip(targetVelocityTicks, -1650, -1000);
     }
 
     public void dynamicallyUpdateHoodPositionByOdometry(double x) {
@@ -293,19 +300,19 @@ public class Shooter {
         // to allow for a velocity-based hood for rapid firing
 
         // have a separate regression to handle for far shot because not modeled well experimentally
-        double hoodPos;
+        double v = outtakeMotor.getVelocity();
         if (x < 120) {
             // y=0.185111\cdot\sin\left(0.00671479x+1.80341\right)+0.582581
             // close shot
-            hoodPos = 0.185111 * Math.sin(0.00671479 * x + 1.80341) + 0.582581;
+            hoodPosition = 0.185111 * Math.sin(0.00671479 * v + 1.80341) + 0.582581;
         }
         else {
             // far shot
             // y=0.0000126263x^{2}+0.0390152x+30.57374
-            hoodPos = 0.0000126263 * x * x + 0.0390152 * x + 30.57374;
+            hoodPosition = 0.0000126263 * v * v + 0.0390152 * v + 30.57374;
         }
 
-        hoodPosition = Range.clip(hoodPos, 0.4, 0.75);
+        hoodPosition = Range.clip(hoodPosition, 0.4, 0.75);
         hoodServo.setPosition(hoodPosition);
     }
     public boolean isAtShootingSpeed() {

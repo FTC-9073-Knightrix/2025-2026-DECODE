@@ -14,11 +14,11 @@ import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.vision.AprilTagEnum
 
 @Config
 public abstract class TeleOpMethods extends RobotBaseHwMap {
-    protected enum AllianceColor {
+    public enum AllianceColor {
         RED,
         BLUE
     }
-    protected AllianceColor allianceColor;
+    public AllianceColor allianceColor;
 
     public static class GoalCoords {
         // coords based on roadrunner field coordinate system
@@ -26,6 +26,18 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         public static final double RedGoalY = 72.0;
         public static final double BlueGoalX = -72.0;
         public static final double BlueGoalY = -72.0;
+
+        // coords based on pedro pathing field coordinate system for distance calculations
+        public static final double RedGoalXPEDRO = 144;
+        public static final double RedGoalYPEDRO = 144;
+        public static final double BlueGoalXPEDRO = 0;
+        public static final double BlueGoalYPEDRO = 144;
+
+        // don't aim exactly at the corners of the goals, aim a bit more towards the center
+        public static final double RedGoalXPedroForAiming = 141;
+        public static final double RedGoalYPedroForAiming = 141;
+        public static final double BlueGoalXPedroForAiming = 3;
+        public static final double BlueGoalYPedroForAiming = 141;
     }
 
     protected enum AimingMethod {
@@ -68,6 +80,8 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     }
 
     public void runToggledDrive() {
+        drive.follower.update(); // update pedro follower every loop
+
         boolean rb = gamepad1.right_bumper;
 
         double leftY = -gamepad1.left_stick_y;
@@ -93,7 +107,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
             case ODOMETRY_LOCKED_ON:
                 switch (allianceColor)  {
                     case RED:
-                        double offsetRadRed = drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalX, GoalCoords.RedGoalY);
+                        double offsetRadRed = drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalXPedroForAiming, GoalCoords.RedGoalYPedroForAiming);
                         drive.runAutoAlignToTag(offsetRadRed, rb, leftY, leftX);
 
                         if (Math.abs(Math.toDegrees(offsetRadRed)) < 1.5) {
@@ -104,7 +118,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                         }
                         break;
                     case BLUE:
-                        double offsetRadBlue = drive.getRobotOdoHeadingOffset(GoalCoords.BlueGoalX, GoalCoords.BlueGoalY);
+                        double offsetRadBlue = drive.getRobotOdoHeadingOffset(GoalCoords.BlueGoalXPedroForAiming, GoalCoords.BlueGoalYPedroForAiming);
                         drive.runAutoAlignToTag(offsetRadBlue, rb, leftY, leftX);
 
                         if (Math.abs(Math.toDegrees(offsetRadBlue)) < 1.5) {
@@ -194,8 +208,8 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                 shooter.runDynamicOuttake(gamepad1.a, gamepad1.left_stick_button, telemetry, vision.getGoalTagHorizontalDistance());
                 break;
             case ODOMETRY:
-                double targetX = (allianceColor == AllianceColor.RED) ? GoalCoords.RedGoalX : GoalCoords.BlueGoalX;
-                double targetY = (allianceColor == AllianceColor.RED) ? GoalCoords.RedGoalY : GoalCoords.BlueGoalY;
+                double targetX = (allianceColor == AllianceColor.RED) ? GoalCoords.RedGoalXPEDRO : GoalCoords.BlueGoalXPEDRO;
+                double targetY = (allianceColor == AllianceColor.RED) ? GoalCoords.RedGoalYPEDRO : GoalCoords.BlueGoalYPEDRO;
                 double distance = drive.getOdometryDistanceFromGoal(targetX, targetY);
                 shooter.runDynamicOdometryOuttake(gamepad1.a, telemetry, distance);
                 break;
@@ -209,18 +223,17 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     public void displayTelemetry() {
         telemetry.addData("Drive Mode: ", drive.getDriveMode());
         telemetry.addData("alliance", allianceColor);
-//        telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());
+        telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());
         telemetry.addData("Aiming method: ", robotAimingMethod);
-        telemetry.addData("ODOMETRY DISTANCE", drive.getOdometryDistanceFromGoal(GoalCoords.RedGoalX, GoalCoords.RedGoalY));
+        telemetry.addData("ODOMETRY DISTANCE", drive.getOdometryDistanceFromGoal(GoalCoords.RedGoalXPEDRO, GoalCoords.RedGoalYPEDRO));
 //        telemetry.addData("Tag Horizontal Distance (in): " , String.format("%.2f", vision.getGoalTagHorizontalDistance()));
 //        telemetry.addData("Tag Bearing:", String.format("%.2f", vision.getGoalTagBearing()));
 //        telemetry.addData("distance sensor: (CM)" , transfer.transferDistanceSensor.getDistance(DistanceUnit.CM));
-        telemetry.addData("offset rad", drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalX, GoalCoords.RedGoalY));
-        telemetry.addData("heading:", drive.pinpoint.getHeading(AngleUnit.RADIANS));
-        telemetry.addData("heading: (degrees)", drive.pinpoint.getHeading(AngleUnit.DEGREES));
-        telemetry.addData("robot pose x", drive.pinpoint.getPosition().getX(DistanceUnit.INCH));
-        telemetry.addData("robot pose y", drive.pinpoint.getPosition().getY(DistanceUnit.INCH));
-        telemetry.addData("robot pose head", drive.pinpoint.getPosition().getHeading(AngleUnit.RADIANS));
+//        telemetry.addData("offset rad", drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalX, GoalCoords.RedGoalY));
+//        telemetry.addData("heading: (degrees)", drive.pinpoint.getHeading(AngleUnit.DEGREES));
+//        telemetry.addData("robot pose x", drive.pinpoint.getPosition().getX(DistanceUnit.INCH));
+//        telemetry.addData("robot pose y", drive.pinpoint.getPosition().getY(DistanceUnit.INCH));
+//        telemetry.addData("robot pose head", drive.pinpoint.getPosition().getHeading(AngleUnit.RADIANS));
 
 
 //        telemetry.addData("transfer active: " , transfer.transferActive);

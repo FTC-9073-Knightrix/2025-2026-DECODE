@@ -24,7 +24,5 @@ public class TeleOpModeRED extends TeleOpMethods {
         runTransfer();
         runOuttake();
         displayTelemetry(); // this shows text on the driver hub
-        drive.pinpoint.update();
-
     }
 }

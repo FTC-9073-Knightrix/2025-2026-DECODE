@@ -24,7 +24,7 @@ public class PedroRobot {
     public DcMotorEx outtakeMotor;
     public Servo hoodServo;
     public final double midShotTargetVelocityTicks = -1150.0;
-    public final double farShotTargetVelocityTicks = -1500.0;
+    public final double farShotTargetVelocityTicks = -1480.0;
     public double hoodPosition = 0.6;
 
     final private double ACCEPTABLE_VELOCITY_ERROR = 75.0;

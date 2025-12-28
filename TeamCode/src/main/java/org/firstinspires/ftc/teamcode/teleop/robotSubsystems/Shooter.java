@@ -31,7 +31,7 @@ public class Shooter {
     private final double FAR_SHOT_HOOD = 0.45;
     private double hoodPosition = 0.85;
 
-    private boolean outtakeOn = false; // start the match with outtake on
+    private boolean outtakeOn = true; // start the match with outtake on
     private boolean lastAState = false;
     private boolean lastDpadLeft = false;
     private boolean lastDpadRight = false;
@@ -41,9 +41,9 @@ public class Shooter {
     // PIDF tuning resources: https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/tuning-flywheel.html
     // After kV is set, tune kP to minimize error, use small increases
     private final double kP = 33;
-    private final double kI = 0.9;
-    private final double kD = 0.02;
-    private final double kF = 0.7;
+    private final double kI = 0.95;
+    private final double kD = 0.025;
+    private final double kF = 1.0;
 
 
     public void init(HardwareMap hardwareMap) {

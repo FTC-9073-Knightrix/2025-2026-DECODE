@@ -108,7 +108,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                 switch (allianceColor)  {
                     case RED:
                         double offsetRadRed = drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalXPedroForAiming, GoalCoords.RedGoalYPedroForAiming);
-                        drive.runAutoAlignToTag(offsetRadRed, rb, leftY, leftX);
+                        drive.runAutoAlignToTag(offsetRadRed, rb, leftY, leftX, allianceColor);
 
                         if (Math.abs(Math.toDegrees(offsetRadRed)) < 1.5) {
                             lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
@@ -119,7 +119,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                         break;
                     case BLUE:
                         double offsetRadBlue = drive.getRobotOdoHeadingOffset(GoalCoords.BlueGoalXPedroForAiming, GoalCoords.BlueGoalYPedroForAiming);
-                        drive.runAutoAlignToTag(offsetRadBlue, rb, leftY, leftX);
+                        drive.runAutoAlignToTag(offsetRadBlue, rb, leftY, leftX, allianceColor);
 
                         if (Math.abs(Math.toDegrees(offsetRadBlue)) < 1.5) {
                             lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
@@ -143,7 +143,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                         offsetDegrees = 3;
                     }
 
-                    drive.runAutoAlignToTag(Math.toRadians(vision.getGoalTagBearing() + offsetDegrees), rb, leftY, leftX);
+                    drive.runAutoAlignToTag(Math.toRadians(vision.getGoalTagBearing() + offsetDegrees), rb, leftY, leftX, allianceColor);
 
                     // SET LIGHTS TO GREEN IF THE CAMERA IS LOCKED ON
                     // try to align with offset (the negative of the offsetDegrees)
@@ -155,13 +155,13 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                     }
                 }
                 else {
-                    drive.runManualMecanumDrive(rb, leftY, leftX, rightX, resetHeadingButton, resetPosButton);
+                    drive.runManualMecanumDrive(rb, leftY, leftX, rightX, resetHeadingButton, resetPosButton, allianceColor);
                     // red color because camera is not detecting tag
                     lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
                 }
                 break;
             case MANUAL:
-                drive.runManualMecanumDrive(rb, leftY, leftX, rightX, resetHeadingButton, resetPosButton);
+                drive.runManualMecanumDrive(rb, leftY, leftX, rightX, resetHeadingButton, resetPosButton, allianceColor);
                 drive.toggleRobotCentric(toggleDriveModeButton);
                 lights.setColor(RevBlinkinLedDriver.BlinkinPattern.BLUE_VIOLET);
                 break;
@@ -229,7 +229,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 //        telemetry.addData("Tag Horizontal Distance (in): " , String.format("%.2f", vision.getGoalTagHorizontalDistance()));
 //        telemetry.addData("Tag Bearing:", String.format("%.2f", vision.getGoalTagBearing()));
 //        telemetry.addData("distance sensor: (CM)" , transfer.transferDistanceSensor.getDistance(DistanceUnit.CM));
-//        telemetry.addData("offset rad", drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalX, GoalCoords.RedGoalY));
+        telemetry.addData("offset rad", drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalXPedroForAiming, GoalCoords.RedGoalYPedroForAiming));
 //        telemetry.addData("heading: (degrees)", drive.pinpoint.getHeading(AngleUnit.DEGREES));
 //        telemetry.addData("robot pose x", drive.pinpoint.getPosition().getX(DistanceUnit.INCH));
 //        telemetry.addData("robot pose y", drive.pinpoint.getPosition().getY(DistanceUnit.INCH));

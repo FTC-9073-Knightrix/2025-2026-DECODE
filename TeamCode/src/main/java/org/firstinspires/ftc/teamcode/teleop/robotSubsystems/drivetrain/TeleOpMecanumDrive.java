@@ -16,7 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.teleop.mainRobot.TeleOpMethods;
+import org.firstinspires.ftc.teamcode.teleop.mainRobot.TeleOpMethods.AllianceColor;
 
 import static org.firstinspires.ftc.teamcode.RobotStaticVariables.END_OF_AUTO_POSITION;
 
@@ -55,6 +55,11 @@ public class TeleOpMecanumDrive {
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         pinpoint = hwMap.get(GoBildaPinpointDriver.class, "pinpoint");
         follower = Constants.createFollower(hwMap);
         rev_imu = hwMap.get(IMU.class, "imu");
@@ -64,8 +69,6 @@ public class TeleOpMecanumDrive {
                 RevHubOrientationOnRobot.UsbFacingDirection.UP
         );
         rev_imu.initialize(new IMU.Parameters(RevOrientation));
-//        pinpoint.resetPosAndIMU();
-//        pinpoint.setPosition(startPose);
         robotCentric = false;
 
         follower.setPose(END_OF_AUTO_POSITION);
@@ -80,7 +83,7 @@ public class TeleOpMecanumDrive {
         this.driveMode = driveMode;
     }
 
-    public void runManualMecanumDrive(boolean rb, double y, double x, double rx, boolean resetHeadingButton, boolean resetPosButton) {
+    public void runManualMecanumDrive(boolean rb, double y, double x, double rx, boolean resetHeadingButton, boolean resetPosButton, AllianceColor allianceColor) {
         if (rb) {
             finalSlowMode = slowSpeed;
         } else {
@@ -94,7 +97,15 @@ public class TeleOpMecanumDrive {
 
         if (resetPosButton) {
 //            pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.RADIANS, 0));
-            Pose resetPose = new Pose(105.23, 33.6, 0); // in the blue square
+            Pose resetPose = new Pose(105.3, 33.3, 0); // in the blue square
+            switch (allianceColor) {
+                case RED:
+                    resetPose = new Pose(9.2, 9.4, Math.toRadians(180));
+                    break;
+                case BLUE:
+                    resetPose = new Pose(134.7, 9.3, 0);
+                    break;
+            }
             follower.setPose(resetPose);
         }
 
@@ -123,7 +134,7 @@ public class TeleOpMecanumDrive {
         }
 
         // scale rotX to speed up turning
-        rotX = rotX * 1.2;
+        rotX = rotX * 1.1;
 
         double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
         double frontLeftPower = (rotY + rotX + rx) / denominator;
@@ -191,11 +202,11 @@ public class TeleOpMecanumDrive {
     private double lastBearingError = 0.0;
     private double integralSum = 0.0;
     ElapsedTime driveTimer = new ElapsedTime();
-    public void runAutoAlignToTag(double bearingOffsetRad, boolean rb, double y, double x) {
+    public void runAutoAlignToTag(double bearingOffsetRad, boolean rb, double y, double x, AllianceColor allianceColor) {
         // PID coefficients
-        double kP = 0.9;
-        double kI = 0.15; // Integral coefficient - helps overcome static friction
-        double kD = 0.04; // TODO TUNE
+        double kP = 0.75;
+        double kI = 0.2; // Integral coefficient - helps overcome static friction
+        double kD = 0.02; // TODO TUNE
 
         double maxPower = 1.0; // maximum turn power
         double alignmentThreshold = 0.01; // radians, adjust as needed
@@ -232,6 +243,6 @@ public class TeleOpMecanumDrive {
         driveTimer.reset();
 
         // The Driver can still translate while auto-aligning, but cannot manually rotate
-        runManualMecanumDrive(rb, y, x, turnPower, false, false);
+        runManualMecanumDrive(rb, y, x, turnPower, false, false, allianceColor);
     }
 }

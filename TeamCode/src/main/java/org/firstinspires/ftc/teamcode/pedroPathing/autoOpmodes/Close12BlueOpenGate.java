@@ -72,6 +72,11 @@ public class Close12BlueOpenGate extends OpMode {
         panelsTelemetry.update(telemetry);
     }
 
+    @Override
+    public void stop() {
+        RobotStaticVariables.END_OF_AUTO_POSITION = follower.getPose();
+    }
+
     public static class Paths {
 
         public double WaitTime;
@@ -98,7 +103,7 @@ public class Close12BlueOpenGate extends OpMode {
             DriveToFirstTape = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(144 - 89.249, 83.288), new Pose(144 - 128.000, 83.428))
+                            new BezierLine(new Pose(144 - 89.249, 83.288), new Pose(144 - 126.000, 83.428))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180 - 48), Math.toRadians(180 - 0), 0.2)
 
@@ -108,10 +113,10 @@ public class Close12BlueOpenGate extends OpMode {
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(144 - 128.000, 83.428),
+                                    new Pose(144 - 126.000, 83.428),
                                     new Pose(144 - 119.363, 79.257),
                                     new Pose(144 - 110.960, 72.191),
-                                    new Pose(144 - 127.340, 75.0)
+                                    new Pose(144 - 126.340, 75.0)
                             )
                     )
                     .setConstantHeadingInterpolation(Math.toRadians(180 - 0))
@@ -121,7 +126,7 @@ public class Close12BlueOpenGate extends OpMode {
             DriveBackFromGate = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(144 - 127.340, 75), new Pose(144 - 89.389, 83.149))
+                            new BezierLine(new Pose(144 - 126.340, 75), new Pose(144 - 89.389, 83.149))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180 - 0), Math.toRadians(180 - 48))
                     .build();
@@ -134,7 +139,7 @@ public class Close12BlueOpenGate extends OpMode {
                                     new Pose(144 - 89.389, 83.149),
                                     new Pose(144 - 85.351, 57.069),
                                     new Pose(144 - 95.320, 59.379),
-                                    new Pose(144 - 135.000, 59.400)
+                                    new Pose(144 - 133.500, 59.400)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180 - 48), Math.toRadians(180 - 0), 0.3)
@@ -144,7 +149,7 @@ public class Close12BlueOpenGate extends OpMode {
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(144 - 135.000, 59.400),
+                                    new Pose(144 - 133.500, 59.400),
                                     new Pose(144 - 91.673, 59.014),
                                     new Pose(144 - 89.363, 83.209)
                             )
@@ -160,7 +165,7 @@ public class Close12BlueOpenGate extends OpMode {
                                     new Pose(144 - 89.363, 83.209),
                                     new Pose(144 - 80.487, 27.800),
                                     new Pose(144 - 93.010, 35.670),
-                                    new Pose(144 - 135.000, 35.400)
+                                    new Pose(144 - 133.500, 35.400)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180 - 48), Math.toRadians(180 - 0), 0.3)
@@ -169,7 +174,7 @@ public class Close12BlueOpenGate extends OpMode {
             DriveBackFromThirdTape = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(144 - 134.000, 35.400), new Pose(144 - 89.389, 83.428))
+                            new BezierLine(new Pose(144 - 133.500, 35.400), new Pose(144 - 89.389, 83.428))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180 - 0), Math.toRadians(180 - 48))
                     .build();

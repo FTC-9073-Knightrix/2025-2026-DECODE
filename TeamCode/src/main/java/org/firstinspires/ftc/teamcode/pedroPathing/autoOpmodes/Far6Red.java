@@ -11,12 +11,13 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.RobotStaticVariables;
 
-@Autonomous(name = "Far 9 Blue", group = "Pedro Autonomous")
+import org.firstinspires.ftc.teamcode.RobotStaticVariables;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+
+@Autonomous(name = "Far 6 Red", group = "Pedro Autonomous")
 @Configurable // Panels
-public class Far9Blue extends OpMode {
+public class Far6Red extends OpMode {
 
     public enum PathState {
         WAITING_TO_START,
@@ -25,9 +26,6 @@ public class Far9Blue extends OpMode {
         DRIVE_TO_FIRST_TAPE,
         RETURN_TO_SHOOT_FIRST_THREE,
         SHOOT_FIRST_THREE,
-        DRIVE_TO_CORNER,
-        RETURN_TO_SHOOT_CORNER,
-        SHOOT_CORNER,
         DRIVE_TO_LEAVE
     }
 
@@ -45,7 +43,7 @@ public class Far9Blue extends OpMode {
         pathTimer = new Timer();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(144 - 86.857, 8.990, Math.toRadians(180 - 90)));
+        follower.setStartingPose(new Pose(86.857, 8.990, Math.toRadians(90)));
 
         paths = new Paths(follower); // Build paths
 
@@ -81,63 +79,63 @@ public class Far9Blue extends OpMode {
             DriveToShootPreload = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(144 - 86.857, 8.990), new Pose(144 - 88.229, 16.152))
+                            new BezierLine(new Pose(86.857, 8.990), new Pose(88.229, 16.152))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180 - 90), Math.toRadians(180 - 65))
+                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(65))
                     .build();
 
             DriveToFirstTape = follower
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(144 - 88.229, 16.152),
-                                    new Pose(144 - 80.305, 37.638),
-                                    new Pose(144 - 110.933, 35.505),
-                                    new Pose(144 - 134.705, 35.505)
+                                    new Pose(88.229, 16.152),
+                                    new Pose(80.305, 37.638),
+                                    new Pose(110.933, 35.505),
+                                    new Pose(134.705, 35.505)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180 - 65), Math.toRadians(180 - 0), 0.3)
+                    .setLinearHeadingInterpolation(Math.toRadians(65), Math.toRadians(0), 0.3)
                     .build();
 
             DriveBackFromFirstTape = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(144 - 134.705, 35.505), new Pose(144 - 88.381, 16.152))
+                            new BezierLine(new Pose(134.705, 35.505), new Pose(88.381, 16.152))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180 - 0), Math.toRadians(180 - 65))
+                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(65))
                     .build();
 
             DriveToCorner = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(144 - 88.381, 16.152), new Pose(144 - 133.029, 12.038))
+                            new BezierLine(new Pose(88.381, 16.152), new Pose(133.029, 12.038))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180 - 65), Math.toRadians(180 - 0), 0.4)
+                    .setLinearHeadingInterpolation(Math.toRadians(65), Math.toRadians(0), 0.4)
                     .addPath(
                             new BezierCurve(
-                                    new Pose(144 - 133.029, 12.038),
-                                    new Pose(144 - 122.057, 18.133),
-                                    new Pose(144 - 118.248, 10.514),
-                                    new Pose(144 - 132.876, 9.905)
+                                    new Pose(133.029, 12.038),
+                                    new Pose(122.057, 18.133),
+                                    new Pose(118.248, 10.514),
+                                    new Pose(132.876, 9.905)
                             )
                     )
-                    .setConstantHeadingInterpolation(Math.toRadians(180 - 0))
+                    .setConstantHeadingInterpolation(Math.toRadians(0))
                     .build();
 
             DriveBackFromCorner = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(144 - 132.876, 9.905), new Pose(144 - 88.381, 16.305))
+                            new BezierLine(new Pose(132.876, 9.905), new Pose(88.381, 16.305))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180 - 0), Math.toRadians(180 - 65))
+                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(65))
                     .build();
 
             DriveToLeave = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(144 - 88.381, 16.305), new Pose(144 - 119.619, 10.819))
+                            new BezierLine(new Pose(88.381, 16.305), new Pose(119.619, 10.819))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180 - 65), Math.toRadians(180 - 0))
+                    .setLinearHeadingInterpolation(Math.toRadians(65), Math.toRadians(0))
                     .build();
         }
     }
@@ -184,32 +182,9 @@ public class Far9Blue extends OpMode {
             case SHOOT_FIRST_THREE:
                 robot.runTransfer(); // needs to be called repeatedly to run transfer
                 if (!robot.transferStillRunning() || pathTimer.getElapsedTimeSeconds() > paths.WaitTime) {
-                    follower.followPath(paths.DriveToCorner);
-                    robot.resetTransfer();
-                    robot.stopTransfer();
-                    setPathState(PathState.DRIVE_TO_CORNER);
-                }
-                break;
-            case DRIVE_TO_CORNER:
-                if (!follower.isBusy()) {
-                    follower.followPath(paths.DriveBackFromCorner);
-                    setPathState(PathState.RETURN_TO_SHOOT_CORNER);
-                }
-                break;
-            case RETURN_TO_SHOOT_CORNER:
-                if (!follower.isBusy()) {
-                    setPathState(PathState.SHOOT_CORNER);
-                    robot.initTransfer(robot.farShotTargetVelocityTicks);
-                }
-                break;
-            case SHOOT_CORNER:
-                robot.runTransfer();
-                if (!robot.transferStillRunning() || pathTimer.getElapsedTimeSeconds() > paths.WaitTime) {
                     follower.followPath(paths.DriveToLeave);
                     robot.resetTransfer();
                     robot.stopTransfer();
-                    robot.stopIntake();
-                    robot.stopShooter();
                     setPathState(PathState.DRIVE_TO_LEAVE);
                 }
                 break;
@@ -228,4 +203,3 @@ public class Far9Blue extends OpMode {
         pathTimer.resetTimer();
     }
 }
-

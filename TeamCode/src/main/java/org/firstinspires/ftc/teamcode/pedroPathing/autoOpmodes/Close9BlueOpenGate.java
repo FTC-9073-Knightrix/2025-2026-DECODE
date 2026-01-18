@@ -14,23 +14,25 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.RobotStaticVariables;
 
-@Autonomous(name = "Pedro Close 12 Blue", group = "Pedro Autonomous")
+@Autonomous(name = "Pedro Close 9 Blue Open Gate", group = "Pedro Autonomous")
 @Configurable // Panels
-public class Close12Blue extends OpMode {
+public class Close9BlueOpenGate extends OpMode {
 
     public enum PathState {
         WAITING_TO_START,
         DRIVE_TO_SHOOT_PRELOAD,
         SHOOT_FIRST_PRELOAD,
         DRIVE_TO_FIRST_TAPE,
+        OPEN_THE_GATE,
+        WAIT_WHILE_OPENING_GATE,
         RETURN_TO_SHOOT_FIRST_THREE,
         SHOOT_FIRST_THREE,
         DRIVE_TO_SECOND_TAPE,
         RETURN_TO_SHOOT_SECOND_THREE,
         SHOOT_SECOND_THREE,
-        DRIVE_TO_THIRD_TAPE,
-        RETURN_TO_SHOOT_THIRD_THREE,
-        SHOOT_THIRD_THREE,
+//        DRIVE_TO_THIRD_TAPE,
+//        RETURN_TO_SHOOT_THIRD_THREE,
+//        SHOOT_THIRD_THREE,
         DRIVE_TO_FINAL_GATE_POSITION
     }
 
@@ -75,10 +77,11 @@ public class Close12Blue extends OpMode {
         public double WaitTime;
         public PathChain DriveToShootPreload;
         public PathChain DriveToFirstTape;
-        public PathChain DriveBackFromFirstTape;
+        public PathChain OpenTheGate;
+        public PathChain DriveBackFromGate;
         public PathChain DriveToSecondTape;
         public PathChain DriveBackFromSecondTape;
-        public PathChain DrivetoThirdTape;
+        public PathChain DriveToThirdTape;
         public PathChain DriveBackFromThirdTape;
         public PathChain DriveToFinalGatePosition;
 
@@ -95,15 +98,30 @@ public class Close12Blue extends OpMode {
             DriveToFirstTape = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(144 - 89.249, 83.288), new Pose(144 - 126.000, 83.428))
+                            new BezierLine(new Pose(144 - 89.249, 83.288), new Pose(144 - 128.000, 83.428))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180 - 48), Math.toRadians(180 - 0), 0.2)
+
                     .build();
 
-            DriveBackFromFirstTape = follower
+            OpenTheGate = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(144 - 126.000, 83.428), new Pose(144 - 89.389, 83.149))
+                            new BezierCurve(
+                                    new Pose(144 - 128.000, 83.428),
+                                    new Pose(144 - 119.363, 79.257),
+                                    new Pose(144 - 110.960, 72.191),
+                                    new Pose(144 - 127.340, 75.0)
+                            )
+                    )
+                    .setConstantHeadingInterpolation(Math.toRadians(180 - 0))
+                    .setVelocityConstraint(10)
+                    .build();
+
+            DriveBackFromGate = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(144 - 127.340, 75), new Pose(144 - 89.389, 83.149))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180 - 0), Math.toRadians(180 - 48))
                     .build();
@@ -116,7 +134,7 @@ public class Close12Blue extends OpMode {
                                     new Pose(144 - 89.389, 83.149),
                                     new Pose(144 - 85.351, 57.069),
                                     new Pose(144 - 95.320, 59.379),
-                                    new Pose(144 - 133.500, 59.400)
+                                    new Pose(144 - 135.000, 59.400)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180 - 48), Math.toRadians(180 - 0), 0.3)
@@ -126,7 +144,7 @@ public class Close12Blue extends OpMode {
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(144 - 133.500, 59.400),
+                                    new Pose(144 - 135.000, 59.400),
                                     new Pose(144 - 91.673, 59.014),
                                     new Pose(144 - 89.363, 83.209)
                             )
@@ -135,14 +153,14 @@ public class Close12Blue extends OpMode {
                     .build();
 
 
-            DrivetoThirdTape = follower
+            DriveToThirdTape = follower
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
                                     new Pose(144 - 89.363, 83.209),
                                     new Pose(144 - 80.487, 27.800),
                                     new Pose(144 - 93.010, 35.670),
-                                    new Pose(144 - 133.500, 35.400)
+                                    new Pose(144 - 135.000, 35.400)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180 - 48), Math.toRadians(180 - 0), 0.3)
@@ -151,7 +169,7 @@ public class Close12Blue extends OpMode {
             DriveBackFromThirdTape = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(144 - 133.500, 35.400), new Pose(144 - 89.389, 83.428))
+                            new BezierLine(new Pose(144 - 134.000, 35.400), new Pose(144 - 89.389, 83.428))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180 - 0), Math.toRadians(180 - 48))
                     .build();
@@ -195,7 +213,18 @@ public class Close12Blue extends OpMode {
             case DRIVE_TO_FIRST_TAPE:
                 // Drive to first tape mark
                 if (!follower.isBusy()) {
-                    follower.followPath(paths.DriveBackFromFirstTape);
+                    follower.followPath(paths.OpenTheGate);
+                    setPathState(PathState.OPEN_THE_GATE);
+                }
+                break;
+            case OPEN_THE_GATE:
+                if (!follower.isBusy()) {
+                    setPathState(PathState.WAIT_WHILE_OPENING_GATE);
+                }
+                break;
+            case WAIT_WHILE_OPENING_GATE:
+                if (pathTimer.getElapsedTimeSeconds() > 1.5) {
+                    follower.followPath(paths.DriveBackFromGate);
                     setPathState(PathState.RETURN_TO_SHOOT_FIRST_THREE);
                 }
                 break;
@@ -233,42 +262,20 @@ public class Close12Blue extends OpMode {
             case SHOOT_SECOND_THREE:
                 robot.runTransfer();
                 if (!robot.transferStillRunning() || pathTimer.getElapsedTimeSeconds() > paths.WaitTime) {
-                    follower.followPath(paths.DrivetoThirdTape);
-                    setPathState(PathState.DRIVE_TO_THIRD_TAPE);
-                    robot.resetTransfer();
-                    robot.stopTransfer();
-                 }
-                 break;
-            case DRIVE_TO_THIRD_TAPE:
-                // Drive to third sample
-                if (!follower.isBusy()) {
-                    /* Intake third sample */
-                    follower.followPath(paths.DriveBackFromThirdTape);
-                    setPathState(PathState.RETURN_TO_SHOOT_THIRD_THREE);
-                }
-                break;
-            case RETURN_TO_SHOOT_THIRD_THREE:
-                // Return to final position
-                if (!follower.isBusy()) {
-                    setPathState(PathState.SHOOT_THIRD_THREE);
-                    robot.initTransfer(robot.midShotTargetVelocityTicks);
-                }
-                break;
-            case SHOOT_THIRD_THREE:
-                robot.runTransfer();
-                if (!robot.transferStillRunning() || pathTimer.getElapsedTimeSeconds() > paths.WaitTime) {
-                    /* Shoot third sample here or park */
+                    follower.followPath(paths.DriveToThirdTape);
                     setPathState(PathState.DRIVE_TO_FINAL_GATE_POSITION);
-                    follower.followPath(paths.DriveToFinalGatePosition);
                     robot.resetTransfer();
                     robot.stopTransfer();
                     robot.stopIntake();
                     robot.stopShooter();
-                 }
-                 break;
+                }
+                break;
+
             case DRIVE_TO_FINAL_GATE_POSITION:
                 // End of autonomous
-                RobotStaticVariables.END_OF_AUTO_POSITION = follower.getPose();
+                if (!follower.isBusy()) {
+                    RobotStaticVariables.END_OF_AUTO_POSITION = follower.getPose();
+                }
                 break;
         }
     }

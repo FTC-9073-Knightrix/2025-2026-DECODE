@@ -72,6 +72,11 @@ public class Close12RedOpenGate extends OpMode {
         panelsTelemetry.update(telemetry);
     }
 
+    @Override
+    public void stop() {
+        RobotStaticVariables.END_OF_AUTO_POSITION = follower.getPose();
+    }
+
     public static class Paths {
 
         public double WaitTime;

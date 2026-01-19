@@ -81,7 +81,7 @@ public class Far6Blue extends OpMode {
                     .addPath(
                             new BezierLine(new Pose(144 - 86.857, 8.990), new Pose(144 - 88.229, 16.152))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180 - 90), Math.toRadians(180 - 65))
+                    .setLinearHeadingInterpolation(Math.toRadians(180 - 90), Math.toRadians(180 - 67))
                     .build();
 
             DriveToFirstTape = follower
@@ -94,7 +94,7 @@ public class Far6Blue extends OpMode {
                                     new Pose(144 - 134.705, 35.505)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180 - 65), Math.toRadians(180 - 0), 0.3)
+                    .setLinearHeadingInterpolation(Math.toRadians(180 - 67), Math.toRadians(180 - 0), 0.3)
                     .build();
 
             DriveBackFromFirstTape = follower
@@ -102,7 +102,7 @@ public class Far6Blue extends OpMode {
                     .addPath(
                             new BezierLine(new Pose(144 - 134.705, 35.505), new Pose(144 - 88.381, 16.152))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180 - 0), Math.toRadians(180 - 65))
+                    .setLinearHeadingInterpolation(Math.toRadians(180 - 0), Math.toRadians(180 - 67))
                     .build();
 
             DriveToCorner = follower
@@ -110,7 +110,7 @@ public class Far6Blue extends OpMode {
                     .addPath(
                             new BezierLine(new Pose(144 - 88.381, 16.152), new Pose(144 - 133.029, 12.038))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180 - 65), Math.toRadians(180 - 0), 0.4)
+                    .setLinearHeadingInterpolation(Math.toRadians(180 - 67), Math.toRadians(180 - 0), 0.4)
                     .addPath(
                             new BezierCurve(
                                     new Pose(144 - 133.029, 12.038),
@@ -127,7 +127,7 @@ public class Far6Blue extends OpMode {
                     .addPath(
                             new BezierLine(new Pose(144 - 132.876, 9.905), new Pose(144 - 88.381, 16.305))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180 - 0), Math.toRadians(180 - 65))
+                    .setLinearHeadingInterpolation(Math.toRadians(180 - 0), Math.toRadians(180 - 67))
                     .build();
 
             DriveToLeave = follower
@@ -135,7 +135,7 @@ public class Far6Blue extends OpMode {
                     .addPath(
                             new BezierLine(new Pose(144 - 88.381, 16.305), new Pose(144 - 119.619, 10.819))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(180 - 65), Math.toRadians(180 - 0))
+                    .setLinearHeadingInterpolation(Math.toRadians(180 - 67), Math.toRadians(180 - 0))
                     .build();
         }
     }
@@ -185,6 +185,7 @@ public class Far6Blue extends OpMode {
                     follower.followPath(paths.DriveToLeave);
                     robot.resetTransfer();
                     robot.stopTransfer();
+                    robot.stopShooter();
                     setPathState(PathState.DRIVE_TO_LEAVE);
                 }
                 break;

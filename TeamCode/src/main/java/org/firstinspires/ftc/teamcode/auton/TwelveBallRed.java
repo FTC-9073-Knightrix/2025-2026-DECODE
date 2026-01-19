@@ -8,9 +8,10 @@ import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-
+@Disabled
 @Autonomous(name="Twelve Ball Red", group="Autonomous")
 public class TwelveBallRed extends AutonMethods {
     @Override

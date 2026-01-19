@@ -185,6 +185,7 @@ public class Far6Red extends OpMode {
                     follower.followPath(paths.DriveToLeave);
                     robot.resetTransfer();
                     robot.stopTransfer();
+                    robot.stopShooter();
                     setPathState(PathState.DRIVE_TO_LEAVE);
                 }
                 break;

@@ -78,7 +78,7 @@ public class AprilTagAutoAlign extends OpMode {
             drive.runAutoAlignToTag(Math.toRadians(tag.ftcPose.bearing), rb, leftY, leftX, TeleOpMethods.AllianceColor.RED);
         }
         else {
-            drive.runManualMecanumDrive(lb, leftY, leftX, rightX, yButton, gamepad1.left_stick_button, TeleOpMethods.AllianceColor.RED);
+            drive.runManualMecanumDrive(lb, leftY, leftX, rightX, yButton, gamepad1.left_stick_button, false, false, TeleOpMethods.AllianceColor.RED);
         }
 
         telemetry.update();

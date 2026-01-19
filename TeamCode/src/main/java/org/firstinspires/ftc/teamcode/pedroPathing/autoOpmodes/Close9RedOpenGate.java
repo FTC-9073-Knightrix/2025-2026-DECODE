@@ -112,7 +112,7 @@ public class Close9RedOpenGate extends OpMode {
                                     new Pose(128.000, 83.428),
                                     new Pose(119.363, 79.257),
                                     new Pose(110.960, 72.191),
-                                    new Pose(127.340, 75.0)
+                                    new Pose(127.340, 76.0)
                             )
                     )
                     .setConstantHeadingInterpolation(Math.toRadians(0))
@@ -122,7 +122,7 @@ public class Close9RedOpenGate extends OpMode {
             DriveBackFromGate = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(127.340, 75), new Pose(89.389, 83.149))
+                            new BezierLine(new Pose(127.340, 76), new Pose(89.389, 83.149))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(48))
                     .build();
@@ -263,7 +263,7 @@ public class Close9RedOpenGate extends OpMode {
             case SHOOT_SECOND_THREE:
                 robot.runTransfer();
                 if (!robot.transferStillRunning() || pathTimer.getElapsedTimeSeconds() > paths.WaitTime) {
-                    follower.followPath(paths.DriveToThirdTape);
+                    follower.followPath(paths.DriveToFinalGatePosition);
                     setPathState(PathState.DRIVE_TO_FINAL_GATE_POSITION);
                     robot.resetTransfer();
                     robot.stopTransfer();

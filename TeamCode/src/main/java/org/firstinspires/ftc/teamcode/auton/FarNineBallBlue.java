@@ -9,9 +9,11 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.VelConstraint;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
+@Disabled
 @Autonomous (name="Far Nine Ball Blue", group="Autonomous")
 public class FarNineBallBlue extends AutonMethods {
     @Override

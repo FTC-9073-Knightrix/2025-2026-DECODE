@@ -67,16 +67,16 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         // toggle the tracking method between odometry and web camera
         boolean turnOnOdometryButton = gamepad1.dpad_left;
         boolean turnOnCameraButton = gamepad1.dpad_right;
-        boolean turnOffBothButton = gamepad1.dpad_up; // have manual setpoints if both odometry and camera fail
+//        boolean turnOffBothButton = gamepad1.dpad_up; // have manual setpoints if both odometry and camera fail
         if (turnOnCameraButton) {
             robotAimingMethod = AimingMethod.CAMERA;
         }
         else if (turnOnOdometryButton) {
             robotAimingMethod = AimingMethod.ODOMETRY;
         }
-        else if (turnOffBothButton) {
-            robotAimingMethod = AimingMethod.MANUAL_ADJUST;
-        }
+//        else if (turnOffBothButton) {
+//            robotAimingMethod = AimingMethod.MANUAL_ADJUST;
+//        }
     }
 
     public void runToggledDrive() {
@@ -91,7 +91,9 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         boolean lockTrigger = gamepad1.left_trigger > 0.5;
         boolean resetHeadingButton = gamepad1.y;
         boolean resetPosButton = gamepad1.left_stick_button;
-        boolean toggleDriveModeButton = gamepad1.right_stick_button;
+//        boolean toggleDriveModeButton = gamepad1.right_stick_button;
+        boolean resetPosInFarZoneButton = gamepad1.right_stick_button;
+        boolean resetPosInClozeZoneButton = gamepad1.dpad_up;
 
         if (lockTrigger && robotAimingMethod == AimingMethod.ODOMETRY) {
             drive.setDriveMode(TeleOpMecanumDrive.DriveMode.ODOMETRY_LOCKED_ON);
@@ -110,7 +112,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                         double offsetRadRed = drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalXPedroForAiming, GoalCoords.RedGoalYPedroForAiming);
                         drive.runAutoAlignToTag(offsetRadRed, rb, leftY, leftX, allianceColor);
 
-                        if (Math.abs(Math.toDegrees(offsetRadRed)) < 1.5) {
+                        if (Math.abs(Math.toDegrees(offsetRadRed)) < 2.0) {
                             lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
                         }
                         else {
@@ -121,7 +123,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                         double offsetRadBlue = drive.getRobotOdoHeadingOffset(GoalCoords.BlueGoalXPedroForAiming, GoalCoords.BlueGoalYPedroForAiming);
                         drive.runAutoAlignToTag(offsetRadBlue, rb, leftY, leftX, allianceColor);
 
-                        if (Math.abs(Math.toDegrees(offsetRadBlue)) < 1.5) {
+                        if (Math.abs(Math.toDegrees(offsetRadBlue)) < 2.0) {
                             lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
                         }
                         else {
@@ -155,14 +157,14 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                     }
                 }
                 else {
-                    drive.runManualMecanumDrive(rb, leftY, leftX, rightX, resetHeadingButton, resetPosButton, allianceColor);
+                    drive.runManualMecanumDrive(rb, leftY, leftX, rightX, resetHeadingButton, resetPosButton, resetPosInClozeZoneButton, resetPosInFarZoneButton, allianceColor);
                     // red color because camera is not detecting tag
                     lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
                 }
                 break;
             case MANUAL:
-                drive.runManualMecanumDrive(rb, leftY, leftX, rightX, resetHeadingButton, resetPosButton, allianceColor);
-                drive.toggleRobotCentric(toggleDriveModeButton);
+                drive.runManualMecanumDrive(rb, leftY, leftX, rightX, resetHeadingButton, resetPosButton, resetPosInClozeZoneButton, resetPosInFarZoneButton, allianceColor);
+//                drive.toggleRobotCentric(toggleDriveModeButton);
                 lights.setColor(RevBlinkinLedDriver.BlinkinPattern.BLUE_VIOLET);
                 break;
         }

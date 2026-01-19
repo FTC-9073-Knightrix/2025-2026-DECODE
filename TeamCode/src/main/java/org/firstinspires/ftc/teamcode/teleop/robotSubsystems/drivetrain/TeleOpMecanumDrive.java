@@ -83,7 +83,7 @@ public class TeleOpMecanumDrive {
         this.driveMode = driveMode;
     }
 
-    public void runManualMecanumDrive(boolean rb, double y, double x, double rx, boolean resetHeadingButton, boolean resetPosButton, AllianceColor allianceColor) {
+    public void runManualMecanumDrive(boolean rb, double y, double x, double rx, boolean resetHeadingButton, boolean resetPosButton, boolean resetPosInCloseZone, boolean resetPosInFarZone, AllianceColor allianceColor) {
         if (rb) {
             finalSlowMode = slowSpeed;
         } else {
@@ -104,6 +104,30 @@ public class TeleOpMecanumDrive {
                     break;
                 case BLUE:
                     resetPose = new Pose(134.7, 9.3, 0);
+                    break;
+            }
+            follower.setPose(resetPose);
+        }
+        if (resetPosInCloseZone) {
+            Pose resetPose = new Pose(105.3, 33.3, 0); // in the blue square
+            switch (allianceColor) {
+                case RED:
+                    resetPose = new Pose(128.16953642384107, 110.81324503311258, Math.toRadians(0));
+                    break;
+                case BLUE:
+                    resetPose = new Pose(16.021192052980133, 109.09668874172185, Math.toRadians(180));
+                    break;
+            }
+            follower.setPose(resetPose);
+        }
+        if (resetPosInFarZone) {
+            Pose resetPose = new Pose(105.3, 33.3, 0); // in the blue square
+            switch (allianceColor) {
+                case RED:
+                    resetPose = new Pose(57.21854304635761, 9.15496688741722, Math.toRadians(0));
+                    break;
+                case BLUE:
+                    resetPose = new Pose(86.78145695364238, 9.345695364238404, Math.toRadians(180));
                     break;
             }
             follower.setPose(resetPose);
@@ -243,6 +267,6 @@ public class TeleOpMecanumDrive {
         driveTimer.reset();
 
         // The Driver can still translate while auto-aligning, but cannot manually rotate
-        runManualMecanumDrive(rb, y, x, turnPower, false, false, allianceColor);
+        runManualMecanumDrive(rb, y, x, turnPower, false, false, false, false, allianceColor);
     }
 }

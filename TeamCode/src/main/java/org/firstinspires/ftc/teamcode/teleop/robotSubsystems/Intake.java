@@ -19,7 +19,7 @@ public class Intake {
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intakeMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         isTogglePressed = false;
-        intakeOn = false;
+        intakeOn = true; // start the match with intake on
     }
 
     public void runIntake(boolean toggleButton, boolean ejectButton) {

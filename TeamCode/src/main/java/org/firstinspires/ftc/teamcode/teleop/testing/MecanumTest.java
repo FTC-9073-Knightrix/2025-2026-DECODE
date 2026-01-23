@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.teleop.mainRobot.TeleOpMethods;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.drivetrain.TeleOpMecanumDrive;
 
 import java.util.Locale;
@@ -25,7 +26,7 @@ public class MecanumTest extends OpMode {
         double leftX = gamepad1.left_stick_x;
         double rightX = gamepad1.right_stick_x * .8;
         boolean yButton = gamepad1.y;
-        drive.runManualMecanumDrive(rb, lb, leftY, leftX, rightX, yButton);
+        drive.runManualMecanumDrive(rb, leftY, leftX, rightX, yButton, gamepad1.left_stick_button, false, false, TeleOpMethods.AllianceColor.RED);
 
         telemetry.addData("FL Power", drive.frontLeftMotor.getPower());
         telemetry.addData("FR Power", drive.frontRightMotor.getPower());

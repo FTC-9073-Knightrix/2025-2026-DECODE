@@ -13,7 +13,7 @@ public class Transfer {
     private boolean isTogglePressed;
 
     private final double TRANSFER_IN_POWER = 1.0;
-    private final double TRANSFER_FORCE_IN_POWER = 0.7;
+    private final double TRANSFER_FORCE_IN_POWER = 1.0;
     private final double TRANSFER_OUT_POWER = -1.0;
     private final double TRANSFER_STOP_POWER = 0.0;
 
@@ -21,7 +21,7 @@ public class Transfer {
         transferMotor = hw.get(DcMotor.class, "transfer");
         transferDistanceSensor = hw.get(DistanceSensor.class, "transferDistanceSensor");
 
-        transferMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        transferMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         transferActive = false;
         isTogglePressed = false;
     }

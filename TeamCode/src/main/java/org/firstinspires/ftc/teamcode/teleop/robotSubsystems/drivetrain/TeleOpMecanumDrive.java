@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleop.robotSubsystems.drivetrain;
 
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -13,23 +15,32 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.teleop.mainRobot.TeleOpMethods.AllianceColor;
+
+import static org.firstinspires.ftc.teamcode.RobotStaticVariables.END_OF_AUTO_POSITION;
 
 public class TeleOpMecanumDrive {
+
     public enum DriveMode {
         MANUAL,
-        LOCKED_ON
+        CAMERA_LOCKED_ON,
+        ODOMETRY_LOCKED_ON
     }
+
     private DriveMode driveMode = DriveMode.MANUAL;
     public DcMotor frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor;
     public IMU rev_imu;
     public YawPitchRollAngles orientation;
     public GoBildaPinpointDriver pinpoint;
+    public Follower follower;
 
     public double finalSlowMode = 0.0;
     public final double driveSpeed = 0.66;
     public final double fastSpeed = 1.0;
     public final double slowSpeed = 0.30;
 
+    // temporary start pose
     public Pose2D startPose = new Pose2D(DistanceUnit.INCH, -58, 44, AngleUnit.RADIANS, Math.toRadians(127));
 
     boolean robotCentric;
@@ -44,7 +55,13 @@ public class TeleOpMecanumDrive {
         frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         pinpoint = hwMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        follower = Constants.createFollower(hwMap);
         rev_imu = hwMap.get(IMU.class, "imu");
 
         RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(
@@ -52,9 +69,9 @@ public class TeleOpMecanumDrive {
                 RevHubOrientationOnRobot.UsbFacingDirection.UP
         );
         rev_imu.initialize(new IMU.Parameters(RevOrientation));
-
-        pinpoint.setPosition(startPose);
         robotCentric = false;
+
+        follower.setPose(END_OF_AUTO_POSITION);
         driveTimer.reset();
     }
 
@@ -66,8 +83,7 @@ public class TeleOpMecanumDrive {
         this.driveMode = driveMode;
     }
 
-    public void runManualMecanumDrive(boolean rb, boolean lb, double y, double x, double rx, boolean resetHeadingButton) {
-        pinpoint.update();
+    public void runManualMecanumDrive(boolean rb, double y, double x, double rx, boolean resetHeadingButton, boolean resetPosButton, boolean resetPosInCloseZone, boolean resetPosInFarZone, AllianceColor allianceColor) {
         if (rb) {
             finalSlowMode = slowSpeed;
         } else {
@@ -76,7 +92,45 @@ public class TeleOpMecanumDrive {
 
         if (resetHeadingButton) {
             rev_imu.resetYaw();
-            pinpoint.recalibrateIMU();
+//            pinpoint.recalibrateIMU();
+        }
+
+        if (resetPosButton) {
+//            pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.RADIANS, 0));
+            Pose resetPose = new Pose(105.3, 33.3, 0); // in the blue square
+            switch (allianceColor) {
+                case RED:
+                    resetPose = new Pose(9.2, 9.4, Math.toRadians(180));
+                    break;
+                case BLUE:
+                    resetPose = new Pose(134.7, 9.3, 0);
+                    break;
+            }
+            follower.setPose(resetPose);
+        }
+        if (resetPosInCloseZone) {
+            Pose resetPose = new Pose(105.3, 33.3, 0); // in the blue square
+            switch (allianceColor) {
+                case RED:
+                    resetPose = new Pose(128.16953642384107, 110.81324503311258, Math.toRadians(0));
+                    break;
+                case BLUE:
+                    resetPose = new Pose(16.021192052980133, 109.09668874172185, Math.toRadians(180));
+                    break;
+            }
+            follower.setPose(resetPose);
+        }
+        if (resetPosInFarZone) {
+            Pose resetPose = new Pose(105.3, 33.3, 0); // in the blue square
+            switch (allianceColor) {
+                case RED:
+                    resetPose = new Pose(57.21854304635761, 9.15496688741722, Math.toRadians(0));
+                    break;
+                case BLUE:
+                    resetPose = new Pose(86.78145695364238, 9.345695364238404, Math.toRadians(180));
+                    break;
+            }
+            follower.setPose(resetPose);
         }
 
         orientation = rev_imu.getRobotYawPitchRollAngles();
@@ -104,7 +158,7 @@ public class TeleOpMecanumDrive {
         }
 
         // scale rotX to speed up turning
-        rotX = rotX * 1.2;
+        rotX = rotX * 1.3;
 
         double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
         double frontLeftPower = (rotY + rotX + rx) / denominator;
@@ -116,8 +170,6 @@ public class TeleOpMecanumDrive {
         this.backLeftMotor.setPower(backLeftPower * finalSlowMode);
         this.frontRightMotor.setPower(frontRightPower * finalSlowMode);
         this.backRightMotor.setPower(backRightPower * finalSlowMode);
-
-        driveTimer.reset(); // reset timer when in manual mode so derivative term is accurate when switching to auto-align
     }
 
     public void toggleRobotCentric(boolean toggleButtonPressed) {
@@ -129,33 +181,56 @@ public class TeleOpMecanumDrive {
 
     // returns the offset between the heading of the robot and the tag
     // in RADIANS
-    public double getRobotOdoHeadingOffset() {
-        double RedGoalX = -72;
-        double RedGoalY = 72;
+    public double getRobotOdoHeadingOffset(double targetGoalX, double targetGoalY) {
+        // robot pose from odometry/localizer (in inches and radians)
+//        double robotX = pinpoint.getPosition().getX(DistanceUnit.INCH);
+//        double robotY = pinpoint.getPosition().getY(DistanceUnit.INCH);
+//        double robotHeading = pinpoint.getPosition().getHeading(AngleUnit.RADIANS);
 
-        double desiredHeading = Math.atan2(RedGoalY - pinpoint.getPosY(DistanceUnit.INCH), RedGoalX - pinpoint.getPosX(DistanceUnit.INCH));
+        // pedro pathing pose (in inches and radians)
+        Pose currentPose = follower.getPose();
+        double robotX = currentPose.getX();
+        double robotY = currentPose.getY();
+        double robotHeading = currentPose.getHeading();
 
-        // Get the robot's current heading
-        double currentHeading = pinpoint.getHeading(AngleUnit.RADIANS);
+        // signed differences
+        double dx = targetGoalX - robotX;
+        double dy = targetGoalY - robotY;
 
-        // the radian offset (difference between desired and current)
-        double offset = desiredHeading - currentHeading;
+        // angle from robot to target in field coords
+        double targetAngle = Math.atan2(dy, dx);
 
-        // Normalize the angle to be between -PI and PI
-        while (offset > Math.PI) offset -= 2 * Math.PI;
-        while (offset < -Math.PI) offset += 2 * Math.PI;
+        // raw difference and robust normalization to [-PI, PI]
+        double offset = targetAngle - robotHeading;
 
-        return offset;
+        return normalizeAngle(offset); // radians, in range (-PI, PI]
+    }
+
+    public double getOdometryDistanceFromGoal(double targetGoalX, double targetGoalY) {
+        // using just pinpoint localization
+//        double deltaX = targetGoalX   - pinpoint.getPosition().getX(DistanceUnit.INCH);
+//        double deltaY = targetGoalY - pinpoint.getPosition().getY(DistanceUnit.INCH);
+
+        // using pedro system
+        Pose currentPose = follower.getPose();
+        double deltaX = targetGoalX   - currentPose.getX();
+        double deltaY = targetGoalY - currentPose.getY();
+
+        return Math.hypot(deltaX, deltaY);
+    }
+
+    public static double normalizeAngle(double angleRad) {
+        return Math.atan2(Math.sin(angleRad), Math.cos(angleRad));
     }
 
     private double lastBearingError = 0.0;
     private double integralSum = 0.0;
     ElapsedTime driveTimer = new ElapsedTime();
-    public void runAutoAlignToTag(double bearingOffsetRad, boolean rb, boolean lb, double y, double x) {
+    public void runAutoAlignToTag(double bearingOffsetRad, boolean rb, double y, double x, AllianceColor allianceColor) {
         // PID coefficients
-        double kP = 0.8;
-        double kI = 0.15; // Integral coefficient - helps overcome static friction
-        double kD = 0.03; // TODO TUNE
+        double kP = 0.75;
+        double kI = 0.2; // Integral coefficient - helps overcome static friction
+        double kD = 0.02; // TODO TUNE
 
         double maxPower = 1.0; // maximum turn power
         double alignmentThreshold = 0.01; // radians, adjust as needed
@@ -173,6 +248,7 @@ public class TeleOpMecanumDrive {
             integralSum = Range.clip(integralSum, -maxIntegral, maxIntegral);
 
             double derivative = (bearingOffsetRad - lastBearingError) / dt;
+            derivative = Range.clip(derivative, -5.0, 5.0);
 
             turnPower = (-kP * bearingOffsetRad) + (-kI * integralSum) + (-kD * derivative);
 
@@ -191,6 +267,6 @@ public class TeleOpMecanumDrive {
         driveTimer.reset();
 
         // The Driver can still translate while auto-aligning, but cannot manually rotate
-        runManualMecanumDrive(rb, lb, y, x, turnPower, false);
+        runManualMecanumDrive(rb, y, x, turnPower, false, false, false, false, allianceColor);
     }
 }

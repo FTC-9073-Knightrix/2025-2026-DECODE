@@ -348,7 +348,6 @@ public class AutonMethods extends AutonBase {
         public Action runTransferToFarShot() {
             return new RunTransfer(farShotTargetVelocityTicks);
         }
-
         public class StopTransfer implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {

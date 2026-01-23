@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.RGBLights;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.drivetrain.TeleOpMecanumDrive;
@@ -13,15 +14,48 @@ import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.vision.AprilTagEnum
 
 @Config
 public abstract class TeleOpMethods extends RobotBaseHwMap {
-    boolean requireCameraToShoot = true;
+    public enum AllianceColor {
+        RED,
+        BLUE
+    }
+    public AllianceColor allianceColor;
 
-    boolean lastCameraTogglePressed = false;
+    public static class GoalCoords {
+        // coords based on roadrunner field coordinate system
+        public static final double RedGoalX = -72.0;
+        public static final double RedGoalY = 72.0;
+        public static final double BlueGoalX = -72.0;
+        public static final double BlueGoalY = -72.0;
+
+        // coords based on pedro pathing field coordinate system for distance calculations
+        public static final double RedGoalXPEDRO = 144;
+        public static final double RedGoalYPEDRO = 144;
+        public static final double BlueGoalXPEDRO = 0;
+        public static final double BlueGoalYPEDRO = 144;
+
+        // don't aim exactly at the corners of the goals, aim a bit more towards the center
+        public static final double RedGoalXPedroForAiming = 141;
+        public static final double RedGoalYPedroForAiming = 141;
+        public static final double BlueGoalXPedroForAiming = 3;
+        public static final double BlueGoalYPedroForAiming = 141;
+    }
+
+    protected enum AimingMethod {
+        ODOMETRY,
+        CAMERA,
+        MANUAL_ADJUST
+    }
+    protected AimingMethod robotAimingMethod = AimingMethod.ODOMETRY; // default on odometry
+
+    // Endgame rumble
     ElapsedTime gameTime = new ElapsedTime();
     boolean reachedEndGame = false;
+
     @Override
     public void init() {super.init();}
 
     public void rumbleGamePads() {
+        // rumble the gamepads if endgame is reached (the last 20 seconds)
         if (gameTime.seconds() > 100 && !reachedEndGame) {
             reachedEndGame = true;
             gamepad1.rumble(1000);
@@ -30,16 +64,25 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     }
 
     public void toggleCameraRequirement() {
-        boolean cameraTogglePressed = gamepad2.y;
-        if (cameraTogglePressed && !lastCameraTogglePressed) {
-            requireCameraToShoot = !requireCameraToShoot;
+        // toggle the tracking method between odometry and web camera
+        boolean turnOnOdometryButton = gamepad1.dpad_left;
+        boolean turnOnCameraButton = gamepad1.dpad_right;
+//        boolean turnOffBothButton = gamepad1.dpad_up; // have manual setpoints if both odometry and camera fail
+        if (turnOnCameraButton) {
+            robotAimingMethod = AimingMethod.CAMERA;
         }
-        lastCameraTogglePressed = cameraTogglePressed;
+        else if (turnOnOdometryButton) {
+            robotAimingMethod = AimingMethod.ODOMETRY;
+        }
+//        else if (turnOffBothButton) {
+//            robotAimingMethod = AimingMethod.MANUAL_ADJUST;
+//        }
     }
 
     public void runToggledDrive() {
+        drive.follower.update(); // update pedro follower every loop
+
         boolean rb = gamepad1.right_bumper;
-        boolean lb = gamepad1.left_bumper;
 
         double leftY = -gamepad1.left_stick_y;
         double leftX = gamepad1.left_stick_x;
@@ -47,57 +90,83 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 
         boolean lockTrigger = gamepad1.left_trigger > 0.5;
         boolean resetHeadingButton = gamepad1.y;
-        boolean toggleDriveModeButton = gamepad1.right_stick_button;
+        boolean resetPosButton = gamepad1.left_stick_button;
+//        boolean toggleDriveModeButton = gamepad1.right_stick_button;
+        boolean resetPosInFarZoneButton = gamepad1.right_stick_button;
+        boolean resetPosInClozeZoneButton = gamepad1.dpad_up;
 
-        if (lockTrigger) {
-            drive.setDriveMode(TeleOpMecanumDrive.DriveMode.LOCKED_ON);
+        if (lockTrigger && robotAimingMethod == AimingMethod.ODOMETRY) {
+            drive.setDriveMode(TeleOpMecanumDrive.DriveMode.ODOMETRY_LOCKED_ON);
+        }
+        else if (lockTrigger && robotAimingMethod == AimingMethod.CAMERA) {
+            drive.setDriveMode(TeleOpMecanumDrive.DriveMode.CAMERA_LOCKED_ON);
         } else {
             drive.setDriveMode(TeleOpMecanumDrive.DriveMode.MANUAL);
         }
 
-        if (drive.getDriveMode() == TeleOpMecanumDrive.DriveMode.LOCKED_ON)
-        {
-//            if (vision.isDetectingAGoalTag()) {
-//                double offsetDegrees = 0.0;
-//                if (vision.getGoalTagHorizontalDistance() < 100.0) {
-//                    offsetDegrees = 0.0;
-//                }
-//                else if (vision.getDetectedTagId() == AprilTagEnums.RED_GOAL.getId()) {
-//                    offsetDegrees = -3;
-//                }
-//                else if (vision.getDetectedTagId() == AprilTagEnums.BLUE_GOAL.getId()) {
-//                    offsetDegrees = 3;
-//                }
-//
-//                drive.runAutoAlignToTag(Math.toRadians(vision.getGoalTagBearing() + offsetDegrees), rb, lb, leftY, leftX);
-//
-//                // SET LIGHTS TO GREEN IF THE CAMERA IS LOCKED ON
-//                // try to align with offset (maybe the negative of the offsetDegrees?)
-//                if (vision.alignedForShot(-offsetDegrees)) {
-//
-//                    lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
-//                }
-//                else {
-//                    lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
-//                }
-//            }
-//            else {
-//                drive.runManualMecanumDrive(rb, lb, leftY, leftX, rightX, resetHeadingButton);
-//                // red color because camera is not detecting tag
-//                lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
-//            }
-            drive.runAutoAlignToTag(drive.getRobotOdoHeadingOffset(), rb, lb, leftY, leftX);
-            if (Math.toDegrees(drive.getRobotOdoHeadingOffset()) < 2.0) {
-                lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
-            }
-            else {
-                lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
-            }
-        }
-        else {
-            drive.runManualMecanumDrive(rb, lb, leftY, leftX, rightX, resetHeadingButton);
-            drive.toggleRobotCentric(toggleDriveModeButton);
-            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.BLUE_VIOLET);
+        // RUN DIFFERENT DRIVE MODES BASED ON WHAT THE CURRENT DRIVE MODE IS
+        switch (drive.getDriveMode()) {
+            case ODOMETRY_LOCKED_ON:
+                switch (allianceColor)  {
+                    case RED:
+                        double offsetRadRed = drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalXPedroForAiming, GoalCoords.RedGoalYPedroForAiming);
+                        drive.runAutoAlignToTag(offsetRadRed, rb, leftY, leftX, allianceColor);
+
+                        if (Math.abs(Math.toDegrees(offsetRadRed)) < 2.0) {
+                            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+                        }
+                        else {
+                            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
+                        }
+                        break;
+                    case BLUE:
+                        double offsetRadBlue = drive.getRobotOdoHeadingOffset(GoalCoords.BlueGoalXPedroForAiming, GoalCoords.BlueGoalYPedroForAiming);
+                        drive.runAutoAlignToTag(offsetRadBlue, rb, leftY, leftX, allianceColor);
+
+                        if (Math.abs(Math.toDegrees(offsetRadBlue)) < 2.0) {
+                            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+                        }
+                        else {
+                            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
+                        }
+                        break;
+                }
+                break;
+            case CAMERA_LOCKED_ON:
+                if (vision.isDetectingAGoalTag()) {
+                    double offsetDegrees = 0.0;
+                    if (vision.getGoalTagHorizontalDistance() < 100.0) {
+                        offsetDegrees = 0.0;
+                    }
+                    else if (vision.getDetectedTagId() == AprilTagEnums.RED_GOAL.getId()) {
+                        offsetDegrees = -3;
+                    }
+                    else if (vision.getDetectedTagId() == AprilTagEnums.BLUE_GOAL.getId()) {
+                        offsetDegrees = 3;
+                    }
+
+                    drive.runAutoAlignToTag(Math.toRadians(vision.getGoalTagBearing() + offsetDegrees), rb, leftY, leftX, allianceColor);
+
+                    // SET LIGHTS TO GREEN IF THE CAMERA IS LOCKED ON
+                    // try to align with offset (the negative of the offsetDegrees)
+                    if (vision.alignedForShot(-offsetDegrees)) {
+                        lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+                    }
+                    else {
+                        lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
+                    }
+                }
+                else {
+                    drive.runManualMecanumDrive(rb, leftY, leftX, rightX, resetHeadingButton, resetPosButton, resetPosInClozeZoneButton, resetPosInFarZoneButton, allianceColor);
+                    // red color because camera is not detecting tag
+                    lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
+                }
+                break;
+            case MANUAL:
+                drive.runManualMecanumDrive(rb, leftY, leftX, rightX, resetHeadingButton, resetPosButton, resetPosInClozeZoneButton, resetPosInFarZoneButton, allianceColor);
+//                drive.toggleRobotCentric(toggleDriveModeButton);
+                lights.setColor(RevBlinkinLedDriver.BlinkinPattern.BLUE_VIOLET);
+                break;
         }
     }
 
@@ -133,25 +202,42 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     }
 
     public void runOuttake() {
-        if (requireCameraToShoot) {
-            shooter.runDynamicOuttake(gamepad1.a, gamepad1.left_stick_button, telemetry, vision.getGoalTagHorizontalDistance());
-        }
-        else {
-            shooter.runManualOuttake(gamepad2.a, gamepad2.dpad_left, gamepad2.dpad_right,
-                    gamepad2.dpad_up, gamepad2.dpad_down, telemetry);
+        // if the robot aiming method is camera, use vision horizontal tag distance to aim
+        // if the robot aiming method is odometry, use odometry distance formula to aim
+        // if the robot aiming method is manual adjust, use gamepad 2 dpad to adjust
+        switch (robotAimingMethod) {
+            case CAMERA:
+                shooter.runDynamicOuttake(gamepad1.a, gamepad1.left_stick_button, telemetry, vision.getGoalTagHorizontalDistance());
+                break;
+            case ODOMETRY:
+                double targetX = (allianceColor == AllianceColor.RED) ? GoalCoords.RedGoalXPEDRO : GoalCoords.BlueGoalXPEDRO;
+                double targetY = (allianceColor == AllianceColor.RED) ? GoalCoords.RedGoalYPEDRO : GoalCoords.BlueGoalYPEDRO;
+                double distance = drive.getOdometryDistanceFromGoal(targetX, targetY);
+                shooter.runDynamicOdometryOuttake(gamepad1.a, telemetry, distance);
+                break;
+            case MANUAL_ADJUST:
+                shooter.runManualOuttake(gamepad2.a, gamepad2.dpad_left, gamepad2.dpad_right, gamepad2.dpad_up, gamepad2.dpad_down, telemetry);
+                break;
         }
     }
 
     @SuppressLint("DefaultLocale")
     public void displayTelemetry() {
-        telemetry.addData("Runtime: ", getRuntime());
         telemetry.addData("Drive Mode: ", drive.getDriveMode());
+        telemetry.addData("alliance", allianceColor);
         telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());
+        telemetry.addData("Aiming method: ", robotAimingMethod);
+        telemetry.addData("ODOMETRY DISTANCE", drive.getOdometryDistanceFromGoal(GoalCoords.RedGoalXPEDRO, GoalCoords.RedGoalYPEDRO));
 //        telemetry.addData("Tag Horizontal Distance (in): " , String.format("%.2f", vision.getGoalTagHorizontalDistance()));
 //        telemetry.addData("Tag Bearing:", String.format("%.2f", vision.getGoalTagBearing()));
 //        telemetry.addData("distance sensor: (CM)" , transfer.transferDistanceSensor.getDistance(DistanceUnit.CM));
-        telemetry.addData("offset rad", drive.getRobotOdoHeadingOffset());
-        telemetry.addData("robot pose", drive.pinpoint.getPosition());
+        telemetry.addData("offset rad", drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalXPedroForAiming, GoalCoords.RedGoalYPedroForAiming));
+//        telemetry.addData("heading: (degrees)", drive.pinpoint.getHeading(AngleUnit.DEGREES));
+//        telemetry.addData("robot pose x", drive.pinpoint.getPosition().getX(DistanceUnit.INCH));
+//        telemetry.addData("robot pose y", drive.pinpoint.getPosition().getY(DistanceUnit.INCH));
+//        telemetry.addData("robot pose head", drive.pinpoint.getPosition().getHeading(AngleUnit.RADIANS));
+
+
 //        telemetry.addData("transfer active: " , transfer.transferActive);
         telemetry.update();
     }

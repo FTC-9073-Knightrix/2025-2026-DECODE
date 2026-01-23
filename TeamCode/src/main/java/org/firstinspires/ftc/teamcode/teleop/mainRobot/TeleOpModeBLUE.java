@@ -2,9 +2,15 @@ package org.firstinspires.ftc.teamcode.teleop.mainRobot;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "1: DECODE TeleOp")
-public class TeleOpMode extends TeleOpMethods {
+@TeleOp(name = "2: DECODE TeleOp BLUE")
+public class TeleOpModeBLUE extends TeleOpMethods {
     boolean libCode = false;
+
+    @Override
+    public void init() {
+        super.init();
+        allianceColor = AllianceColor.BLUE;
+    }
     @Override
     public void loop() {
         // THIS IS THE MAIN RUN LOOP FOR THE ROBOT
@@ -17,6 +23,5 @@ public class TeleOpMode extends TeleOpMethods {
         runTransfer();
         runOuttake();
         displayTelemetry(); // this shows text on the driver hub
-
     }
 }

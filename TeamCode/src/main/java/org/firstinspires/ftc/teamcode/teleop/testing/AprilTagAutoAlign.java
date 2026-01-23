@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.teleop.mainRobot.TeleOpMethods;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.drivetrain.TeleOpMecanumDrive;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -74,10 +75,10 @@ public class AprilTagAutoAlign extends OpMode {
             telemetry.addData("distance2d", "%.2f", distance2d);
             telemetry.addData("distance3d", "%.2f", distance3d);
 
-            drive.runAutoAlignToTag(Math.toRadians(tag.ftcPose.bearing), rb, lb, leftY, leftX);
+            drive.runAutoAlignToTag(Math.toRadians(tag.ftcPose.bearing), rb, leftY, leftX, TeleOpMethods.AllianceColor.RED);
         }
         else {
-            drive.runManualMecanumDrive(lb , rb, leftY, leftX, rightX, yButton);
+            drive.runManualMecanumDrive(lb, leftY, leftX, rightX, yButton, gamepad1.left_stick_button, false, false, TeleOpMethods.AllianceColor.RED);
         }
 
         telemetry.update();

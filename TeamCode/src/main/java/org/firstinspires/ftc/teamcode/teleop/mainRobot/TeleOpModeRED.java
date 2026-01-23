@@ -1,0 +1,28 @@
+package org.firstinspires.ftc.teamcode.teleop.mainRobot;
+
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+@TeleOp(name = "1: DECODE TeleOp RED")
+public class TeleOpModeRED extends TeleOpMethods {
+    boolean libCode = false;
+
+    @Override
+    public void init() {
+        super.init();
+        allianceColor = AllianceColor.RED;
+    }
+
+    @Override
+    public void loop() {
+        // THIS IS THE MAIN RUN LOOP FOR THE ROBOT
+        // PUT METHODS IN HERE THAT U WANT TO BE CONTINUOUSLY RUNNING
+        // WHILE WE R CONTROLLING THE ROBOT
+        rumbleGamePads();
+        runToggledDrive();
+        toggleCameraRequirement();
+        runIntake();
+        runTransfer();
+        runOuttake();
+        displayTelemetry(); // this shows text on the driver hub
+    }
+}

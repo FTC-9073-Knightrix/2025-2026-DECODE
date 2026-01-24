@@ -171,34 +171,14 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     }
 
     public void runIntake() {
-        boolean xPressed = gamepad1.x;
         boolean forceEject = gamepad1.b;
-        intake.runIntake(xPressed, forceEject);
+        boolean toggleButton = gamepad1.a;
+        intake.runIntake(toggleButton, forceEject);
     }
 
     public void runTransfer() {
-        boolean holdToShoot = gamepad1.right_trigger > 0.5;
-        boolean forceTransferForwards = gamepad1.left_bumper;
-        boolean forceTransferBackwards = gamepad1.dpad_down;
-
-        if (holdToShoot) {
-            if (shooter.isAtShootingSpeed()) {
-                transfer.runTransferIn();
-            } else {
-                transfer.runTransferStop();
-            }
-        }
-        else if (forceTransferBackwards) {
-            // force transfer out
-            transfer.runTransferOut();
-        }
-        else if (forceTransferForwards) {
-            // force transfer in
-            transfer.runTransferForceIn();
-        }
-        else {
-            transfer.runTransferStop();
-        }
+        boolean holdToShootTrigger = gamepad1.right_trigger > 0.5;
+        transfer.run(holdToShootTrigger);
     }
 
     public void runOuttake() {
@@ -215,30 +195,19 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                 double distance = drive.getOdometryDistanceFromGoal(targetX, targetY);
                 shooter.runDynamicOdometryOuttake(gamepad1.a, telemetry, distance);
                 break;
-            case MANUAL_ADJUST:
-                shooter.runManualOuttake(gamepad2.a, gamepad2.dpad_left, gamepad2.dpad_right, gamepad2.dpad_up, gamepad2.dpad_down, telemetry);
-                break;
         }
     }
 
     @SuppressLint("DefaultLocale")
     public void displayTelemetry() {
         telemetry.addData("Drive Mode: ", drive.getDriveMode());
+        telemetry.addData("Aiming method: ", robotAimingMethod);
         telemetry.addData("alliance", allianceColor);
         telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());
-        telemetry.addData("Aiming method: ", robotAimingMethod);
-        telemetry.addData("ODOMETRY DISTANCE", drive.getOdometryDistanceFromGoal(GoalCoords.RedGoalXPEDRO, GoalCoords.RedGoalYPEDRO));
-//        telemetry.addData("Tag Horizontal Distance (in): " , String.format("%.2f", vision.getGoalTagHorizontalDistance()));
-//        telemetry.addData("Tag Bearing:", String.format("%.2f", vision.getGoalTagBearing()));
-//        telemetry.addData("distance sensor: (CM)" , transfer.transferDistanceSensor.getDistance(DistanceUnit.CM));
+        //robot pose
+        telemetry.addData("Pose: ", String.valueOf(drive.follower));
         telemetry.addData("offset rad", drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalXPedroForAiming, GoalCoords.RedGoalYPedroForAiming));
-//        telemetry.addData("heading: (degrees)", drive.pinpoint.getHeading(AngleUnit.DEGREES));
-//        telemetry.addData("robot pose x", drive.pinpoint.getPosition().getX(DistanceUnit.INCH));
-//        telemetry.addData("robot pose y", drive.pinpoint.getPosition().getY(DistanceUnit.INCH));
-//        telemetry.addData("robot pose head", drive.pinpoint.getPosition().getHeading(AngleUnit.RADIANS));
 
-
-//        telemetry.addData("transfer active: " , transfer.transferActive);
         telemetry.update();
     }
 }

@@ -1,6 +1,9 @@
 package org.firstinspires.ftc.teamcode.teleop.robotSubsystems;
 
+import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
@@ -12,6 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 public class Shooter {
     Servo hoodServo;
     DcMotorEx outtakeMotor;
+    DcMotorEx outtakeMotor2;
 
 
     private final double FAR_SHOT_VELOCITY_TICKS = -1500.0;
@@ -29,136 +33,74 @@ public class Shooter {
     private final double CLOSE_SHOT_HOOD = 0.85;
     private final double MID_SHOT_HOOD = 0.60;
     private final double FAR_SHOT_HOOD = 0.45;
-    private double hoodPosition = 0.85;
 
-    private boolean outtakeOn = true; // start the match with outtake on
+    // physical limits of the hood servo
+    private final double MAX_HIGH_HOOD_POSITION = 0.85; // TODO
+    private final double MAX_LOW_HOOD_POSITION = 0.35; // TODO
+
+    private double hoodPosition = MAX_LOW_HOOD_POSITION;
+
+    private boolean outtakeOn = false; // start the match with outtake on
     private boolean lastAState = false;
-    private boolean lastDpadLeft = false;
-    private boolean lastDpadRight = false;
-    private boolean lastDpadUp = false;
-    private boolean lastDpadDown = false;
 
     // PIDF tuning resources: https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/tuning-flywheel.html
     // After kV is set, tune kP to minimize error, use small increases
-    private final double kP = 33;
-    private final double kI = 0.95;
-    private final double kD = 0.025;
-    private final double kF = 1.0;
-
+    @Config
+    static class PIDFCoefficients {
+        public static double kP = 29;
+        public static double kI = 0.9;
+        public static double kD = 0.0;
+        public static double kF = 0.7;
+        public static double targetVelocity = -1250.0;
+    }
 
     public void init(HardwareMap hardwareMap) {
         hoodServo = hardwareMap.get(Servo.class, "hoodServo");
         outtakeMotor = hardwareMap.get(DcMotorEx.class, "shooter");
+        outtakeMotor2 = hardwareMap.get(DcMotorEx.class, "shooter2");
 
         outtakeMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        outtakeMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         outtakeMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        outtakeMotor2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
-        outtakeMotor.setVelocityPIDFCoefficients(kP, kI, kD, kF); // we use only kP and kF here
+        outtakeMotor.setVelocityPIDFCoefficients(PIDFCoefficients.kP, PIDFCoefficients.kI, PIDFCoefficients.kD, PIDFCoefficients.kF);
+        outtakeMotor2.setVelocityPIDFCoefficients(PIDFCoefficients.kP, PIDFCoefficients.kI, PIDFCoefficients.kD, PIDFCoefficients.kF);
         hoodServo.setPosition(hoodPosition);
     }
 
-    public void runTestOuttake(boolean a, boolean dpad_left, boolean dpad_right,
-                               boolean dpad_up, boolean dpad_down,
-                               Telemetry telemetry, double horizontalDistanceToGoalInches) {
-
-        // update target velocity based on distance to goal if needed
-//        updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
-
+    public void testOuttake(boolean a, Telemetry telemetry, Gamepad gamepad) {
         // Toggle motor on/off
         if (a && ! lastAState) {
             outtakeOn = !outtakeOn;
         }
+
+        if (gamepad.dpad_up) {
+            PIDFCoefficients.targetVelocity += 10;
+        } else if (gamepad.dpad_down) {
+            PIDFCoefficients.targetVelocity -= 10;
+        }
+
         lastAState = a;
-
-        // Servo adjust
-        if (dpad_left && !lastDpadLeft) {
-            hoodPosition = Math.min(1.0, hoodPosition + 0.05);
-            hoodServo.setPosition(hoodPosition);
-        }
-        lastDpadLeft = dpad_left;
-
-        if (dpad_right && !lastDpadRight) {
-            hoodPosition = Math.max(0.0, hoodPosition - 0.05);
-            hoodServo.setPosition(hoodPosition);
-        }
-        lastDpadRight = dpad_right;
-
-        // Adjust velocity
-        if (dpad_up && !lastDpadUp) {
-            targetVelocityTicks -= 20;
-            if (targetVelocityTicks < -2000) targetVelocityTicks = -2000;
-        }
-        lastDpadUp = dpad_up;
-
-        if (dpad_down && !lastDpadDown) {
-            targetVelocityTicks += 25;
-        }
-        lastDpadDown = dpad_down;
 
         // Apply velocity control
         if (outtakeOn) {
-            outtakeMotor.setVelocity(targetVelocityTicks);
+            outtakeMotor.setVelocity(PIDFCoefficients.targetVelocity);
+            outtakeMotor2.setVelocity(PIDFCoefficients.targetVelocity);
         } else {
             outtakeMotor.setVelocity(0);
+            outtakeMotor2.setVelocity(0);
         }
 
         // Telemetry
         double ticksPerSecond = outtakeMotor.getVelocity();
+        double ticksPerSecond2 = outtakeMotor2.getVelocity();
 
         telemetry.addData("Outtake On", outtakeOn);
         telemetry.addData("PIDF Coefficients", outtakeMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
         telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
-        telemetry.addData("Current Velocity (ticks/sec)", ticksPerSecond);
-        telemetry.addData("Servo Position", hoodPosition);
-    }
-
-    public void runManualOuttake(boolean a, boolean dpad_left, boolean dpad_right,
-                           boolean dpad_up, boolean dpad_down,
-                           Telemetry telemetry) {
-
-        // update target velocity based on distance to goal if needed
-        // Toggle motor on/off
-        if (a && ! lastAState) {
-            outtakeOn = !outtakeOn;
-        }
-        lastAState = a;
-
-        // Close shot
-        if (dpad_down) {
-            targetVelocityTicks = NEAR_SHOT_VELOCITY_TICKS;
-            hoodPosition = CLOSE_SHOT_HOOD;
-        }
-        else if (dpad_left) { // Mid shot
-            targetVelocityTicks = MID_SHOT_VELOCITY_TICKS;
-            hoodPosition = MID_SHOT_HOOD;
-        }
-        else if (dpad_right) { // Mid-far shot
-            targetVelocityTicks = MID_FAR_SHOT_VELOCITY_TICKS;
-            hoodPosition = FAR_SHOT_HOOD;
-        }
-        else if (dpad_up) { // Far shot
-            targetVelocityTicks = FAR_SHOT_VELOCITY_TICKS;
-            hoodPosition = FAR_SHOT_HOOD;
-        }
-
-        // Apply velocity control
-        if (outtakeOn) {
-            outtakeMotor.setVelocity(targetVelocityTicks);
-        } else {
-            outtakeMotor.setVelocity(0);
-        }
-
-        hoodPosition = Range.clip(hoodPosition, 0.0, 1.0);
-        hoodServo.setPosition(hoodPosition);
-
-        // Telemetry
-        double ticksPerSecond = outtakeMotor.getVelocity();
-
-        telemetry.addData("Outtake On", outtakeOn);
-        telemetry.addData("PIDF Coefficients", outtakeMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
-        telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
-        telemetry.addData("Current Velocity (ticks/sec)", ticksPerSecond);
-        telemetry.addData("Servo Position", hoodPosition);
+        telemetry.addData("Current Velocity motor 1 (ticks/sec)", ticksPerSecond);
+        telemetry.addData("Current Velocity motor 2 (ticks/sec)", ticksPerSecond2);
     }
 
     public void runDynamicOuttake(boolean a, boolean forceFarShot, Telemetry telemetry, double horizontalDistanceToGoalInches) {
@@ -197,8 +139,6 @@ public class Shooter {
         // update target velocity based on distance to goal if needed
         updateShooterVelocityByOdometryDistance(horizontalDistanceToGoalInches);
         dynamicallyUpdateHoodPositionByOdometry(horizontalDistanceToGoalInches);
-//        updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
-//        dynamicallyUpdateHoodPosition(horizontalDistanceToGoalInches);
         // Toggle motor on/off
         if (a && ! lastAState) {
             outtakeOn = !outtakeOn;
@@ -228,17 +168,6 @@ public class Shooter {
         }
 
         double x = horizontalDistanceToGoalInches;
-        // TODO Create a regression here based on empirical data points (desmos.com)
-//        double targetHoodPosition = 0.0000025 * x * x - 0.0015 * x + 0.85; // a filler regression curve
-//        double deltaPos = targetHoodPosition - hoodPosition;
-//
-//        if (Math.abs(deltaPos) < 0.05) {
-//            hoodPosition = targetHoodPosition;
-//        } else {
-//            double adjustment = deltaPos > 0 ? 0.05 : -0.05;
-//            hoodPosition += adjustment;
-//        }
-
         if (horizontalDistanceToGoalInches > FAR_INCHES) {
             hoodPosition = FAR_SHOT_HOOD;
         }

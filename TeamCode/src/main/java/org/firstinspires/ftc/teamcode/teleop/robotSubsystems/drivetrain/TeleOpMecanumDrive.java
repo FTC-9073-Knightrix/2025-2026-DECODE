@@ -21,7 +21,6 @@ import org.firstinspires.ftc.teamcode.teleop.mainRobot.TeleOpMethods.AllianceCol
 import static org.firstinspires.ftc.teamcode.RobotStaticVariables.END_OF_AUTO_POSITION;
 
 public class TeleOpMecanumDrive {
-
     public enum DriveMode {
         MANUAL,
         CAMERA_LOCKED_ON,
@@ -52,8 +51,10 @@ public class TeleOpMecanumDrive {
         frontRightMotor = hwMap.get(DcMotor.class, "rightFront");
         backRightMotor = hwMap.get(DcMotor.class, "rightBack");
 
-        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+//        frontLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+//        backLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -65,7 +66,7 @@ public class TeleOpMecanumDrive {
         rev_imu = hwMap.get(IMU.class, "imu");
 
         RevHubOrientationOnRobot RevOrientation = new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
                 RevHubOrientationOnRobot.UsbFacingDirection.UP
         );
         rev_imu.initialize(new IMU.Parameters(RevOrientation));

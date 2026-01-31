@@ -43,9 +43,10 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     protected enum AimingMethod {
         ODOMETRY,
         CAMERA,
+        TESTING,
         MANUAL_ADJUST
     }
-    protected AimingMethod robotAimingMethod = AimingMethod.ODOMETRY; // default on odometry
+    protected AimingMethod robotAimingMethod = AimingMethod.TESTING; // default on odometry
 
     // Endgame rumble
     ElapsedTime gameTime = new ElapsedTime();
@@ -84,9 +85,9 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 
         boolean rb = gamepad1.right_bumper;
 
-        double leftY = -gamepad1.left_stick_y;
-        double leftX = gamepad1.left_stick_x;
-        double rightX = gamepad1.right_stick_x;
+        double leftY = gamepad1.left_stick_y;
+        double leftX = -gamepad1.left_stick_x;
+        double rightX = -gamepad1.right_stick_x;
 
         boolean lockTrigger = gamepad1.left_trigger > 0.5;
         boolean resetHeadingButton = gamepad1.y;
@@ -172,7 +173,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 
     public void runIntake() {
         boolean forceEject = gamepad1.b;
-        boolean toggleButton = gamepad1.a;
+        boolean toggleButton = gamepad1.x;
         intake.runIntake(toggleButton, forceEject);
     }
 
@@ -194,6 +195,9 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                 double targetY = (allianceColor == AllianceColor.RED) ? GoalCoords.RedGoalYPEDRO : GoalCoords.BlueGoalYPEDRO;
                 double distance = drive.getOdometryDistanceFromGoal(targetX, targetY);
                 shooter.runDynamicOdometryOuttake(gamepad1.a, telemetry, distance);
+                break;
+            case TESTING:
+                shooter.testOuttake(gamepad1.a, telemetry, gamepad2);
                 break;
         }
     }

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.teleop.robotSubsystems;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -16,6 +17,7 @@ public class Shooter {
     Servo hoodServo;
     DcMotorEx outtakeMotor;
     DcMotorEx outtakeMotor2;
+    FtcDashboard dashboard;
 
 
     private final double FAR_SHOT_VELOCITY_TICKS = -1500.0;
@@ -36,7 +38,7 @@ public class Shooter {
 
     // physical limits of the hood servo
     private final double MAX_HIGH_HOOD_POSITION = 0.85; // TODO
-    private final double MAX_LOW_HOOD_POSITION = 0.35; // TODO
+    private final double MAX_LOW_HOOD_POSITION = 0.6; // TODO
 
     private double hoodPosition = MAX_LOW_HOOD_POSITION;
 
@@ -47,17 +49,17 @@ public class Shooter {
     // After kV is set, tune kP to minimize error, use small increases
     @Config
     static class PIDFCoefficients {
-        public static double kP = 29;
-        public static double kI = 0.9;
+        public static double kP = 25;
+        public static double kI = 0.7;
         public static double kD = 0.0;
         public static double kF = 0.7;
-        public static double targetVelocity = -1250.0;
+        public static double targetVelocity = 1000.0;
     }
 
     public void init(HardwareMap hardwareMap) {
         hoodServo = hardwareMap.get(Servo.class, "hoodServo");
-        outtakeMotor = hardwareMap.get(DcMotorEx.class, "shooter");
-        outtakeMotor2 = hardwareMap.get(DcMotorEx.class, "shooter2");
+        outtakeMotor = hardwareMap.get(DcMotorEx.class, "leftShooter");
+        outtakeMotor2 = hardwareMap.get(DcMotorEx.class, "rightShooter");
 
         outtakeMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         outtakeMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -86,7 +88,7 @@ public class Shooter {
         // Apply velocity control
         if (outtakeOn) {
             outtakeMotor.setVelocity(PIDFCoefficients.targetVelocity);
-            outtakeMotor2.setVelocity(PIDFCoefficients.targetVelocity);
+            outtakeMotor2.setVelocity(-PIDFCoefficients.targetVelocity);
         } else {
             outtakeMotor.setVelocity(0);
             outtakeMotor2.setVelocity(0);
@@ -98,7 +100,7 @@ public class Shooter {
 
         telemetry.addData("Outtake On", outtakeOn);
         telemetry.addData("PIDF Coefficients", outtakeMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
-        telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
+        telemetry.addData("Target Velocity (ticks/sec)", PIDFCoefficients.targetVelocity);
         telemetry.addData("Current Velocity motor 1 (ticks/sec)", ticksPerSecond);
         telemetry.addData("Current Velocity motor 2 (ticks/sec)", ticksPerSecond2);
     }

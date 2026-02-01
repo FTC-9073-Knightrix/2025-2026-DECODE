@@ -26,7 +26,7 @@ public class MecanumTest extends OpMode {
         double leftX = gamepad1.left_stick_x;
         double rightX = gamepad1.right_stick_x * .8;
         boolean yButton = gamepad1.y;
-        drive.runManualMecanumDrive(rb, leftY, leftX, rightX, yButton, gamepad1.left_stick_button, false, false, TeleOpMethods.AllianceColor.RED);
+        drive.runManualMecanumDrive(gamepad1, TeleOpMethods.AllianceColor.RED);
 
         telemetry.addData("FL Power", drive.frontLeftMotor.getPower());
         telemetry.addData("FR Power", drive.frontRightMotor.getPower());

@@ -21,7 +21,7 @@ public class Transfer {
         gateIsOpen = false;
     }
 
-    public void run(boolean shootTrigger) {
+    public void runGate(boolean shootTrigger) {
         if (shootTrigger && !gateIsOpen) {
             gateServo.setPosition(GATE_OPEN_POSITION);
             gateIsOpen = true;

@@ -19,7 +19,7 @@ public class TeleOpModeRED extends TeleOpMethods {
         // WHILE WE R CONTROLLING THE ROBOT
         rumbleGamePads();
         runTurret();
-        runToggledDrive();
+        runManualDrive();
         toggleCameraRequirement();
         runIntake();
         runTransfer();

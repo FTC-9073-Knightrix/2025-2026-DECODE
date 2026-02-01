@@ -88,6 +88,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         boolean resetPosButton = gamepad1.left_stick_button;
         boolean resetPosInFarZoneButton = gamepad1.right_stick_button;
         boolean resetPosInClozeZoneButton = gamepad1.dpad_up;
+        boolean toggleDriveModeButton = gamepad1.right_stick_button;
 
         if (lockTrigger && robotAimingMethod == AimingMethod.ODOMETRY) {
             drive.setDriveMode(TeleOpMecanumDrive.DriveMode.ODOMETRY_LOCKED_ON);
@@ -151,16 +152,28 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                     }
                 }
                 else {
-                    drive.runManualMecanumDrive(rb, leftY, leftX, rightX, resetHeadingButton, resetPosButton, resetPosInClozeZoneButton, resetPosInFarZoneButton, allianceColor);
+                    drive.runManualMecanumDrive(gamepad1, allianceColor);
                     lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
                 }
                 break;
             case MANUAL:
-                drive.runManualMecanumDrive(rb, leftY, leftX, rightX, resetHeadingButton, resetPosButton, resetPosInClozeZoneButton, resetPosInFarZoneButton, allianceColor);
-//                drive.toggleRobotCentric(toggleDriveModeButton);
+                drive.runManualMecanumDrive(gamepad1, allianceColor);
+                drive.toggleRobotCentric(toggleDriveModeButton);
                 lights.setColor(RevBlinkinLedDriver.BlinkinPattern.BLUE_VIOLET);
                 break;
         }
+    }
+
+    // gonna use a manual drive now because the turret will
+    // aim towards the goal, not the drive train
+    public void runManualDrive() {
+        drive.follower.update(); // update pedro follower every loop
+
+        boolean toggleDriveModeButton = gamepad1.right_stick_button;
+
+        drive.runManualMecanumDrive(gamepad1, allianceColor);
+        drive.toggleRobotCentric(toggleDriveModeButton);
+        lights.setColor(RevBlinkinLedDriver.BlinkinPattern.BLUE_VIOLET);
     }
 
     public void runIntake() {
@@ -172,7 +185,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     public void runTransfer() {
         boolean holdToShootTrigger = gamepad1.right_trigger > 0.5;
         if (shooter.isAtShootingSpeed()) {
-            transfer.run(holdToShootTrigger);
+            transfer.runGate(holdToShootTrigger);
         }
     }
 
@@ -199,7 +212,6 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     @SuppressLint("DefaultLocale")
     public void displayTelemetry() {
         telemetry.addData("loopTime", loopTime.milliseconds());
-//        telemetry.addData("Drive Mode: ", drive.getDriveMode());
         telemetry.addData("Aiming method: ", robotAimingMethod);
         telemetry.addData("alliance", allianceColor);
         telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());

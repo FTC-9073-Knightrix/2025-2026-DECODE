@@ -6,6 +6,7 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.teleop.mainRobot.TeleOpMethods.AllianceColor;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
 import static org.firstinspires.ftc.teamcode.RobotStaticVariables.END_OF_AUTO_POSITION;
 
 public class TeleOpMecanumDrive {
@@ -38,9 +40,6 @@ public class TeleOpMecanumDrive {
     public final double driveSpeed = 0.66;
     public final double fastSpeed = 1.0;
     public final double slowSpeed = 0.30;
-
-    // temporary start pose
-    public Pose2D startPose = new Pose2D(DistanceUnit.INCH, -58, 44, AngleUnit.RADIANS, Math.toRadians(127));
 
     boolean robotCentric;
     private boolean toggleRobotCentricButtonPrevPressed = false;
@@ -82,55 +81,32 @@ public class TeleOpMecanumDrive {
         this.driveMode = driveMode;
     }
 
-    public void runManualMecanumDrive(boolean rb, double y, double x, double rx, boolean resetHeadingButton, boolean resetPosButton, boolean resetPosInCloseZone, boolean resetPosInFarZone, AllianceColor allianceColor) {
+    public void runManualMecanumDrive(Gamepad gamepad1, AllianceColor allianceColor) {
+        // boolean rb, double y, double x, double rx, boolean resetHeadingButton, boolean resetPosButton, boolean resetPosInCloseZone, boolean resetPosInFarZone,
+//        boolean rb = gamepad1.right_bumper;
 
-        if (rb) {
-            finalSlowMode = slowSpeed;
-        } else {
-            finalSlowMode = fastSpeed;
-        }
+        double y = gamepad1.left_stick_y;
+        double x = -gamepad1.left_stick_x;
+        double rx = -gamepad1.right_stick_x;
+        rx = Math.signum(rx) * rx * rx; // square the turning input for finer control
+
+        boolean resetHeadingButton = gamepad1.y;
+        boolean resetPosButton = gamepad1.left_stick_button;
+
+        finalSlowMode = fastSpeed;
 
         if (resetHeadingButton) {
             rev_imu.resetYaw();
 //            pinpoint.recalibrateIMU();
         }
 
+        // for testing, reset to known positions
         if (resetPosButton) {
-//            pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.RADIANS, 0));
-            Pose resetPose = new Pose(105.3, 33.3, 0); // in the blue square
-            switch (allianceColor) {
-                case RED:
-                    resetPose = new Pose(9.2, 9.4, Math.toRadians(180));
-                    break;
-                case BLUE:
-                    resetPose = new Pose(134.7, 9.3, 0);
-                    break;
+            if (allianceColor == AllianceColor.BLUE) {
+                follower.setPose(new Pose(55.83673469387756, 8.326530612244904, Math.toRadians(90)));
+            } else {
+                follower.setPose(new Pose(144 - 55.83673469387756, 8.326530612244904, Math.toRadians(-90)));
             }
-            follower.setPose(resetPose);
-        }
-        if (resetPosInCloseZone) {
-            Pose resetPose = new Pose(105.3, 33.3, 0); // in the blue square
-            switch (allianceColor) {
-                case RED:
-                    resetPose = new Pose(128.16953642384107, 110.81324503311258, Math.toRadians(0));
-                    break;
-                case BLUE:
-                    resetPose = new Pose(16.021192052980133, 109.09668874172185, Math.toRadians(180));
-                    break;
-            }
-            follower.setPose(resetPose);
-        }
-        if (resetPosInFarZone) {
-            Pose resetPose = new Pose(105.3, 33.3, 0); // in the blue square
-            switch (allianceColor) {
-                case RED:
-                    resetPose = new Pose(57.21854304635761, 9.15496688741722, Math.toRadians(0));
-                    break;
-                case BLUE:
-                    resetPose = new Pose(86.78145695364238, 9.345695364238404, Math.toRadians(180));
-                    break;
-            }
-            follower.setPose(resetPose);
         }
 
         orientation = rev_imu.getRobotYawPitchRollAngles();
@@ -149,22 +125,26 @@ public class TeleOpMecanumDrive {
             rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
         }
 
-        // If we're in fast mode, apply a quadratic (signed square) scaling to
-        // translational inputs so small joystick deflections are finer while
-        // full deflections still reach maximum speed.
+        // changed the scaling from quadratic to cubic for better control
         if (finalSlowMode == fastSpeed) {
-            rotX = Math.signum(rotX) * rotX * rotX;
-            rotY = Math.signum(rotY) * rotY * rotY;
+            rotX = rotX * rotX * rotX;
+            rotY = rotY * rotY * rotY;
         }
 
         // scale rotX to speed up turning
-        rotX = rotX * 1.1;
+        rotX = rotX * 1.3;
 
         double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
         double frontLeftPower = (rotY + rotX + rx) / denominator;
         double backLeftPower = (rotY - rotX + rx) / denominator;
         double frontRightPower = (rotY - rotX - rx) / denominator;
         double backRightPower = (rotY + rotX - rx) / denominator;
+
+        // clip all powers
+        frontLeftPower = Range.clip(frontLeftPower, -1.0, 1.0);
+        backLeftPower = Range.clip(backLeftPower, -1.0, 1.0);
+        frontRightPower = Range.clip(frontRightPower, -1.0, 1.0);
+        backRightPower = Range.clip(backRightPower, -1.0, 1.0);
 
         this.frontLeftMotor.setPower(frontLeftPower * finalSlowMode);
         this.backLeftMotor.setPower(backLeftPower * finalSlowMode);
@@ -258,6 +238,6 @@ public class TeleOpMecanumDrive {
         driveTimer.reset();
 
         // The Driver can still translate while auto-aligning, but cannot manually rotate
-        runManualMecanumDrive(rb, y, x, turnPower, false, false, false, false, allianceColor);
+//        runManualMecanumDrive(rb, y, x, turnPower, false, false, false, false, allianceColor);
     }
 }

@@ -188,7 +188,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                 double targetX = (allianceColor == AllianceColor.RED) ? GoalCoords.RedGoalXPEDRO : GoalCoords.BlueGoalXPEDRO;
                 double targetY = (allianceColor == AllianceColor.RED) ? GoalCoords.RedGoalYPEDRO : GoalCoords.BlueGoalYPEDRO;
                 double distance = drive.getOdometryDistanceFromGoal(targetX, targetY);
-                shooter.runDynamicOdometryOuttake(gamepad1.a, telemetry, distance);
+                shooter.runOdometryShots(gamepad1, telemetry, distance);
                 break;
             case TESTING:
                 shooter.testOuttake(gamepad1.a, telemetry, gamepad2);
@@ -206,7 +206,6 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         //robot pose
         telemetry.addData("Pose: ", String.valueOf(drive.follower));
         telemetry.addData("offset rad", drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalXPedroForAiming, GoalCoords.RedGoalYPedroForAiming));
-
         telemetry.update();
     }
 }

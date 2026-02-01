@@ -94,6 +94,14 @@ public class Shooter {
             outtakeMotor2.setVelocity(0);
         }
 
+        if (gamepad.dpad_left) {
+            hoodPosition = Math.min(hoodPosition + 0.04, 1.0);
+        }
+        else if (gamepad.dpad_right) {
+            hoodPosition = Math.max(hoodPosition - 0.04, 0.0);
+        }
+        hoodServo.setPosition(hoodPosition);
+
         // Telemetry
         double ticksPerSecond = outtakeMotor.getVelocity();
         double ticksPerSecond2 = outtakeMotor2.getVelocity();
@@ -101,8 +109,8 @@ public class Shooter {
         telemetry.addData("Outtake On", outtakeOn);
         telemetry.addData("PIDF Coefficients", outtakeMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
         telemetry.addData("Target Velocity (ticks/sec)", PIDFCoefficients.targetVelocity);
-        telemetry.addData("Current Velocity motor 1 (ticks/sec)", ticksPerSecond);
-        telemetry.addData("Current Velocity motor 2 (ticks/sec)", ticksPerSecond2);
+        telemetry.addData("Current Velocity Left Shooter (ticks/sec)", ticksPerSecond);
+        telemetry.addData("Current Velocity Right Shooter (ticks/sec)", ticksPerSecond2);
     }
 
     public void runDynamicOuttake(boolean a, boolean forceFarShot, Telemetry telemetry, double horizontalDistanceToGoalInches) {

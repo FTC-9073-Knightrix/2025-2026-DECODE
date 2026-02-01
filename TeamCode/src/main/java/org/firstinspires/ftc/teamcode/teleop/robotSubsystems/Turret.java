@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.teleop.robotSubsystems;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 public class Turret {
     // 28 ticks per revolution
     public DcMotor turretMotor;
@@ -13,6 +15,9 @@ public class Turret {
         turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
+    public void run(Telemetry telemetry) {
+        telemetry.addData("turret ticks", turretMotor.getCurrentPosition());
+    }
     private double convertAngleToTicks(double angle) {
         // Assuming 1 full rotation (360 degrees) equals 1440 ticks
         return (angle / 360.0) * 1440.0;

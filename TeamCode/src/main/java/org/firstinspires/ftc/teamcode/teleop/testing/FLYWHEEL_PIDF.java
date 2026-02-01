@@ -9,24 +9,27 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.Shooter;
 
 
 @Config
 class PIDF {
-    public static double kP = 29;
-    public static double kI = 0.9;
+    public static double kP = 25;
+    public static double kI = 0.7;
     public static double kD = 0.0;
     public static double kF = 0.7;
-    public static double targetVelocity = -1250.0;
+    public static double targetVelocity = 1000.0;
 }
 
 @TeleOp
 public class FLYWHEEL_PIDF extends OpMode {
-    DcMotorEx shooter;
+    DcMotorEx outtakeMotor;
+    DcMotorEx outtakeMotor2;
+
     VoltageSensor voltageSensor;
     FtcDashboard dashboard;
     Telemetry dashboardTelemetry;
-    DcMotorEx intake, intake2, transfer;
+    DcMotorEx intake;
 
     double NOMINAL_VOLTAGE = 10.0;
 
@@ -40,41 +43,57 @@ public class FLYWHEEL_PIDF extends OpMode {
     public void init() {
         dashboard = FtcDashboard.getInstance();
         dashboardTelemetry = dashboard.getTelemetry();
-        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
-        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        outtakeMotor = hardwareMap.get(DcMotorEx.class, "leftShooter");
+        outtakeMotor2 = hardwareMap.get(DcMotorEx.class, "rightShooter");
+
+        outtakeMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        outtakeMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        outtakeMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        outtakeMotor2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        outtakeMotor.setVelocityPIDFCoefficients(PIDF.kP, PIDF.kI, PIDF.kD, PIDF.kF);
+        outtakeMotor2.setVelocityPIDFCoefficients(PIDF.kP, PIDF.kI, PIDF.kD, PIDF.kF);
+
         intake = hardwareMap.get(DcMotorEx.class, "intake");
-        intake2 = hardwareMap.get(DcMotorEx.class, "intake2");
-        transfer = hardwareMap.get(DcMotorEx.class, "transfer");
         voltageSensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
     }
+
+    private boolean outtakeOn = false; // start the match with outtake on
+    private boolean lastAState = false;
 
     @Override
     public void loop() {
         double voltage = voltageSensor.getVoltage();
+        boolean a = gamepad1.a;
 
-        if (gamepad1.left_trigger > 0.5) {
-            shooter.setVelocity(PIDF.targetVelocity);
+        if (a && ! lastAState) {
+            outtakeOn = !outtakeOn;
+        }
+        lastAState = a;
+
+        // Apply velocity control
+        if (outtakeOn) {
+            outtakeMotor.setVelocity(PIDF.targetVelocity);
+            outtakeMotor2.setVelocity(-PIDF.targetVelocity);
         } else {
-            shooter.setPower(0);
+            outtakeMotor.setVelocity(0);
+            outtakeMotor2.setVelocity(0);
         }
 
+
         if (gamepad1.right_trigger > 0.5) {
-            intake.setPower(-0.75);
-            intake2.setPower(-0.75);
-            transfer.setPower(0.75);
+            intake.setPower(-1.0);
         }
         else {
             intake.setPower(0);
-            intake2.setPower(0);
-            transfer.setPower(0);
         }
 
         // change the target velocity
         if (gamepad1.dpad_up) {
-            PIDF.targetVelocity -= 10;
+            PIDF.targetVelocity += 10;
         }
         else if (gamepad1.dpad_down) {
-            PIDF.targetVelocity += 10;
+            PIDF.targetVelocity -= 10;
         }
 
         // Select which coefficient: A -> kP, X -> kI, Y -> kD, B -> kF
@@ -109,14 +128,17 @@ public class FLYWHEEL_PIDF extends OpMode {
             lastCoeffAdjustMs = now;
         }
 
-        shooter.setVelocityPIDFCoefficients(PIDF.kP, PIDF.kI, PIDF.kD, PIDF.kF);
+        outtakeMotor.setVelocityPIDFCoefficients(PIDF.kP, PIDF.kI, PIDF.kD, PIDF.kF);
+        outtakeMotor2.setVelocityPIDFCoefficients(PIDF.kP, PIDF.kI, PIDF.kD, PIDF.kF);
 
         dashboardTelemetry.addData("kP", PIDF.kP);
         dashboardTelemetry.addData("kI", PIDF.kI);
         dashboardTelemetry.addData("kD", PIDF.kD);
         dashboardTelemetry.addData("kF", PIDF.kF);
         dashboardTelemetry.addData("Target Velocity", PIDF.targetVelocity);
-        dashboardTelemetry.addData("Shooter Velocity", shooter.getVelocity());
+        dashboardTelemetry.addData("Left shooter Velocity", outtakeMotor.getVelocity());
+        dashboardTelemetry.addData("Right shooter Velocity", outtakeMotor2.getVelocity());
+        dashboardTelemetry.addData("Average Velocity", (outtakeMotor.getVelocity() + Math.abs(outtakeMotor2.getVelocity())) / 2.0);
 
         String selectedName;
         switch (selectedCoeff) {
@@ -129,13 +151,14 @@ public class FLYWHEEL_PIDF extends OpMode {
         dashboardTelemetry.addData("Selected", selectedName);
         dashboardTelemetry.update();
 
-        telemetry.addData("Shooter Voltage", voltage);
-        telemetry.addData("Nominal Voltage", NOMINAL_VOLTAGE);
-        telemetry.addData("Shooter Power", shooter.getPower());
+//        telemetry.addData("Shooter Power", shooter.getPower());
+//        telemetry.addData("Target Velocity", PIDF.targetVelocity);
+//        telemetry.addData("Shooter Velocity", shooter.getVelocity());
+//        telemetry.addData("PIDF Coefficients", shooter.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
+//        telemetry.addData("Selected Coeff", selectedName);
         telemetry.addData("Target Velocity", PIDF.targetVelocity);
-        telemetry.addData("Shooter Velocity", shooter.getVelocity());
-        telemetry.addData("PIDF Coefficients", shooter.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
-        telemetry.addData("Selected Coeff", selectedName);
+        telemetry.addData("Left shooter Velocity", outtakeMotor.getVelocity());
+        telemetry.addData("Right shooter Velocity", outtakeMotor2.getVelocity());
         telemetry.update();
     }
 }

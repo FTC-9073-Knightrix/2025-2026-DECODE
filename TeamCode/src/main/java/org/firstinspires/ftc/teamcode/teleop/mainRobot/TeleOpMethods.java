@@ -6,9 +6,6 @@ import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.RGBLights;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.drivetrain.TeleOpMecanumDrive;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.vision.AprilTagEnums;
 
@@ -155,7 +152,6 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
                 }
                 else {
                     drive.runManualMecanumDrive(rb, leftY, leftX, rightX, resetHeadingButton, resetPosButton, resetPosInClozeZoneButton, resetPosInFarZoneButton, allianceColor);
-                    // red color because camera is not detecting tag
                     lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
                 }
                 break;

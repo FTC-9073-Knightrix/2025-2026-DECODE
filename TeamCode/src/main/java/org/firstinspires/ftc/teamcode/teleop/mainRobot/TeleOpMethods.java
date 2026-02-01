@@ -21,11 +21,6 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     public AllianceColor allianceColor;
 
     public static class GoalCoords {
-        // coords based on roadrunner field coordinate system
-        public static final double RedGoalX = -72.0;
-        public static final double RedGoalY = 72.0;
-        public static final double BlueGoalX = -72.0;
-        public static final double BlueGoalY = -72.0;
 
         // coords based on pedro pathing field coordinate system for distance calculations
         public static final double RedGoalXPEDRO = 144;
@@ -50,6 +45,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 
     // Endgame rumble
     ElapsedTime gameTime = new ElapsedTime();
+    ElapsedTime loopTime = new ElapsedTime();
     boolean reachedEndGame = false;
 
     @Override
@@ -62,22 +58,19 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
             gamepad1.rumble(1000);
             gamepad2.rumble(1000);
         }
+        loopTime.reset();
     }
 
     public void toggleCameraRequirement() {
         // toggle the tracking method between odometry and web camera
         boolean turnOnOdometryButton = gamepad1.dpad_left;
         boolean turnOnCameraButton = gamepad1.dpad_right;
-//        boolean turnOffBothButton = gamepad1.dpad_up; // have manual setpoints if both odometry and camera fail
         if (turnOnCameraButton) {
             robotAimingMethod = AimingMethod.CAMERA;
         }
         else if (turnOnOdometryButton) {
             robotAimingMethod = AimingMethod.ODOMETRY;
         }
-//        else if (turnOffBothButton) {
-//            robotAimingMethod = AimingMethod.MANUAL_ADJUST;
-//        }
     }
 
     public void runTurret() {
@@ -91,12 +84,11 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 
         double leftY = gamepad1.left_stick_y;
         double leftX = -gamepad1.left_stick_x;
-        double rightX = -gamepad1.right_stick_x;
+        double rightX = -gamepad1.right_stick_x * 0.7;
 
         boolean lockTrigger = gamepad1.left_trigger > 0.5;
         boolean resetHeadingButton = gamepad1.y;
         boolean resetPosButton = gamepad1.left_stick_button;
-//        boolean toggleDriveModeButton = gamepad1.right_stick_button;
         boolean resetPosInFarZoneButton = gamepad1.right_stick_button;
         boolean resetPosInClozeZoneButton = gamepad1.dpad_up;
 
@@ -177,13 +169,15 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 
     public void runIntake() {
         boolean forceEject = gamepad1.b;
-        boolean toggleButton = gamepad1.x;
+        boolean toggleButton = gamepad1.left_bumper;
         intake.runIntake(toggleButton, forceEject);
     }
 
     public void runTransfer() {
         boolean holdToShootTrigger = gamepad1.right_trigger > 0.5;
-        transfer.run(holdToShootTrigger);
+        if (shooter.isAtShootingSpeed()) {
+            transfer.run(holdToShootTrigger);
+        }
     }
 
     public void runOuttake() {
@@ -192,7 +186,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         // if the robot aiming method is manual adjust, use gamepad 2 dpad to adjust
         switch (robotAimingMethod) {
             case CAMERA:
-                shooter.runDynamicOuttake(gamepad1.a, gamepad1.left_stick_button, telemetry, vision.getGoalTagHorizontalDistance());
+                shooter.runCameraShots(gamepad1, telemetry, vision.getGoalTagHorizontalDistance());
                 break;
             case ODOMETRY:
                 double targetX = (allianceColor == AllianceColor.RED) ? GoalCoords.RedGoalXPEDRO : GoalCoords.BlueGoalXPEDRO;
@@ -208,7 +202,8 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 
     @SuppressLint("DefaultLocale")
     public void displayTelemetry() {
-        telemetry.addData("Drive Mode: ", drive.getDriveMode());
+        telemetry.addData("loopTime", loopTime.milliseconds());
+//        telemetry.addData("Drive Mode: ", drive.getDriveMode());
         telemetry.addData("Aiming method: ", robotAimingMethod);
         telemetry.addData("alliance", allianceColor);
         telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());

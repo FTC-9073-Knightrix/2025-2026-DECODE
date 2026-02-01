@@ -19,12 +19,11 @@ public class Shooter {
     DcMotorEx outtakeMotor2;
     FtcDashboard dashboard;
 
-
-    private final double FAR_SHOT_VELOCITY_TICKS = -1500.0;
-    private final double MID_FAR_SHOT_VELOCITY_TICKS = -1250;
-    private final double MID_SHOT_VELOCITY_TICKS = -1150.0;
-    private final double NEAR_SHOT_VELOCITY_TICKS = -1050.0;
-    private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 125.0;
+    private final double FAR_SHOT_VELOCITY_TICKS = 1500.0;
+    private final double MID_FAR_SHOT_VELOCITY_TICKS = 1250;
+    private final double MID_SHOT_VELOCITY_TICKS = 1150.0;
+    private final double NEAR_SHOT_VELOCITY_TICKS = 1050.0;
+    private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 100.0;
 
     public double targetVelocityTicks = MID_SHOT_VELOCITY_TICKS; // start off at mid shot velocity
 
@@ -114,11 +113,10 @@ public class Shooter {
         telemetry.addData("Current Velocity Right Shooter (ticks/sec)", ticksPerSecond2);
     }
 
-    public void runDynamicOuttake(boolean a, boolean forceFarShot, Telemetry telemetry, double horizontalDistanceToGoalInches) {
+    public void runCameraShots(Gamepad gamepad, Telemetry telemetry, double xDist) {
+        boolean a = gamepad.a;
 
         // update target velocity based on distance to goal if needed
-        updateShooterVelocityByDistance(horizontalDistanceToGoalInches);
-        dynamicallyUpdateHoodPosition(horizontalDistanceToGoalInches);
         // Toggle motor on/off
         if (a && ! lastAState) {
             outtakeOn = !outtakeOn;
@@ -127,13 +125,11 @@ public class Shooter {
 
         // Apply velocity control
         if (outtakeOn) {
-            if (forceFarShot) {
-                targetVelocityTicks = FAR_SHOT_VELOCITY_TICKS;
-                hoodPosition = FAR_SHOT_HOOD;
-            }
-            outtakeMotor.setVelocity(targetVelocityTicks);
+            outtakeMotor.setVelocity(PIDFCoefficients.targetVelocity);
+            outtakeMotor2.setVelocity(-PIDFCoefficients.targetVelocity);
         } else {
             outtakeMotor.setVelocity(0);
+            outtakeMotor2.setVelocity(0);
         }
 
         // Telemetry
@@ -172,6 +168,7 @@ public class Shooter {
         telemetry.addData("Current Velocity (ticks/sec)", ticksPerSecond);
         telemetry.addData("Servo Position", hoodPosition);
     }
+
     public void dynamicallyUpdateHoodPosition(double horizontalDistanceToGoalInches) {
         if (horizontalDistanceToGoalInches < 0) {
             // No valid distance, do not update hood position
@@ -264,10 +261,23 @@ public class Shooter {
         hoodPosition = Range.clip(hoodPosition, 0.35, 0.75);
         hoodServo.setPosition(hoodPosition);
     }
-    public boolean isAtShootingSpeed() {
-        double currentVelocity = outtakeMotor.getVelocity();
-        double velocityError = Math.abs(targetVelocityTicks - currentVelocity);
 
-        return velocityError <= ACCEPTABLE_VELOCITY_ERROR_TICKS;
+    public boolean isAtShootingSpeed() {
+        double leftShooterVelocity = outtakeMotor.getVelocity();
+        double rightShooterVelocity = outtakeMotor.getVelocity(); // is negative ticks
+
+        double averageVelocity = (Math.abs(leftShooterVelocity) + Math.abs(rightShooterVelocity)) / 2.0;
+
+        return Math.abs(averageVelocity - targetVelocityTicks) < ACCEPTABLE_VELOCITY_ERROR_TICKS;
+    }
+
+    public void applyVelocity(boolean onState, double targetVelocity) {
+        if (onState) {
+            outtakeMotor.setVelocity(targetVelocity);
+            outtakeMotor2.setVelocity(-targetVelocity);
+        } else {
+            outtakeMotor.setVelocity(0);
+            outtakeMotor2.setVelocity(0);
+        }
     }
 }

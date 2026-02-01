@@ -21,6 +21,7 @@ public class TeleOpModeBLUE extends TeleOpMethods {
         toggleCameraRequirement();
         runIntake();
         runTransfer();
+        runTurret();
         runOuttake();
         displayTelemetry(); // this shows text on the driver hub
     }

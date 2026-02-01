@@ -49,10 +49,10 @@ public class Shooter {
     // After kV is set, tune kP to minimize error, use small increases
     @Config
     static class PIDFCoefficients {
-        public static double kP = 25;
-        public static double kI = 0.7;
-        public static double kD = 0.0;
-        public static double kF = 0.7;
+        public static double kP = 24;
+        public static double kI = 0;
+        public static double kD = 0.08;
+        public static double kF = 15;
         public static double targetVelocity = 1000.0;
     }
 
@@ -109,6 +109,7 @@ public class Shooter {
         telemetry.addData("Outtake On", outtakeOn);
         telemetry.addData("PIDF Coefficients", outtakeMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
         telemetry.addData("Target Velocity (ticks/sec)", PIDFCoefficients.targetVelocity);
+        telemetry.addData("Hood position", hoodPosition);
         telemetry.addData("Current Velocity Left Shooter (ticks/sec)", ticksPerSecond);
         telemetry.addData("Current Velocity Right Shooter (ticks/sec)", ticksPerSecond2);
     }

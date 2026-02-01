@@ -80,6 +80,10 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 //        }
     }
 
+    public void runTurret() {
+        turret.run(telemetry, gamepad2);
+    }
+
     public void runToggledDrive() {
         drive.follower.update(); // update pedro follower every loop
 

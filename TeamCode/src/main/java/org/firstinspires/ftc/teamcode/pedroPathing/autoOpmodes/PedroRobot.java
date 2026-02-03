@@ -29,8 +29,8 @@ public class PedroRobot {
 
     final private double ACCEPTABLE_VELOCITY_ERROR = 50.0;
 
-    final double MID_SHOT_HOOD = 0.75;
-    final double FAR_SHOT_HOOD = 0.45;
+    final double MID_SHOT_HOOD = 0.8;
+    final double FAR_SHOT_HOOD = 0.3;
 
     // ------------------------------- Transfer Motor --------------------------------
     public DcMotor transferMotor;

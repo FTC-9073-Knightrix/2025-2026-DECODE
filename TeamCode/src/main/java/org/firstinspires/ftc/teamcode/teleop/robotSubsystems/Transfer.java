@@ -18,16 +18,13 @@ public class Transfer {
         gateServo = hw.get(Servo.class, "gateServo");
 
         gateServo.setPosition(GATE_CLOSED_POSITION);
-        gateIsOpen = false;
     }
 
     public void runGate(boolean shootTrigger) {
-        if (shootTrigger && !gateIsOpen) {
+        if (shootTrigger) {
             gateServo.setPosition(GATE_OPEN_POSITION);
-            gateIsOpen = true;
-        } else if (!shootTrigger && gateIsOpen) {
+        } else {
             gateServo.setPosition(GATE_CLOSED_POSITION);
-            gateIsOpen = false;
         }
     }
 }

@@ -71,7 +71,19 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     }
 
     public void runTurret() {
-        turret.run(telemetry, gamepad2);
+        boolean holdAim = gamepad1.left_trigger > 0.5;
+        if (robotAimingMethod == AimingMethod.CAMERA) {
+            double offsetDegrees = vision.getGoalTagBearing();
+            turret.run(offsetDegrees, gamepad1, telemetry);
+        }
+        else if (robotAimingMethod == AimingMethod.ODOMETRY) {
+            switch (allianceColor)  {
+                case RED:
+                    double offsetRedDegrees = Math.toDegrees(drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalXPedroForAiming, GoalCoords.RedGoalYPedroForAiming));
+                    turret.run(offsetRedDegrees, gamepad1, telemetry);
+                    break;
+            }
+        }
     }
 
     public void runToggledDrive() {
@@ -184,9 +196,12 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 
     public void runTransfer() {
         boolean holdToShootTrigger = gamepad1.right_trigger > 0.5;
-        if (shooter.isAtShootingSpeed()) {
+//        if (shooter.isAtShootingSpeed()) {
             transfer.runGate(holdToShootTrigger);
-        }
+            if (holdToShootTrigger) {
+                intake.intakeMotor.setPower(-1.0);
+            }
+//        }
     }
 
     public void runOuttake() {
@@ -215,9 +230,12 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         telemetry.addData("Aiming method: ", robotAimingMethod);
         telemetry.addData("alliance", allianceColor);
         telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());
+        double intakeTicksPerSecond = intake.intakeMotor.getVelocity();
+        double intakeRPM = (intakeTicksPerSecond / 145.1) * 60.0;
+        telemetry.addData("intake velocity (RPM)", String.format("%.1f", intakeRPM));
         //robot pose
-        telemetry.addData("Pose: ", String.valueOf(drive.follower));
-        telemetry.addData("offset rad", drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalXPedroForAiming, GoalCoords.RedGoalYPedroForAiming));
+        telemetry.addData("Pose: ", String.valueOf(drive.follower.getPose()));
+        telemetry.addData("Distance:", String.format("%.1f", drive.getOdometryDistanceFromGoal(GoalCoords.RedGoalXPEDRO, GoalCoords.RedGoalYPEDRO)));
         telemetry.update();
     }
 }

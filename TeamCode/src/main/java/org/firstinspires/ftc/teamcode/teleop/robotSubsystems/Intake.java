@@ -1,10 +1,11 @@
 package org.firstinspires.ftc.teamcode.teleop.robotSubsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Intake {
-    public DcMotor intakeMotor;
+    public DcMotorEx intakeMotor;
     private boolean isTogglePressed;
     private boolean intakeOn;
 
@@ -13,8 +14,9 @@ public class Intake {
     private final double INTAKE_STOP_POWER = 0.0;
 
     public void init(HardwareMap hw) {
-        intakeMotor = hw.get(DcMotor.class, "intake");
-        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intakeMotor = hw.get(DcMotorEx.class, "intake");
+        intakeMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         isTogglePressed = false;
         intakeOn = false; // start the match with intake on
     }
@@ -37,6 +39,7 @@ public class Intake {
         else {
             intakeMotor.setPower(INTAKE_STOP_POWER);
         }
+
     }
 
     public void ejectIntake() {

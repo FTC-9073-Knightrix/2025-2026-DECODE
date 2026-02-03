@@ -1,48 +1,225 @@
 package org.firstinspires.ftc.teamcode.teleop.robotSubsystems;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import dev.nextftc.control.ControlSystem;
+import dev.nextftc.control.KineticState;
+import dev.nextftc.control.feedback.PIDCoefficients;
+
+@Config
+class TURRET_PID {
+    // in a class with @Config
+
+    public static PIDCoefficients coefficients = new PIDCoefficients(0.02, 0, 0);
+
+    // Use a position PID so KineticState uses position units (degrees) for goal & state
+    static ControlSystem turretControlSystem = ControlSystem.builder()
+            .posPid(coefficients)
+            .build();
+}
+
 public class Turret {
-    // 28 ticks per revolution
-    public DcMotor turretMotor;
-    // 34 TO 88 GEAR RATIO
+    public DcMotorEx turretMotor;
+    private TouchSensor turretSensor;
+    FtcDashboard dashboard;
+    Telemetry dashboardTelemetry;
 
-    public void init(HardwareMap hw){
-        turretMotor = hw.get(DcMotor.class, "turret");
-        turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    // EMPIRICAL MEASUREMENT: 700 ticks per 180 degrees
+    private static final double TICKS_PER_180_DEGREES = 700.0;
+
+    private double convertDegreesToTicks(double angleDegrees) {
+        // Empirical conversion: 700 ticks = 180 degrees
+        return (angleDegrees / 180.0) * TICKS_PER_180_DEGREES;
     }
 
-    public void run(Telemetry telemetry, Gamepad gamepad) {
-        if (gamepad.left_bumper) {
-            turretMotor.setPower(0.75);
+    private double convertTickstoDegrees(double ticks) {
+        // Empirical conversion: 700 ticks = 180 degrees
+        return (ticks / TICKS_PER_180_DEGREES) * 180.0;
+    }
+
+    private double targetAngle = 0.0;
+    private double targetTicks = 0.0;
+
+    private double currentAngle = 0.0;
+    public double angleError = 0.0;
+
+    double turnPower = 0.0;
+    public void init(HardwareMap hw) {
+        dashboard = FtcDashboard.getInstance();
+        dashboardTelemetry = dashboard.getTelemetry();
+
+        turretMotor = hw.get(DcMotorEx.class, "turret");
+        turretSensor = hw.get(TouchSensor.class, "turretSensor");
+        turretMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        turretMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+
+        // Use RUN_USING_ENCODER so velocity/encoder-backed features are available to ControlSystem
+        turretMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        currentAngle = 0.0;
+        targetAngle = 0.0;
+        targetTicks = 0.0;
+        turretMotor.setPower(0.0);
+        turretTimer.reset();
+    }
+
+    // New run method: inlines the behavior that was previously in testAlignTurret.
+    // Accepts an offsetDegrees parameter and uses the ControlSystem (angles) to compute output.
+    public void run(double offsetDegrees, Gamepad gamepad, Telemetry telemetry) {
+
+        // update current pose/encoders
+        currentAngle = convertTickstoDegrees(turretMotor.getCurrentPosition());
+
+        // Set target state so diagnostics/telemetry match
+        setTarget(offsetDegrees);
+        updateAngleError(offsetDegrees);
+
+
+        // Use angles (degrees) as the units for the ControlSystem goal and current state
+        TURRET_PID.turretControlSystem.setGoal(new KineticState(targetAngle));
+
+        // include angular velocity (deg/s) converted from ticks/sec
+        double currentAngularVelocityDegPerSec = convertTickstoDegrees(turretMotor.getVelocity());
+        double rawOutput = TURRET_PID.turretControlSystem.calculate(new KineticState(currentAngle, currentAngularVelocityDegPerSec));
+
+        double maxPower = 0.8;
+        turnPower = Range.clip(rawOutput, -maxPower, maxPower);
+
+        // Enforce software travel limits (this modifies turnPower to prevent driving into hard stops)
+        keepTurretWithinLimits();
+
+        // --- NEW: enforce a minimum power to overcome static friction when there is a meaningful error ---
+        // If the angular error is greater than 0.5 degrees, ensure at least 0.1 magnitude power is applied
+        double minPowerForAlignment = 0.1;
+        double alignmentThreshold = 0.5; // degrees
+        if (Math.abs(angleError) > alignmentThreshold) {
+            if (Math.abs(turnPower) < minPowerForAlignment) {
+                // If controller produced near-zero output, use the sign of the angle error to pick direction
+                if (Math.abs(rawOutput) > 1e-6) {
+                    turnPower = Math.signum(rawOutput) * minPowerForAlignment;
+                } else {
+                    turnPower = Math.signum(angleError) * minPowerForAlignment;
+                }
+            }
+            // Clip again to respect maxPower bounds
+            turnPower = Range.clip(turnPower, -maxPower, maxPower);
         }
-        else if (gamepad.right_bumper) {
-            turretMotor.setPower(-0.75);
-        }
-        turretMotor.setPower(0);
+        // --- end new enforcement ---
+
+        // Apply power to the motor
+        turretMotor.setPower(turnPower);
+
+        // telemetry
+        telemetry.addData("Target Turret angle", targetAngle);
+        telemetry.addData("Target turret ticks", targetTicks);
+        telemetry.addData("Current Turret angle", currentAngle);
         telemetry.addData("turret ticks", turretMotor.getCurrentPosition());
-        telemetry.addData("turret zero beahvior", turretMotor.getZeroPowerBehavior());
+        telemetry.addData("turn power", turnPower);
+
+        dashboardTelemetry.addData("target turret angle", targetAngle);
+        dashboardTelemetry.addData("current turret angle", currentAngle);
+
     }
 
-    private double convertAngleToTicks(double angle) {
-        // Assuming 1 full rotation (360 degrees) equals 1440 ticks
-        return (angle / 360.0) * 1440.0;
+    private void setTarget(double angleDegrees) {
+        targetAngle = angleDegrees;
+        targetTicks = convertDegreesToTicks(targetAngle);
     }
 
-    private double convertTicksToTurretAngle(double ticks) {
-        // 28 ticks per revolution of pinion
-        // 1 : 4 gear ratio of pinion to turret
-        // Therefore, 1 full rotation of turret (360 degrees) = 4 * 28 = 112 ticks
-        return (ticks / 1440.0) * 360.0;
+    private double lastAngleError = 0.0;
+    private double integralSum = 0.0;
+    ElapsedTime turretTimer = new ElapsedTime();
+    public void alignTurret(double offsetDegrees) {
+        setTarget(offsetDegrees);
+
+        double maxPower = 0.6; // maximum turn power
+        double alignmentThreshold = 0.5; // degrees - reduced for tighter alignment
+        double minPower = 0.08; // minimum power to overcome static friction
+
+        double angleError = offsetDegrees - currentAngle;
+
+        if (Math.abs(angleError) > alignmentThreshold) {
+            double dt = Math.max(turretTimer.seconds(), 0.001); // guard against zero time interval
+
+            // Accumulate error for integral term
+            integralSum += angleError * dt;
+
+            // Prevent integral windup
+            double maxIntegral = 10.0;
+            integralSum = Range.clip(integralSum, -maxIntegral, maxIntegral);
+
+            double derivative = (angleError - lastAngleError) / dt;
+            derivative = Range.clip(derivative, -100.0, 100.0);
+
+            // D term should OPPOSE the rate of change to provide damping
+            turnPower = (TURRET_PID.coefficients.kP * angleError) + (TURRET_PID.coefficients.kI * integralSum) - (TURRET_PID.coefficients.kD * derivative);
+
+            // Add minimum power to overcome static friction when close to target
+            if (Math.abs(turnPower) > 0 && Math.abs(turnPower) < minPower) {
+                turnPower = Math.signum(turnPower) * minPower;
+            }
+
+            turnPower = Range.clip(turnPower, -maxPower, maxPower);
+        } else {
+            // Reset integral when aligned
+            integralSum = 0.0;
+            turnPower = 0.0;
+        }
+
+        lastAngleError = angleError;
+        turretTimer.reset(); // Reset AFTER reading dt
+
     }
 
-    // TODO
-    private double getDegreesOff(double targetAngle) {
-        return 0;
+    private void keepTurretWithinLimits() {
+        double curTicks = turretMotor.getCurrentPosition();
+        double oneSideBound = 450;
+
+        // po
+        if (curTicks < -oneSideBound) {
+            turnPower = Math.max(0, turnPower);
+        }
+        else if (curTicks > oneSideBound) {
+            turnPower = Math.min(0, turnPower);
+        }
+    }
+
+    // DO NOT USE
+    private void relocalizeTurret() {
+        if (turretSensor.isPressed()) {
+            turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            currentAngle = 0.0;
+        }
+    }
+
+    public boolean isAligned() {
+        double angleError = getAngleError();
+        double alignmentThreshold = 1.0; // degrees
+        return Math.abs(angleError) <= alignmentThreshold;
+    }
+
+    private double getAngleError() {
+        return angleError;
+    }
+
+    private void updateAngleError(double offsetAngle) {
+        angleError = offsetAngle - currentAngle;
+    }
+
+    public void stop() {
+        turnPower = 0;
+        lastAngleError = 0;
+        integralSum = 0;
     }
 }

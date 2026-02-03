@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleop.mainRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.Intake;
 import org.firstinspires.ftc.teamcode.teleop.robotSubsystems.RGBLights;

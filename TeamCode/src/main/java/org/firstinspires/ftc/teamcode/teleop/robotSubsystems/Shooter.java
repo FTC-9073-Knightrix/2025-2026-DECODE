@@ -1,3 +1,4 @@
+// java
 package org.firstinspires.ftc.teamcode.teleop.robotSubsystems;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -17,7 +18,6 @@ public class Shooter {
     Servo hoodServo;
     DcMotorEx outtakeMotor;
     DcMotorEx outtakeMotor2;
-    FtcDashboard dashboard;
 
     private final double FAR_SHOT_VELOCITY_TICKS = 1500.0;
     private final double MID_FAR_SHOT_VELOCITY_TICKS = 1250;
@@ -48,10 +48,10 @@ public class Shooter {
     // After kV is set, tune kP to minimize error, use small increases
     @Config
     static class PIDFCoefficients {
-        public static double kP = 24;
+        public static double kP = 23.8;
         public static double kI = 0;
         public static double kD = 0.08;
-        public static double kF = 15;
+        public static double kF = 14;
         public static double targetVelocity = 1000.0;
     }
 
@@ -112,8 +112,12 @@ public class Shooter {
         // update target velocity based on distance to goal if needed
         updateCameraShotSpeed(xDist);
         updateHoodByVelocity();
+        // Toggle motor on/off
 
-        toggleOuttake(gamepad.a);
+        if (gamepad.a && ! lastAState) {
+            outtakeOn = !outtakeOn;
+        }
+        lastAState = gamepad.a;
         applyVelocity(outtakeOn, targetVelocityTicks);
 
         telemetry.addData("Outtake On", outtakeOn);
@@ -150,11 +154,18 @@ public class Shooter {
     }
 
     public void runOdometryShots(Gamepad gamepad, Telemetry telemetry, double xDist) {
-        toggleOuttake(gamepad.a);
-
+        // Update the target velocity first (so switching modes updates the setpoint)
         updateOdometryShotSpeed(xDist);
         updateHoodByVelocity();
 
+        // Toggle motor on/off (same debounce logic as camera mode)
+        if (gamepad.a && !lastAState) {
+            outtakeOn = !outtakeOn;
+        }
+        lastAState = gamepad.a;
+
+        // Apply the (possibly updated) velocity to the motors
+        applyVelocity(outtakeOn, targetVelocityTicks);
 
         telemetry.addData("Outtake On", outtakeOn);
         telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
@@ -173,7 +184,7 @@ public class Shooter {
         targetVelocityTicks = Range.clip(
                 regressionVelocity,
                 1000,
-                1520
+                1400
         );
     }
 
@@ -197,12 +208,5 @@ public class Shooter {
             outtakeMotor.setVelocity(0);
             outtakeMotor2.setVelocity(0);
         }
-    }
-
-    private void toggleOuttake(boolean aButton) {
-        if (aButton && !lastAState) {
-            outtakeOn = !outtakeOn;
-        }
-        lastAState = aButton;
     }
 }

@@ -12,7 +12,7 @@ public class Transfer {
     public boolean gateIsOpen;
 
     private final double GATE_OPEN_POSITION = 0.6; // TODO: adjust these values based on testing
-    private final double GATE_CLOSED_POSITION = 0.45;
+    private final double GATE_CLOSED_POSITION = 0.42;
 
     public void init(HardwareMap hw) {
         gateServo = hw.get(Servo.class, "gateServo");

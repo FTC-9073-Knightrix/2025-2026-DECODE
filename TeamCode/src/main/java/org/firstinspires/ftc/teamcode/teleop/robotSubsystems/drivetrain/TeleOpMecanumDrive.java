@@ -88,7 +88,13 @@ public class TeleOpMecanumDrive {
         double y = gamepad1.left_stick_y;
         double x = -gamepad1.left_stick_x;
         double rx = -gamepad1.right_stick_x;
+        // preserve sign while squaring for finer low-end control
         rx = Math.signum(rx) * rx * rx; // square the turning input for finer control
+
+        // --- SLOW DOWN TURNING: scale the processed rotation input ---
+        // Lower than 1.0 to make turning slower/finer. Adjust as needed.
+        double turnScale = 0.75; // 60% of original; reduce to make turning slower
+        rx = rx * turnScale;
 
         boolean resetHeadingButton = gamepad1.y;
         boolean resetPosButton = gamepad1.left_stick_button;
@@ -102,8 +108,8 @@ public class TeleOpMecanumDrive {
 
         // for testing, reset to known positions
         if (resetPosButton) {
-            if (allianceColor == AllianceColor.BLUE) {
-                follower.setPose(new Pose(55.83673469387756, 8.326530612244904, Math.toRadians(90)));
+            if (allianceColor == AllianceColor.RED) {
+                follower.setPose(new Pose(105.78013245033114, 33.36688741721855, Math.toRadians(0)));
             } else {
                 follower.setPose(new Pose(144 - 55.83673469387756, 8.326530612244904, Math.toRadians(-90)));
             }
@@ -209,7 +215,7 @@ public class TeleOpMecanumDrive {
         double turnPower = 0.0;
 
         if (Math.abs(bearingOffsetRad) > alignmentThreshold) {
-            double dt = Math.max(driveTimer.seconds(), 0.001); // guard against zero time interval
+            double dt = Math.max(driveTimer.milliseconds(), 0.001); // guard against zero time interval
 
             // Accumulate error for integral term
             integralSum += bearingOffsetRad * dt;

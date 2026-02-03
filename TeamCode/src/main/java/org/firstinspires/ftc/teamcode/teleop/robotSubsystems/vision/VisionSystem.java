@@ -90,7 +90,7 @@ public class VisionSystem {
                 }
             }
         }
-        return 0;
+        return 0; // indicates no tag detected
     }
 
     /**

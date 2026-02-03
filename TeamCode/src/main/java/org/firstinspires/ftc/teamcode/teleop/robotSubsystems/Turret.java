@@ -80,10 +80,12 @@ public class Turret {
         // update current pose/encoders
         currentAngle = convertTickstoDegrees(turretMotor.getCurrentPosition());
 
+        // probably do not use this -- the magnet switch
+//        relocalizeTurret();
+
         // Set target state so diagnostics/telemetry match
         setTarget(offsetDegrees);
         updateAngleError(offsetDegrees);
-
 
         // Use angles (degrees) as the units for the ControlSystem goal and current state
         TURRET_PID.turretControlSystem.setGoal(new KineticState(targetAngle));
@@ -111,10 +113,8 @@ public class Turret {
                     turnPower = Math.signum(angleError) * minPowerForAlignment;
                 }
             }
-            // Clip again to respect maxPower bounds
             turnPower = Range.clip(turnPower, -maxPower, maxPower);
         }
-        // --- end new enforcement ---
 
         // Apply power to the motor
         turretMotor.setPower(turnPower);
@@ -128,7 +128,6 @@ public class Turret {
 
         dashboardTelemetry.addData("target turret angle", targetAngle);
         dashboardTelemetry.addData("current turret angle", currentAngle);
-
     }
 
     private void setTarget(double angleDegrees) {

@@ -22,7 +22,7 @@ public class Shooter {
     private final double FAR_SHOT_VELOCITY_TICKS = 1500.0;
     private final double MID_FAR_SHOT_VELOCITY_TICKS = 1250;
     private final double MID_SHOT_VELOCITY_TICKS = 1150.0;
-    private final double NEAR_SHOT_VELOCITY_TICKS = 1050.0;
+    private final double NEAR_SHOT_VELOCITY_TICKS = 950.0;
     private final double ACCEPTABLE_VELOCITY_ERROR_TICKS = 100.0;
 
     public double targetVelocityTicks = MID_SHOT_VELOCITY_TICKS; // start off at mid shot velocity
@@ -36,8 +36,8 @@ public class Shooter {
     private final double FAR_SHOT_HOOD = 0.45;
 
     // physical limits of the hood servo
-    private final double MAX_HIGH_HOOD_POSITION = 0; // TODO
-    private final double MAX_LOW_HOOD_POSITION = 1.0; // TODO
+    private final double MAX_HIGH_HOOD_POSITION = 0;
+    private final double MAX_LOW_HOOD_POSITION = 1.0;
 
     private double hoodPosition = MAX_LOW_HOOD_POSITION;
 
@@ -45,7 +45,7 @@ public class Shooter {
     private boolean lastAState = false;
 
     // PIDF tuning resources: https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/tuning-flywheel.html
-    // After kV is set, tune kP to minimize error, use small increases
+    // After kF is set, tune kP to minimize error, use small increases
     @Config
     static class PIDFCoefficients {
         public static double kP = 23.8;
@@ -133,13 +133,16 @@ public class Shooter {
         }
 
         // ~1050 for close, ~1150-1250 for mid distances, ~1500 for far distances.
-        double regressionVelocity =
-                -0.00025 * x * x * x
-                        + 0.037 * x * x
-                        + 3.8 * x
-                        + 880.0;
+//        double regressionVelocity =
+//                -0.00025 * x * x * x
+//                        + 0.037 * x * x
+//                        + 3.8 * x
+//                        + 880.0;
 
-        targetVelocityTicks = Range.clip(regressionVelocity, NEAR_SHOT_VELOCITY_TICKS, 1520);
+        // the new regression
+        double regressionVelocity = 5.40052 * x + 792.8453;
+
+        targetVelocityTicks = Range.clip(regressionVelocity, NEAR_SHOT_VELOCITY_TICKS, 1510);
 
     }
     // A VELOCITY BASED HOOD
@@ -147,7 +150,12 @@ public class Shooter {
         double v = getAverageVelocity();
 
         // regression from desmos of hood position plotted vs velocity
-        double y = -0.00148148 * v + 2.56759;
+//        double y = -0.00148148 * v + 2.56759;
+
+        // the new regression
+        double y = 0.00000185024 * v * v
+                    - 0.00556504 * v
+                    + 4.58254;
         hoodPosition = Range.clip(y, 0.3, 1.0);
 
         hoodServo.setPosition(hoodPosition);
@@ -179,18 +187,25 @@ public class Shooter {
             return;
         }
 
-        double regressionVelocity = 6.37682 * x + 629.08496;
+//        double regressionVelocity = 6.37682 * x + 629.08496;
+
+        // the new regression
+        double regressionVelocity = 5.8 * x + 665;
 
         targetVelocityTicks = Range.clip(
                 regressionVelocity,
-                1000,
-                1400
+                950,
+                1510
         );
     }
 
     public boolean isAtShootingSpeed() {
         double averageVelocity = getAverageVelocity();
         return Math.abs(averageVelocity - targetVelocityTicks) < ACCEPTABLE_VELOCITY_ERROR_TICKS;
+    }
+
+    public boolean isSingleAtShootingSpeed() {
+        return Math.abs(outtakeMotor.getVelocity() - targetVelocityTicks) < ACCEPTABLE_VELOCITY_ERROR_TICKS;
     }
 
     private double getAverageVelocity() {

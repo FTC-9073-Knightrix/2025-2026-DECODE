@@ -196,12 +196,9 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 
     public void runTransfer() {
         boolean holdToShootTrigger = gamepad1.right_trigger > 0.5;
-//        if (shooter.isAtShootingSpeed()) {
+        if (shooter.isSingleAtShootingSpeed()) {
             transfer.runGate(holdToShootTrigger);
-            if (holdToShootTrigger) {
-                intake.intakeMotor.setPower(-1.0);
-            }
-//        }
+        }
     }
 
     public void runOuttake() {

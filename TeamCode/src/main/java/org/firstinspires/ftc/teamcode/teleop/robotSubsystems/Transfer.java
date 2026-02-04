@@ -11,7 +11,7 @@ public class Transfer {
     public Servo gateServo;
     public boolean gateIsOpen;
 
-    private final double GATE_OPEN_POSITION = 0.6; // TODO: adjust these values based on testing
+    private final double GATE_OPEN_POSITION = 0.55;
     private final double GATE_CLOSED_POSITION = 0.42;
 
     public void init(HardwareMap hw) {
@@ -20,11 +20,13 @@ public class Transfer {
         gateServo.setPosition(GATE_CLOSED_POSITION);
     }
 
-    public void runGate(boolean shootTrigger) {
-        if (shootTrigger) {
-            gateServo.setPosition(GATE_OPEN_POSITION);
-        } else {
-            gateServo.setPosition(GATE_CLOSED_POSITION);
-        }
+    public void openGate() {
+        gateServo.setPosition(GATE_OPEN_POSITION);
+        gateIsOpen = true;
+    }
+
+    public void closeGate() {
+        gateServo.setPosition(GATE_CLOSED_POSITION);
+        gateIsOpen = false;
     }
 }

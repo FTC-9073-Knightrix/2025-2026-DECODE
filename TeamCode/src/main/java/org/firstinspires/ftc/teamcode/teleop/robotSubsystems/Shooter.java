@@ -44,6 +44,8 @@ public class Shooter {
     private boolean outtakeOn = false; // start the match with outtake on
     private boolean lastAState = false;
 
+    private final double FORCE_ADJUSTMENT_TICKS = 75.0; // how much to adjust target velocity upwards when forcing shot recovery time
+
     // PIDF tuning resources: https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/tuning-flywheel.html
     // After kF is set, tune kP to minimize error, use small increases
     @Config
@@ -84,8 +86,9 @@ public class Shooter {
 
         lastAState = a;
 
-        // Apply velocity control
-        applyVelocity(outtakeOn, PIDFCoefficients.targetVelocity);
+        // Apply velocity control (use force adjustment when needed)
+        double appliedTestTarget = getVelocityWithForceAdjustment(PIDFCoefficients.targetVelocity);
+        applyVelocity(outtakeOn, appliedTestTarget);
 
         if (gamepad.dpad_left) {
             hoodPosition = Math.min(hoodPosition + 0.04, 1.0);
@@ -102,6 +105,7 @@ public class Shooter {
         telemetry.addData("Outtake On", outtakeOn);
         telemetry.addData("PIDF Coefficients", outtakeMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
         telemetry.addData("Target Velocity (ticks/sec)", PIDFCoefficients.targetVelocity);
+        telemetry.addData("Applied Target Velocity (ticks/sec)", appliedTestTarget);
         telemetry.addData("Hood position", hoodPosition);
         telemetry.addData("Current Velocity Left Shooter (ticks/sec)", ticksPerSecond);
         telemetry.addData("Current Velocity Right Shooter (ticks/sec)", ticksPerSecond2);
@@ -118,10 +122,12 @@ public class Shooter {
             outtakeOn = !outtakeOn;
         }
         lastAState = gamepad.a;
-        applyVelocity(outtakeOn, targetVelocityTicks);
+        double appliedTarget = getVelocityWithForceAdjustment(targetVelocityTicks);
+        applyVelocity(outtakeOn, appliedTarget);
 
         telemetry.addData("Outtake On", outtakeOn);
         telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
+        telemetry.addData("Applied Target Velocity (ticks/sec)", appliedTarget);
         telemetry.addData("Hood position", hoodPosition);
         telemetry.addData("Current Velocity (ticks/sec)", getAverageVelocity());
     }
@@ -172,11 +178,13 @@ public class Shooter {
         }
         lastAState = gamepad.a;
 
-        // Apply the (possibly updated) velocity to the motors
-        applyVelocity(outtakeOn, targetVelocityTicks);
+        // Apply the (possibly updated) velocity to the motors (with force adjustment if needed)
+        double appliedOdometryTarget = getVelocityWithForceAdjustment(targetVelocityTicks);
+        applyVelocity(outtakeOn, appliedOdometryTarget);
 
         telemetry.addData("Outtake On", outtakeOn);
         telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
+        telemetry.addData("Applied Target Velocity (ticks/sec)", appliedOdometryTarget);
         telemetry.addData("Hood position", hoodPosition);
         telemetry.addData("Current Velocity (ticks/sec)", getAverageVelocity());
     }
@@ -213,6 +221,20 @@ public class Shooter {
         double rightShooterVelocity = outtakeMotor2.getVelocity(); // is negative ticks
 
         return (Math.abs(leftShooterVelocity) + Math.abs(rightShooterVelocity)) / 2.0;
+    }
+
+    /**
+     * Return an adjusted target velocity. If the current average velocity is
+     * significantly below the requested base target, return baseTarget + FORCE_ADJUSTMENT_TICKS
+     * so the controller will try to recover faster; otherwise return the base target.
+     */
+    private double getVelocityWithForceAdjustment(double baseTarget) {
+        double vel = outtakeMotor.getVelocity();
+        if (vel < baseTarget - ACCEPTABLE_VELOCITY_ERROR_TICKS) {
+            return baseTarget + FORCE_ADJUSTMENT_TICKS;
+        } else {
+            return baseTarget;
+        }
     }
 
     private void applyVelocity(boolean onState, double targetVelocity) {

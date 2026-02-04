@@ -92,14 +92,18 @@ public class TeleOpMecanumDrive {
         rx = Math.signum(rx) * rx * rx; // square the turning input for finer control
 
         // --- SLOW DOWN TURNING: scale the processed rotation input ---
-        // Lower than 1.0 to make turning slower/finer. Adjust as needed.
-        double turnScale = 0.75; // 60% of original; reduce to make turning slower
+        double turnScale = 0.75;
         rx = rx * turnScale;
 
         boolean resetHeadingButton = gamepad1.y;
         boolean resetPosButton = gamepad1.left_stick_button;
 
-        finalSlowMode = fastSpeed;
+        if (gamepad1.right_bumper) {
+            finalSlowMode = slowSpeed;
+        }
+        else {
+            finalSlowMode = fastSpeed;
+        }
 
         if (resetHeadingButton) {
             rev_imu.resetYaw();

@@ -44,7 +44,7 @@ public class Shooter {
     private boolean outtakeOn = false; // start the match with outtake on
     private boolean lastAState = false;
 
-    private final double FORCE_ADJUSTMENT_TICKS = 75.0; // how much to adjust target velocity upwards when forcing shot recovery time
+    private final double FORCE_ADJUSTMENT_TICKS = 100.0; // how much to adjust target velocity upwards when forcing shot recovery time
 
     // PIDF tuning resources: https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/tuning-flywheel.html
     // After kF is set, tune kP to minimize error, use small increases
@@ -60,15 +60,15 @@ public class Shooter {
     public void init(HardwareMap hardwareMap) {
         hoodServo = hardwareMap.get(Servo.class, "hoodServo");
         outtakeMotor = hardwareMap.get(DcMotorEx.class, "leftShooter");
-        outtakeMotor2 = hardwareMap.get(DcMotorEx.class, "rightShooter");
+//        outtakeMotor2 = hardwareMap.get(DcMotorEx.class, "rightShooter");
 
         outtakeMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        outtakeMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+//        outtakeMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         outtakeMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        outtakeMotor2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+//        outtakeMotor2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         outtakeMotor.setVelocityPIDFCoefficients(PIDFCoefficients.kP, PIDFCoefficients.kI, PIDFCoefficients.kD, PIDFCoefficients.kF);
-        outtakeMotor2.setVelocityPIDFCoefficients(PIDFCoefficients.kP, PIDFCoefficients.kI, PIDFCoefficients.kD, PIDFCoefficients.kF);
+//        outtakeMotor2.setVelocityPIDFCoefficients(PIDFCoefficients.kP, PIDFCoefficients.kI, PIDFCoefficients.kD, PIDFCoefficients.kF);
         hoodServo.setPosition(hoodPosition);
     }
 
@@ -100,7 +100,7 @@ public class Shooter {
 
         // Telemetry
         double ticksPerSecond = outtakeMotor.getVelocity();
-        double ticksPerSecond2 = outtakeMotor2.getVelocity();
+//        double ticksPerSecond2 = outtakeMotor2.getVelocity();
 
         telemetry.addData("Outtake On", outtakeOn);
         telemetry.addData("PIDF Coefficients", outtakeMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER).toString());
@@ -108,7 +108,7 @@ public class Shooter {
         telemetry.addData("Applied Target Velocity (ticks/sec)", appliedTestTarget);
         telemetry.addData("Hood position", hoodPosition);
         telemetry.addData("Current Velocity Left Shooter (ticks/sec)", ticksPerSecond);
-        telemetry.addData("Current Velocity Right Shooter (ticks/sec)", ticksPerSecond2);
+//        telemetry.addData("Current Velocity Right Shooter (ticks/sec)", ticksPerSecond2);
     }
 
     public void runCameraShots(Gamepad gamepad, Telemetry telemetry, double xDist) {
@@ -129,7 +129,7 @@ public class Shooter {
         telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
         telemetry.addData("Applied Target Velocity (ticks/sec)", appliedTarget);
         telemetry.addData("Hood position", hoodPosition);
-        telemetry.addData("Current Velocity (ticks/sec)", getAverageVelocity());
+        telemetry.addData("Current Velocity (ticks/sec)", outtakeMotor.getVelocity());
     }
 
     public void updateCameraShotSpeed(double x) {
@@ -153,7 +153,7 @@ public class Shooter {
     }
     // A VELOCITY BASED HOOD
     private void updateHoodByVelocity() {
-        double v = getAverageVelocity();
+        double v = outtakeMotor.getVelocity();
 
         // regression from desmos of hood position plotted vs velocity
 //        double y = -0.00148148 * v + 2.56759;
@@ -186,7 +186,7 @@ public class Shooter {
         telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
         telemetry.addData("Applied Target Velocity (ticks/sec)", appliedOdometryTarget);
         telemetry.addData("Hood position", hoodPosition);
-        telemetry.addData("Current Velocity (ticks/sec)", getAverageVelocity());
+        telemetry.addData("Current Velocity (ticks/sec)", outtakeMotor.getVelocity());
     }
 
     private void updateOdometryShotSpeed(double x) {
@@ -207,10 +207,10 @@ public class Shooter {
         );
     }
 
-    public boolean isAtShootingSpeed() {
-        double averageVelocity = getAverageVelocity();
-        return Math.abs(averageVelocity - targetVelocityTicks) < ACCEPTABLE_VELOCITY_ERROR_TICKS;
-    }
+//    public boolean isAtShootingSpeed() {
+//        double averageVelocity = getAverageVelocity();
+//        return Math.abs(averageVelocity - targetVelocityTicks) < ACCEPTABLE_VELOCITY_ERROR_TICKS;
+//    }
 
     public boolean isSingleAtShootingSpeed() {
         return Math.abs(outtakeMotor.getVelocity() - targetVelocityTicks) < ACCEPTABLE_VELOCITY_ERROR_TICKS;
@@ -218,9 +218,10 @@ public class Shooter {
 
     private double getAverageVelocity() {
         double leftShooterVelocity = outtakeMotor.getVelocity();
-        double rightShooterVelocity = outtakeMotor2.getVelocity(); // is negative ticks
+//        double rightShooterVelocity = outtakeMotor2.getVelocity(); // is negative ticks
 
-        return (Math.abs(leftShooterVelocity) + Math.abs(rightShooterVelocity)) / 2.0;
+//        return (Math.abs(leftShooterVelocity) + Math.abs(rightShooterVelocity)) / 2.0;
+        return 0;
     }
 
     /**
@@ -240,10 +241,10 @@ public class Shooter {
     private void applyVelocity(boolean onState, double targetVelocity) {
         if (onState) {
             outtakeMotor.setVelocity(targetVelocity);
-            outtakeMotor2.setVelocity(-targetVelocity); // the right shooter needs to be negative
+//            outtakeMotor2.setVelocity(-targetVelocity); // the right shooter needs to be negative
         } else {
             outtakeMotor.setVelocity(0);
-            outtakeMotor2.setVelocity(0);
+//            outtakeMotor2.setVelocity(0);
         }
     }
 }

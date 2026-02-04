@@ -94,7 +94,7 @@ public class Turret {
         double currentAngularVelocityDegPerSec = convertTickstoDegrees(turretMotor.getVelocity());
         double rawOutput = TURRET_PID.turretControlSystem.calculate(new KineticState(currentAngle, currentAngularVelocityDegPerSec));
 
-        double maxPower = 0.8;
+        double maxPower = 0.65;
         turnPower = Range.clip(rawOutput, -maxPower, maxPower);
 
         // Enforce software travel limits (this modifies turnPower to prevent driving into hard stops)
@@ -102,7 +102,7 @@ public class Turret {
 
         // --- NEW: enforce a minimum power to overcome static friction when there is a meaningful error ---
         // If the angular error is greater than 0.5 degrees, ensure at least 0.1 magnitude power is applied
-        double minPowerForAlignment = 0.1;
+        double minPowerForAlignment = 0.05;
         double alignmentThreshold = 0.5; // degrees
         if (Math.abs(angleError) > alignmentThreshold) {
             if (Math.abs(turnPower) < minPowerForAlignment) {
@@ -182,7 +182,7 @@ public class Turret {
 
     private void keepTurretWithinLimits() {
         double curTicks = turretMotor.getCurrentPosition();
-        double oneSideBound = 450;
+        double oneSideBound = 440;
 
         // po
         if (curTicks < -oneSideBound) {

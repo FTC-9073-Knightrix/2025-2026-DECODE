@@ -142,7 +142,7 @@ public class TeleOpMecanumDrive {
         }
 
         // scale rotX to speed up turning
-        rotX = rotX * 1.3;
+        rotX = rotX * 1.1;
 
         double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(rx), 1);
         double frontLeftPower = (rotY + rotX + rx) / denominator;

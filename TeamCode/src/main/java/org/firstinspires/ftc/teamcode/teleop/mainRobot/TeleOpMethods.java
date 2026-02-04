@@ -38,11 +38,10 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
         TESTING,
         MANUAL_ADJUST
     }
-    protected AimingMethod robotAimingMethod = AimingMethod.TESTING; // default on odometry
+    protected AimingMethod robotAimingMethod = AimingMethod.ODOMETRY; // default on odometry
 
     // Endgame rumble
     ElapsedTime gameTime = new ElapsedTime();
-    ElapsedTime loopTime = new ElapsedTime();
     boolean reachedEndGame = false;
 
     @Override
@@ -55,7 +54,6 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
             gamepad1.rumble(1000);
             gamepad2.rumble(1000);
         }
-        loopTime.reset();
     }
 
     public void toggleCameraRequirement() {
@@ -71,18 +69,31 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
     }
 
     public void runTurret() {
-        boolean holdAim = gamepad1.left_trigger > 0.5;
-        if (robotAimingMethod == AimingMethod.CAMERA) {
-            double offsetDegrees = vision.getGoalTagBearing();
-            turret.run(offsetDegrees, gamepad1, telemetry);
-        }
-        else if (robotAimingMethod == AimingMethod.ODOMETRY) {
-            switch (allianceColor)  {
-                case RED:
-                    double offsetRedDegrees = Math.toDegrees(drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalXPedroForAiming, GoalCoords.RedGoalYPedroForAiming));
-                    turret.run(offsetRedDegrees, gamepad1, telemetry);
-                    break;
+        boolean aimHold = gamepad1.left_trigger > 0.5;
+        if (aimHold) {
+            if (robotAimingMethod == AimingMethod.CAMERA) {
+                double offsetDegrees = vision.getGoalTagBearing();
+                turret.run(offsetDegrees, gamepad1, telemetry);
             }
+            else if (robotAimingMethod == AimingMethod.ODOMETRY) {
+                switch (allianceColor)  {
+                    case RED:
+                        double offsetRedDegrees = Math.toDegrees(drive.getRobotOdoHeadingOffset(GoalCoords.RedGoalXPedroForAiming, GoalCoords.RedGoalYPedroForAiming));
+                        turret.run(offsetRedDegrees, gamepad1, telemetry);
+                        break;
+                }
+            }
+        }
+        else {
+            turret.run(0.0, gamepad1, telemetry); // center the turret when not holding the aim button
+        }
+
+        // lights
+        if (turret.isAligned()) {
+            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+        }
+        else {
+            lights.setColor(RevBlinkinLedDriver.BlinkinPattern.RED);
         }
     }
 
@@ -185,7 +196,7 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 
         drive.runManualMecanumDrive(gamepad1, allianceColor);
         drive.toggleRobotCentric(toggleDriveModeButton);
-        lights.setColor(RevBlinkinLedDriver.BlinkinPattern.BLUE_VIOLET);
+//        lights.setColor(RevBlinkinLedDriver.BlinkinPattern.BLUE_VIOLET);
     }
 
     public void runIntake() {
@@ -200,10 +211,10 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
             double power = 0;
             if (shooter.isSingleAtShootingSpeed()) {
                 transfer.openGate();
-                power = -1.0;
+                power = -0.8;
             }
             else if (transfer.gateIsOpen) {
-                power = -0.5;
+                power = 0.0;
             }
             intake.intakeMotor.setPower(power);
             intake.intakeMotor2.setPower(power);
@@ -235,13 +246,13 @@ public abstract class TeleOpMethods extends RobotBaseHwMap {
 
     @SuppressLint("DefaultLocale")
     public void displayTelemetry() {
-        telemetry.addData("loopTime", loopTime.milliseconds());
+        // calculate loop time using the game timer
         telemetry.addData("Aiming method: ", robotAimingMethod);
         telemetry.addData("alliance", allianceColor);
-        telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());
-        double intakeTicksPerSecond = intake.intakeMotor.getVelocity();
-        double intakeRPM = (intakeTicksPerSecond / 145.1) * 60.0;
-        telemetry.addData("intake velocity (RPM)", String.format("%.1f", intakeRPM));
+//        telemetry.addData("Is Tag detected: ", vision.isDetectingAGoalTag());
+//        double intakeTicksPerSecond = intake.intakeMotor.getVelocity();
+//        double intakeRPM = (intakeTicksPerSecond / 145.1) * 60.0;
+//        telemetry.addData("intake velocity (RPM)", String.format("%.1f", intakeRPM));
         //robot pose
         telemetry.addData("Pose: ", String.valueOf(drive.follower.getPose()));
         telemetry.addData("Distance:", String.format("%.1f", drive.getOdometryDistanceFromGoal(GoalCoords.RedGoalXPEDRO, GoalCoords.RedGoalYPEDRO)));

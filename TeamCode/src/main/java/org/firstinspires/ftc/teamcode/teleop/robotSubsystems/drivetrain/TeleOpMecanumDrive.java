@@ -39,7 +39,7 @@ public class TeleOpMecanumDrive {
     public double finalSlowMode = 0.0;
     public final double driveSpeed = 0.66;
     public final double fastSpeed = 1.0;
-    public final double slowSpeed = 0.30;
+    public final double slowSpeed = 0.5;
 
     boolean robotCentric;
     private boolean toggleRobotCentricButtonPrevPressed = false;
@@ -85,9 +85,9 @@ public class TeleOpMecanumDrive {
         // boolean rb, double y, double x, double rx, boolean resetHeadingButton, boolean resetPosButton, boolean resetPosInCloseZone, boolean resetPosInFarZone,
 //        boolean rb = gamepad1.right_bumper;
 
-        double y = gamepad1.left_stick_y;
-        double x = -gamepad1.left_stick_x;
-        double rx = -gamepad1.right_stick_x;
+        double y = -gamepad1.left_stick_y;
+        double x = gamepad1.left_stick_x;
+        double rx = gamepad1.right_stick_x;
         // preserve sign while squaring for finer low-end control
         rx = Math.signum(rx) * rx * rx; // square the turning input for finer control
 
@@ -137,8 +137,8 @@ public class TeleOpMecanumDrive {
 
         // changed the scaling from quadratic to cubic for better control
         if (finalSlowMode == fastSpeed) {
-            rotX = rotX * rotX * rotX;
-            rotY = rotY * rotY * rotY;
+            rotX = Math.signum(rotX) * rotX * rotX;
+            rotY = Math.signum(rotY) * rotY * rotY;
         }
 
         // scale rotX to speed up turning

@@ -73,12 +73,24 @@ public class Turret {
         turretTimer.reset();
     }
 
-    // New run method: inlines the behavior that was previously in testAlignTurret.
-    // Accepts an offsetDegrees parameter and uses the ControlSystem (angles) to compute output.
     public void run(double offsetDegrees, Gamepad gamepad, Telemetry telemetry) {
 
         // update current pose/encoders
         currentAngle = convertTickstoDegrees(turretMotor.getCurrentPosition());
+
+        // If requested target is outside safe travel range, do NOT attempt to aim.
+        // This prevents commanding the turret into mechanical end-stops or dangerous rotations.
+        final double MAX_SAFE_ANGLE = 165.0; // degrees on either side
+        if (Math.abs(offsetDegrees) > MAX_SAFE_ANGLE) {
+            // Keep the turret stopped and report the out-of-bounds target for diagnostics
+            turnPower = 0.0;
+            turretMotor.setPower(0.0);
+
+            // Update angle error for diagnostics but do NOT change the control goal
+            updateAngleError(offsetDegrees);
+
+            return;
+        }
 
         // probably do not use this -- the magnet switch
 //        relocalizeTurret();
@@ -100,8 +112,7 @@ public class Turret {
         // Enforce software travel limits (this modifies turnPower to prevent driving into hard stops)
         keepTurretWithinLimits();
 
-        // --- NEW: enforce a minimum power to overcome static friction when there is a meaningful error ---
-        // If the angular error is greater than 0.5 degrees, ensure at least 0.1 magnitude power is applied
+        // If the angular error is greater than 0.5 degrees, ensure at least 0.05 magnitude power is applied
         double minPowerForAlignment = 0.05;
         double alignmentThreshold = 0.5; // degrees
         if (Math.abs(angleError) > alignmentThreshold) {

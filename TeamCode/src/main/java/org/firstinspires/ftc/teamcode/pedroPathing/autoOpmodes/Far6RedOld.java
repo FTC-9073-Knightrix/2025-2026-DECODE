@@ -10,14 +10,16 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.RobotStaticVariables;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-@Autonomous(name = "Far 6 Red", group = "Pedro Autonomous")
+//@Autonomous(name = "Far 6 Red", group = "Pedro Autonomous")
+@Disabled
 @Configurable // Panels
-public class Far6Red extends OpMode {
+public class Far6RedOld extends OpMode {
 
     public enum PathState {
         WAITING_TO_START,
@@ -204,3 +206,4 @@ public class Far6Red extends OpMode {
         pathTimer.resetTimer();
     }
 }
+

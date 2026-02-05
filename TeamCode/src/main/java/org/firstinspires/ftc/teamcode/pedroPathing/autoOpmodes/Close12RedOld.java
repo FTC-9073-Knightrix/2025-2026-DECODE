@@ -15,9 +15,10 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.RobotStaticVariables;
 
-@Autonomous(name = "Pedro Close 12 Red", group = "Pedro Autonomous")
+//@Autonomous(name = "Pedro Close 12 Red", group = "Pedro Autonomous")
+@Disabled
 @Configurable // Panels
-public class Close12Red extends OpMode {
+public class Close12RedOld extends OpMode {
 
     public enum PathState {
         WAITING_TO_START,
@@ -49,7 +50,7 @@ public class Close12Red extends OpMode {
         pathTimer = new Timer();
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(111.837, 136.042, Math.toRadians(0)));
+        follower.setStartingPose(new Pose(117.481, 131.668, Math.toRadians(37)));
 
         paths = new Paths(follower); // Build paths
 
@@ -71,7 +72,6 @@ public class Close12Red extends OpMode {
         panelsTelemetry.update(telemetry);
     }
 
-
     public static class Paths {
 
         public double WaitTime;
@@ -85,79 +85,88 @@ public class Close12Red extends OpMode {
         public PathChain DriveToFinalGatePosition;
 
         public Paths(Follower follower) {
-            WaitTime = 2; // seconds
-            DriveToShootPreload = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(111.838, 136.042),
-                                    new Pose(88.471, 83.597)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+            WaitTime = 3.5; // seconds
+            DriveToShootPreload = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(117.481, 131.668), new Pose(89.249, 83.288))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(37), Math.toRadians(48))
                     .build();
 
-            DriveToFirstTape = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(88.471, 83.597),
-                                    new Pose(127.176, 83.252)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+            DriveToFirstTape = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(89.249, 83.288), new Pose(126.000, 83.428))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0), 0.2)
                     .build();
 
-            DriveBackFromFirstTape = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(127.176, 83.252),
-                                    new Pose(88.597, 83.588)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+            DriveBackFromFirstTape = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(126.000, 83.428), new Pose(89.389, 83.149))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(48))
                     .build();
 
-            DriveToSecondTape = follower.pathBuilder().addPath(
+
+            DriveToSecondTape = follower
+                    .pathBuilder()
+                    .addPath(
                             new BezierCurve(
-                                    new Pose(88.597, 83.588),
-                                    new Pose(82.550, 54.147),
-                                    new Pose(124.105, 59.408),
-                                    new Pose(134.017, 58.420)
+                                    new Pose(89.389, 83.149),
+                                    new Pose(85.351, 57.069),
+                                    new Pose(95.320, 59.379),
+                                    new Pose(133.500, 59.400)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0), 0.3)
                     .build();
 
-            DriveBackFromSecondTape = follower.pathBuilder().addPath(
+            DriveBackFromSecondTape = follower
+                    .pathBuilder()
+                    .addPath(
                             new BezierCurve(
-                                    new Pose(134.017, 58.420),
-                                    new Pose(103.218, 63.849),
-                                    new Pose(88.555, 83.412)
+                                    new Pose(133.500, 59.400),
+                                    new Pose(91.673, 59.014),
+                                    new Pose(89.363, 83.209)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(48))
                     .build();
 
-            DrivetoThirdTape = follower.pathBuilder().addPath(
+
+            DrivetoThirdTape = follower
+                    .pathBuilder()
+                    .addPath(
                             new BezierCurve(
-                                    new Pose(88.555, 83.412),
-                                    new Pose(86.824, 28.777),
-                                    new Pose(104.597, 35.416),
-                                    new Pose(133.479, 35.403)
+                                    new Pose(89.363, 83.209),
+                                    new Pose(80.487, 27.800),
+                                    new Pose(93.010, 35.670),
+                                    new Pose(133.500, 35.400)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0), 0.3)
                     .build();
 
-            DriveBackFromThirdTape = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(133.479, 35.403),
-                                    new Pose(88.218, 83.655)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+            DriveBackFromThirdTape = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(133.500, 35.400), new Pose(89.389, 83.428))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(48))
                     .build();
 
-            DriveToFinalGatePosition = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(88.218, 83.655),
-                                    new Pose(118.798, 70.092)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
-
+            DriveToFinalGatePosition = follower
+                    .pathBuilder()
+                    .addPath(
+                            new BezierLine(new Pose(89.389, 83.428), new Pose(115.968, 69.999))
+                    )
+                    .setLinearHeadingInterpolation(Math.toRadians(48), Math.toRadians(0))
                     .build();
         }
     }
-
 
 
     public void autonomousPathUpdate() {
@@ -165,23 +174,23 @@ public class Close12Red extends OpMode {
             case WAITING_TO_START:
                 // Drive to shooting position
                 follower.followPath(paths.DriveToShootPreload);
-                // robot.runIntake();
-                // robot.spinShooterForMidShot();
+                robot.runIntake();
+                robot.spinShooterForMidShot();
                 setPathState(PathState.DRIVE_TO_SHOOT_PRELOAD);
                 break;
             case DRIVE_TO_SHOOT_PRELOAD:
                 // Wait for path to complete before shooting preload
                 if (!follower.isBusy()) {
                     setPathState(PathState.SHOOT_FIRST_PRELOAD);
-                    // robot.initTransfer(robot.midShotTargetVelocityTicks);
+                    robot.initTransfer(robot.midShotTargetVelocityTicks);
                 }
                 break;
             case SHOOT_FIRST_PRELOAD:
-                // robot.runTransfer(); // needs to be called repeatedly to run transfer
-                if (/*!robot.transferStillRunning() ||*/ pathTimer.getElapsedTimeSeconds() > paths.WaitTime) {
+                robot.runTransfer(); // needs to be called repeatedly to run transfer
+                if (!robot.transferStillRunning() || pathTimer.getElapsedTimeSeconds() > paths.WaitTime) {
                     follower.followPath(paths.DriveToFirstTape);
-                    // robot.resetTransfer();
-                    // robot.stopTransfer();
+                    robot.resetTransfer();
+                    robot.stopTransfer();
                     setPathState(PathState.DRIVE_TO_FIRST_TAPE);
                 }
                 break;
@@ -196,15 +205,15 @@ public class Close12Red extends OpMode {
                 // Return to shooting position with first three artifacts
                 if (!follower.isBusy()) {
                     setPathState(PathState.SHOOT_FIRST_THREE);
-                    // robot.initTransfer(robot.midShotTargetVelocityTicks);
+                    robot.initTransfer(robot.midShotTargetVelocityTicks);
                 }
                 break;
             case SHOOT_FIRST_THREE:
-                // robot.runTransfer(); // needs to be called repeatedly to run transfer
-                if (/*!robot.transferStillRunning() ||*/ pathTimer.getElapsedTimeSeconds() > paths.WaitTime) {
+                robot.runTransfer(); // needs to be called repeatedly to run transfer
+                if (!robot.transferStillRunning() || pathTimer.getElapsedTimeSeconds() > paths.WaitTime) {
                     follower.followPath(paths.DriveToSecondTape);
-                    // robot.resetTransfer();
-                    // robot.stopTransfer();
+                    robot.resetTransfer();
+                    robot.stopTransfer();
                     setPathState(PathState.DRIVE_TO_SECOND_TAPE);
                 }
                 break;
@@ -220,18 +229,18 @@ public class Close12Red extends OpMode {
                 // Return to shooting position with second sample
                 if (!follower.isBusy()) {
                     setPathState(PathState.SHOOT_SECOND_THREE);
-                    // robot.initTransfer(robot.midShotTargetVelocityTicks);
+                    robot.initTransfer(robot.midShotTargetVelocityTicks);
                 }
                 break;
             case SHOOT_SECOND_THREE:
-                // robot.runTransfer();
-                if (/*!robot.transferStillRunning() ||*/ pathTimer.getElapsedTimeSeconds() > paths.WaitTime) {
+                robot.runTransfer();
+                if (!robot.transferStillRunning() || pathTimer.getElapsedTimeSeconds() > paths.WaitTime) {
                     follower.followPath(paths.DrivetoThirdTape);
                     setPathState(PathState.DRIVE_TO_THIRD_TAPE);
-                    // robot.resetTransfer();
-                    // robot.stopTransfer();
-                }
-                break;
+                    robot.resetTransfer();
+                    robot.stopTransfer();
+                 }
+                 break;
             case DRIVE_TO_THIRD_TAPE:
                 // Drive to third sample
                 if (!follower.isBusy()) {
@@ -244,31 +253,26 @@ public class Close12Red extends OpMode {
                 // Return to final position
                 if (!follower.isBusy()) {
                     setPathState(PathState.SHOOT_THIRD_THREE);
-                    // robot.initTransfer(robot.midShotTargetVelocityTicks);
+                    robot.initTransfer(robot.midShotTargetVelocityTicks);
                 }
                 break;
             case SHOOT_THIRD_THREE:
-                // robot.runTransfer();
-                if (/*!robot.transferStillRunning() ||*/ pathTimer.getElapsedTimeSeconds() > paths.WaitTime) {
+                robot.runTransfer();
+                if (!robot.transferStillRunning() || pathTimer.getElapsedTimeSeconds() > paths.WaitTime) {
                     /* Shoot third sample here or park */
                     setPathState(PathState.DRIVE_TO_FINAL_GATE_POSITION);
                     follower.followPath(paths.DriveToFinalGatePosition);
-                    // robot.resetTransfer();
-                    // robot.stopTransfer();
-                    // robot.stopIntake();
-                    // robot.stopShooter();
-                }
-                break;
+                    robot.resetTransfer();
+                    robot.stopTransfer();
+                    robot.stopIntake();
+                    robot.stopShooter();
+                 }
+                 break;
             case DRIVE_TO_FINAL_GATE_POSITION:
                 // End of autonomous
                 RobotStaticVariables.END_OF_AUTO_POSITION = follower.getPose();
                 break;
         }
-    }
-
-    @Override
-    public void stop() {
-        RobotStaticVariables.END_OF_AUTO_POSITION = follower.getPose();
     }
 
     /** These change the states of the paths and actions. It will also reset the timers of the individual switches **/

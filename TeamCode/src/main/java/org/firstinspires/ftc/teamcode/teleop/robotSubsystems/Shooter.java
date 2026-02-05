@@ -179,12 +179,12 @@ public class Shooter {
         lastAState = gamepad.a;
 
         // Apply the (possibly updated) velocity to the motors (with force adjustment if needed)
-        double appliedOdometryTarget = getVelocityWithForceAdjustment(targetVelocityTicks);
-        applyVelocity(outtakeOn, appliedOdometryTarget);
+//        double appliedOdometryTarget = getVelocityWithForceAdjustment(targetVelocityTicks);
+        applyVelocity(outtakeOn, targetVelocityTicks);
 
         telemetry.addData("Outtake On", outtakeOn);
         telemetry.addData("Target Velocity (ticks/sec)", targetVelocityTicks);
-        telemetry.addData("Applied Target Velocity (ticks/sec)", appliedOdometryTarget);
+//        telemetry.addData("Applied Target Velocity (ticks/sec)", appliedOdometryTarget);
         telemetry.addData("Hood position", hoodPosition);
         telemetry.addData("Current Velocity (ticks/sec)", outtakeMotor.getVelocity());
     }
